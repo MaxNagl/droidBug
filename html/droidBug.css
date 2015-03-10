@@ -1,0 +1,20 @@
+*{margin:0;padding:0;cursor:default;font-weight:normal}
+li{list-style-type:none}
+body{background:#222;color:#FFF;font-family:sans-serif}
+h1{text-align:center;background:#444}
+.closed:before{display:inline-block;content:"\25BA";width:1em;color:#AAA}
+.opened:before{display:inline-block;content:"\25BC";width:1em;color:#AAA}
+.invoke:before{display:inline-block;content:"\2607";width:1em;color:#FFF}
+.nullify:before{display:inline-block;content:"\2205";color:#A00;margin-left:0.5em}
+.notOpenable{margin-left:1em}
+.expand{margin:5px 0px 10px 1.5em}
+.object{display:block;font-family:monospace;white-space:nowrap;max-width:50em;overflow:hidden;text-overflow:ellipsis;color:#777}
+.fieldName{color:#9876AA}
+.type{color:#CC7832}
+.modifier{color:#CC7832}
+.value{color:#A9B7C6}
+[contentEditable]{border:1px solid #444;cursor:cursor:text;padding:0px 5px}
+[tabContent]{display:inline-block;padding:5px 10px;border-bottom:4px solid #444;color:#AAA}
+.active[tabContent]{border-color:#777;color:#FFF}
+.tabContent{margin:20px;display:none}
+.tabs{padding:0px 20px;background:#444}
