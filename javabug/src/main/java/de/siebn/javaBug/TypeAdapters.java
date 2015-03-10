@@ -25,6 +25,7 @@ public class TypeAdapters {
 
     private TypeAdapters() {}
 
+    @SuppressWarnings("unchecked")
     public static<T> TypeAdapter<T> getTypeAdapter(Class clazz) {
         TypeAdapter<?> adapter = adapterMap.get(clazz);
         if (adapter != null) return (TypeAdapter<T>) adapter;
@@ -129,7 +130,7 @@ public class TypeAdapters {
         }
 
         @Override
-        public Object parse(Class<? extends Object> clazz, String string) {
+        public Object parse(Class<?> clazz, String string) {
             if (clazz.equals(String.class)) return string;
             if (clazz.equals(Integer.class) || clazz.equals(int.class)) return Integer.parseInt(string);
             if (clazz.equals(Long.class) || clazz.equals(long.class)) return Long.parseLong(string);
@@ -144,8 +145,7 @@ public class TypeAdapters {
 
         @Override
         public boolean canAdapt(Class<?> clazz) {
-            if (clazz.isPrimitive()) return true;
-            return super.canAdapt(clazz);
+            return clazz.isPrimitive() || super.canAdapt(clazz);
         }
     }
 
@@ -155,7 +155,7 @@ public class TypeAdapters {
         }
 
         @Override
-        public boolean canAdapt(Class<? extends Object> clazz) {
+        public boolean canAdapt(Class<?> clazz) {
             return clazz.isArray();
         }
 
@@ -171,7 +171,7 @@ public class TypeAdapters {
         }
 
         @Override
-        public boolean canAdapt(Class<? extends Object> clazz) {
+        public boolean canAdapt(Class<?> clazz) {
             return true;
         }
 

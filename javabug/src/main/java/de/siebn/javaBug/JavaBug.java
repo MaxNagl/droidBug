@@ -60,7 +60,7 @@ public class JavaBug extends NanoHTTPD {
     }
 
     public <T> List<T> getPlugins(Class<T> pluginClass) {
-        ArrayList<T> filtered = (ArrayList<T>) filteredPlugins.get(pluginClass);
+        @SuppressWarnings("unchecked") ArrayList<T> filtered = (ArrayList<T>) filteredPlugins.get(pluginClass);
         if (filtered == null) {
             filteredPlugins.put(pluginClass, filtered = new ArrayList<>());
             for (BugPlugin plugin : plugins)

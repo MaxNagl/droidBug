@@ -62,8 +62,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         }
 
         private void addAllMembers(Class<?> clazz) {
-            for (Field f : clazz.getDeclaredFields()) fields.add(f);
-            for (Method m : clazz.getDeclaredMethods()) methods.add(m);
+            Collections.addAll(fields, clazz.getDeclaredFields());
+            Collections.addAll(methods, clazz.getDeclaredMethods());
             if (clazz.getSuperclass() != null) addAllMembers(clazz.getSuperclass());
         }
     }
@@ -184,7 +184,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             if (f.getName().equals(fieldName)) {
                 TypeAdapters.TypeAdapter<?> adapter = TypeAdapters.getTypeAdapter(f.getType());
                 if (adapter == null) throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No TypeAdapter found!");
-                Object val = null;
+                Object val;
                 try {
                     String v = session.getParms().get("o");
                     val = adapter.parse((Class) f.getType(), v == null ? null : v);

@@ -45,7 +45,7 @@ public class XML {
 			factory.setNamespaceAware(false);
 			document = factory.newDocumentBuilder().parse(in);
 			element = (Element) document.getFirstChild();
-			Stack<NodeList> nodeLists = new Stack<NodeList>();
+			Stack<NodeList> nodeLists = new Stack<>();
 			nodeLists.add(document.getChildNodes());
 			while (!nodeLists.isEmpty()) {
 				NodeList list = nodeLists.pop();
