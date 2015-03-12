@@ -98,6 +98,7 @@ public class JavaBug extends NanoHTTPD {
                             }
                             Object r = method.invoke(object, param);
                             if (r instanceof Response) return (Response) r;
+                            if (r instanceof XML) return new Response(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, ((XML) r).getXml());
                             if (r instanceof byte[]) return new Response(Response.Status.OK, "application/octet-stream", new ByteArrayInputStream((byte[]) r));
                             if (r instanceof InputStream) return new Response(Response.Status.OK, "application/octet-stream", (InputStream) r);
                             return new Response(r.toString());
@@ -131,6 +132,7 @@ public class JavaBug extends NanoHTTPD {
 
     @Override
     public Response serve(IHTTPSession session) {
+        System.out.println("Serving: " + session.getUri());
         try {
             for (Server server : servers)
                 if (server.responsible(session))

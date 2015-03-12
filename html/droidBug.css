@@ -1,6 +1,7 @@
-*{margin:0;padding:0;cursor:default;font-weight:normal}
+*{margin:0;padding:0;cursor:default;font-weight:normal;flex-shrink:0;}
 li{list-style-type:none}
-body{background:#222;color:#FFF;font-family:sans-serif}
+html{height:100%}
+body{background:#222;color:#FFF;font-family:sans-serif;display:flex;flex-direction:column;height:100%}
 h1{text-align:center;background:#444}
 .closed:before{display:inline-block;content:"\25BA";width:1em;color:#AAA}
 .opened:before{display:inline-block;content:"\25BC";width:1em;color:#AAA}
@@ -16,5 +17,8 @@ h1{text-align:center;background:#444}
 [contentEditable]{border:1px solid #444;cursor:cursor:text;padding:0px 5px}
 [tabContent]{display:inline-block;padding:5px 10px;border-bottom:4px solid #444;color:#AAA}
 .active[tabContent]{border-color:#777;color:#FFF}
-.tabContent{margin:20px;display:none}
+.tabContent{padding:20px;display:none;flex-grow:1;flex-basis:0;overflow:hidden}
 .tabs{padding:0px 20px;background:#444}
+.flexCol{display:flex;flex-direction:column}
+.flexGrow{flex-grow:1}
+[split]>div{display:inline-block}

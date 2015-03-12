@@ -116,12 +116,15 @@ public class XML {
 		return this;
 	}
 
-    private XML addElement(XML e) {
-        element.appendChild(e.element);
+    public XML addElement(XML e) {
+        if (!element.getOwnerDocument().equals(e.element.getOwnerDocument()))
+            element.appendChild(document.importNode(e.element, true));
+        else
+            element.appendChild(e.element);
         return e;
     }
 
-    private XML addElement(XML e, int pos) {
+    public XML addElement(XML e, int pos) {
         NodeList nodes = element.getChildNodes();
         if (pos < nodes.getLength())
             element.insertBefore(e.element, nodes.item(pos));
@@ -138,7 +141,7 @@ public class XML {
         return addElement(new XML(document, tag), pos);
     }
 
-    private String convertToXml(String prefix) {
+    private String convertToXml(String prefix, Node root) {
         try {
             StringWriter sw = new StringWriter();
             if (prefix != null) sw.write(prefix);
@@ -148,7 +151,14 @@ public class XML {
             t.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
             t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             t.setOutputProperty(OutputKeys.METHOD, "html");
-            t.transform(new DOMSource(document), new StreamResult(sw));
+            if (root == null) {
+                t.transform(new DOMSource(document), new StreamResult(sw));
+            } else {
+                NodeList children = root.getChildNodes();
+                for (int i = 0; i < children.getLength(); i++) {
+                    t.transform(new DOMSource(children.item(i)), new StreamResult(sw));
+                }
+            }
             sw.close();
             return sw.toString();
         } catch (Exception e) {
@@ -158,10 +168,14 @@ public class XML {
     }
 
     public String getXml() {
-        return convertToXml(null);
+        return convertToXml(null, null);
+    }
+
+    public String getChildrenXml() {
+        return convertToXml(null, element);
     }
 
     public String getHtml() {
-        return convertToXml("<!DOCTYPE html>\n");
+        return convertToXml("<!DOCTYPE html>\n", null);
 	}
 }

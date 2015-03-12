@@ -128,13 +128,13 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             li.appendText(" ").add("span").setClass("fieldName").appendText(m.getName());
             li.appendText("(");
             boolean first = true;
-            for (Parameter p : m.getParameters()) {
+            for (Class c : m.getParameterTypes()) {
                 if (!first) li.appendText(", ");
-                li.add("span").setClass("type").appendText(p.getType().getSimpleName());
+                li.add("span").setClass("type").appendText(c.getSimpleName());
                 first = false;
             }
             li.appendText(")");
-            if (m.getParameters().length == 0) {
+            if (m.getParameterTypes().length == 0) {
                 references.put(System.identityHashCode(o), o);
                 li.setAttr("invoke", "/invoke/" + hexHash + "/" + m.getName());
             }

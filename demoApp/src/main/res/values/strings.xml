@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">droidBug Demo App</string>
+    <string name="welcome">Welcome to the droidBug Demo App</string>
+    <string name="connectBrowser">Connect you browser to one of these adresses:</string>
+</resources>
