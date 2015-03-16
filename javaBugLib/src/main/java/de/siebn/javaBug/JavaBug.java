@@ -132,14 +132,16 @@ public class JavaBug extends NanoHTTPD {
 
     @Override
     public Response serve(IHTTPSession session) {
-        System.out.println("Serving: " + session.getUri());
+        long start = System.nanoTime();
         try {
             for (Server server : servers)
                 if (server.responsible(session))
                     return server.serve(session);
-            return new Response("ERROR");
+            return new Response(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "404");
         } catch (ExceptionResult e) {
             return new Response(e.status, NanoHTTPD.MIME_PLAINTEXT, e.getMessage());
+        } finally {
+            System.out.println("Serving: " + session.getUri() + " in: " + StringifierUtil.nanoSecondsToString(System.nanoTime() - start));
         }
     }
 

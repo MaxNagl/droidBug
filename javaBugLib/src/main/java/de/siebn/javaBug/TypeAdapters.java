@@ -20,6 +20,7 @@ public class TypeAdapters {
         addAdapter(new PrimitiveAdapter());
         addAdapter(new ObjectAdapter());
         addAdapter(new ArrayAdapter());
+        addAdapter(new StringAdapter());
     }
 
 
@@ -118,7 +119,6 @@ public class TypeAdapters {
 
         public PrimitiveAdapter() {
             super(Integer.MIN_VALUE + 2, true, true);
-            classes.add(String.class);
             classes.add(Integer.class);
             classes.add(Long.class);
             classes.add(Boolean.class);
@@ -131,7 +131,6 @@ public class TypeAdapters {
 
         @Override
         public Object parse(Class<?> clazz, String string) {
-            if (clazz.equals(String.class)) return string;
             if (clazz.equals(Integer.class) || clazz.equals(int.class)) return Integer.parseInt(string);
             if (clazz.equals(Long.class) || clazz.equals(long.class)) return Long.parseLong(string);
             if (clazz.equals(Boolean.class) || clazz.equals(boolean.class)) return Boolean.parseBoolean(string);
@@ -146,6 +145,20 @@ public class TypeAdapters {
         @Override
         public boolean canAdapt(Class<?> clazz) {
             return clazz.isPrimitive() || super.canAdapt(clazz);
+        }
+    }
+
+    public static class StringAdapter extends AbstractAdapter<Object> {
+
+        public StringAdapter() {
+            super(Integer.MIN_VALUE + 2, true, true);
+            classes.add(String.class);
+            classes.add(CharSequence.class);
+        }
+
+        @Override
+        public Object parse(Class<?> clazz, String string) {
+            return string;
         }
     }
 

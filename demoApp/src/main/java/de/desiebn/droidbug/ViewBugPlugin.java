@@ -9,10 +9,7 @@ import android.view.ViewGroup;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
-import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.NanoHTTPD;
-import de.siebn.javaBug.RootBugPlugin;
-import de.siebn.javaBug.XML;
+import de.siebn.javaBug.*;
 
 /**
  * Created by Sieben on 04.03.2015.
@@ -59,20 +56,29 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     public String serveViews() {
         XML div = new XML("div").setAttr("split", "horizontal");
         div.add("div").setAttr("split", "vertical").setAttr("autoload", "/viewcol").appendText("LOADING...");
-        div.add("div").setAttr("style", "background:#FF0");
+        div.add("div").setId("viewDetails").setAttr("style", "overflow:auto");
         return div.getXml();
     }
 
     @JavaBug.Serve("^/viewcol")
     public String serveViewsCol() {
+        View decorView = activity.getWindow().getDecorView();
         XML root = new XML("root");
         XML imgDiv = root.add("div").setAttr("style", "overflow:hidden").add("div").setAttr("style", "transform-origin:0% 0%").setAttr("autoscale", "true");
-        View decorView = activity.getWindow().getDecorView();
         XML img = imgDiv.add("img").setAttr("src", getLinkToViewShot(decorView));
         img.setAttr("width", String.valueOf(decorView.getWidth()));
         img.setAttr("height", String.valueOf(decorView.getHeight()));
+        img.setAttr("style","position:relative");
+        img.addElement(serveViewTreeDivs());
         root.add("div").setAttr("style", "overflow:auto").addElement(serveViewTree());
         return root.getChildrenXml();
+    }
+
+    @JavaBug.Serve("^/viewTreeDivs")
+    public XML serveViewTreeDivs() {
+        XML ul = new XML("ul").setAttr("style","position:absolute;left:0px;top:0px");
+        addViewTreeDiv(ul, activity.getWindow().getDecorView());
+        return ul;
     }
 
     @JavaBug.Serve("^/viewTree")
@@ -85,7 +91,9 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     private void addViewTree(XML ul, View view) {
         XML li = ul.add("li").setClass("object");
         //li.add("a").setHref("/viewShot/" + Integer.toHexString(System.identityHashCode(view))).appendText(view.toString());
+        li.setAttr("onClick", "load('#viewDetails', '" + ObjectBugPlugin.INSTANCE.getObjectDetailsLink(view) + "', true)");
         li.appendText(view.toString());
+        li.setAttr("hoverGroup", Integer.toHexString(System.identityHashCode(view)));
         if (view instanceof ViewGroup) {
             XML cul = li.add("ul").setClass("expand");
             li.setAttr("expand", "true");
@@ -94,6 +102,18 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
                 addViewTree(cul, vg.getChildAt(i));
         } else {
             li.addClass("notOpenable");
+        }
+    }
+
+    private void addViewTreeDiv(XML div, View view) {
+        XML vDiv = div.add("div");
+        vDiv.setAttr("style", "position:absolute;left:" + view.getLeft() + "px;width:" + view.getWidth() + "px;top:" + view.getTop() + "px;height:" + view.getHeight() +"px");
+        vDiv.setClass("viewRect");
+        vDiv.setAttr("hoverGroup", Integer.toHexString(System.identityHashCode(view)));
+        if (view instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) view;
+            for (int i = 0; i < vg.getChildCount(); i++)
+                addViewTreeDiv(vDiv, vg.getChildAt(i));
         }
     }
 

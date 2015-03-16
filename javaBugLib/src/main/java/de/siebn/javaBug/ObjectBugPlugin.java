@@ -3,12 +3,10 @@ package de.siebn.javaBug;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.WeakHashMap;
 
 /**
  * Created by Sieben on 05.03.2015.
@@ -17,7 +15,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public final static ObjectBugPlugin INSTANCE = new ObjectBugPlugin();
 
     private final HashMap<Class<?>, AllClassMembers> allMembersMap = new HashMap<>();
-    private final WeakHashMap<Integer, Object> references = new WeakHashMap<>();
+    private final HashMap<Integer, Object> references = new HashMap<>();
     private ArrayList<Object> rootObjects = new ArrayList<>();
 
     private ObjectBugPlugin() {
@@ -114,6 +112,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         for (Field f : allMembers.fields) {
             f.setAccessible(true);
             XML li = ul.add("li").setClass("object");
+            li.addClass(StringifierUtil.modifiersToString(f.getModifiers(), "mod", true));
             addModifiers(li, f.getModifiers());
             li.add("span").setClass("type").appendText(f.getType().getSimpleName());
             li.add("span").appendText(" ").setClass("fieldName").appendText(f.getName());
@@ -123,6 +122,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         for (Method m : allMembers.methods) {
             m.setAccessible(true);
             XML li = ul.add("li").setClass("object notOpenable");
+            li.addClass(StringifierUtil.modifiersToString(m.getModifiers(), "mod", true));
             addModifiers(li, m.getModifiers());
             li.add("span").setClass("type").appendText(m.getReturnType().getSimpleName());
             li.appendText(" ").add("span").setClass("fieldName").appendText(m.getName());
@@ -144,7 +144,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     private void addModifiers(XML tag, int modifiers) {
         if (modifiers != 0) {
-            tag.add("span").setClass("modifier").appendText(Modifier.toString(modifiers));
+            tag.add("span").setClass("modifier").appendText(StringifierUtil.modifiersToString(modifiers, null, false));
             tag.appendText(" ");
         }
     }
@@ -189,7 +189,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
                     String v = session.getParms().get("o");
                     val = adapter.parse((Class) f.getType(), v == null ? null : v);
                 } catch (Exception e) {
-                    throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Could not parse + \"" + session.getParms().get("o") + "\"");
+                    throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Could not parse \"" + session.getParms().get("o") + "\"");
                 }
                 f.set(o, val);
                 return String.valueOf(f.get(o));
@@ -206,7 +206,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         AllClassMembers allMembers = getAllMembers(o.getClass());
         for (Method m : allMembers.methods) {
             if (m.getName().equals(methodName)) {
-                return getObjectDetails(m.invoke(o), true);
+                Object r = m.invoke(o);
+                return r == null ? "null" : getObjectDetails(m.invoke(o), true);
             }
         }
         return "ERROR";

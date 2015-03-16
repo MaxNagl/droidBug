@@ -34,6 +34,16 @@ public class RootBugPlugin implements BugPlugin {
             ul.add("li").setAttr("tabContent", plugin.getTagClass()).appendText(plugin.getTabName());
             body.add("div").setClass("tabContent " + plugin.getTagClass()).setAttr("autoLoad", plugin.getUrl());
         }
+
+        XML options = body.add("div").setClass("options");
+        for (String e : StringifierUtil.modifierNames.values()) {
+            XML label = options.add("label");
+            XML checkbox = label.add("input").setAttr("type", "checkbox").setAttr("modTag", "body").setAttr("modClass", "show" + e);
+            if (e.equals("public") || e.equals("static") || e.equals("final") || e.equals("synchronized") || e.equals("native"))
+                checkbox.setAttr("checked", "true");
+            label.appendText(e + " ");
+        }
+
         return page.getHtml();
     }
 }
