@@ -7,6 +7,7 @@ import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 /**
  * Created by Sieben on 16.03.2015.
@@ -43,12 +44,12 @@ public class StringOutput implements OutputCategory {
     }
 
     @Override
-    public boolean opened() {
+    public boolean opened(List<OutputCategory> others, boolean alreadyOpened) {
         return false;
     }
 
     @Override
-    public int getPriority() {
+    public int getOrder() {
         return 0;
     }
 }

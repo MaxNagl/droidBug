@@ -138,7 +138,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public int getPriority() {
+    public int getOrder() {
         return 0;
     }
 }

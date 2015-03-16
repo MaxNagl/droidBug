@@ -1,9 +1,7 @@
 package de.siebn.javaBug.testApplication;
 
 import de.siebn.javaBug.*;
-import de.siebn.javaBug.objectOut.FieldsOutput;
-import de.siebn.javaBug.objectOut.MethodsOutput;
-import de.siebn.javaBug.objectOut.StringOutput;
+import de.siebn.javaBug.objectOut.*;
 import de.siebn.javaBug.plugins.ClassPathBugPlugin;
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.plugins.RootBugPlugin;
@@ -24,6 +22,8 @@ public class JavaBugDemoApplication {
         jb.addPlugin(new FieldsOutput(jb));
         jb.addPlugin(new MethodsOutput(jb));
         jb.addPlugin(new StringOutput(jb));
+        jb.addPlugin(new PojoOutput(jb));
+        jb.addPlugin(new StackTraceOutput());
 
         jb.getObjectBug().addRootObject(new TestClass());
         jb.getObjectBug().addRootObject(jb);

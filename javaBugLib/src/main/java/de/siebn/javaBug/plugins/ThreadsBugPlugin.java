@@ -73,7 +73,7 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public int getPriority() {
+    public int getOrder() {
         return 2000;
     }
 }

@@ -1,36 +1,35 @@
 package de.siebn.javaBug.objectOut;
 
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.plugins.ObjectBugPlugin;
+import de.siebn.javaBug.objectOut.OutputCategory;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
 /**
  * Created by Sieben on 16.03.2015.
  */
-public class MethodsOutput implements OutputCategory {
+public class PojoOutput implements OutputCategory {
     private final JavaBug javaBug;
 
-    public MethodsOutput(JavaBug javaBug) {
+    public PojoOutput(JavaBug javaBug) {
         this.javaBug = javaBug;
     }
 
     @Override
     public void add(XML ul, Object o) {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        for (Method m : allMembers.methods) {
+        for (Method m : allMembers.pojo) {
             addMethodInformation(ul, o, m);
         }
     }
 
     @Override
     public String getType() {
-        return "methods";
+        return "pojo";
     }
 
     public void addMethodInformation(XML ul, Object o, Method m) {
@@ -61,12 +60,13 @@ public class MethodsOutput implements OutputCategory {
 
     @Override
     public String getName() {
-        return "Methods";
+        return "POJO";
     }
 
     @Override
     public boolean canOutputClass(Class<?> clazz) {
-        return true;
+        AllClassMembers allMembers = AllClassMembers.getForClass(clazz);
+        return allMembers.pojo.size() > 0;
     }
 
     @Override
@@ -76,6 +76,6 @@ public class MethodsOutput implements OutputCategory {
 
     @Override
     public int getOrder() {
-        return 3000;
+        return 1000;
     }
 }

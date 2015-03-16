@@ -18,7 +18,7 @@ public class RootBugPlugin implements BugPlugin {
     }
 
     @Override
-    public int getPriority() {
+    public int getOrder() {
         return 0;
     }
 

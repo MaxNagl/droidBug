@@ -2,10 +2,12 @@ package de.siebn.javaBug.objectOut;
 
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
+import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
 
 import java.lang.reflect.Field;
+import java.util.List;
 
 /**
  * Created by Sieben on 16.03.2015.
@@ -19,7 +21,7 @@ public class FieldsOutput implements OutputCategory {
 
     @Override
     public void add(XML ul, Object o) {
-        ObjectBugPlugin.AllClassMembers allMembers = javaBug.getObjectBug().getAllMembers(o.getClass());
+        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Field f : allMembers.fields) {
             addFieldInformation(ul, o, f);
         }
@@ -31,7 +33,6 @@ public class FieldsOutput implements OutputCategory {
     }
 
     public void addFieldInformation(XML ul, Object o, Field f) {
-        f.setAccessible(true);
         XML li = ul.add("li").setClass("object");
         li.addClass(StringifierUtil.modifiersToString(f.getModifiers(), "mod", true));
         addModifiers(li, f.getModifiers());
@@ -58,8 +59,8 @@ public class FieldsOutput implements OutputCategory {
     }
 
     @Override
-    public boolean opened() {
-        return true;
+    public boolean opened(List<OutputCategory> others, boolean alreadyOpened) {
+        return !alreadyOpened;
     }
 
     @Override
@@ -68,7 +69,7 @@ public class FieldsOutput implements OutputCategory {
     }
 
     @Override
-    public int getPriority() {
-        return 0;
+    public int getOrder() {
+        return 2000;
     }
 }

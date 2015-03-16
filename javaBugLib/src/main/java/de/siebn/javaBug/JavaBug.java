@@ -37,7 +37,7 @@ public class JavaBug extends NanoHTTPD {
     }
 
     public interface BugPlugin {
-        public int getPriority();
+        public int getOrder();
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -63,7 +63,7 @@ public class JavaBug extends NanoHTTPD {
     public void addPlugin(BugPlugin plugin) {
         plugins.add(plugin);
         Collections.sort(plugins, new Comparator<BugPlugin>() {
-            @Override public int compare(BugPlugin o1, BugPlugin o2) { return o1.getPriority() - o2.getPriority(); }
+            @Override public int compare(BugPlugin o1, BugPlugin o2) { return o1.getOrder() - o2.getOrder(); }
         });
         addAnnotatedMethods(plugin);
     }
@@ -134,7 +134,7 @@ public class JavaBug extends NanoHTTPD {
 //        Collections.sort(servers, new Comparator<Server>() {
 //            @Override
 //            public int compare(Server o1, Server o2) {
-//                return o2.getPriority() - o1.getPriority();
+//                return o2.getOrder() - o1.getOrder();
 //            }
 //        });
     }

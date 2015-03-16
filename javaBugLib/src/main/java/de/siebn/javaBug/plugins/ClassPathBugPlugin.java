@@ -36,7 +36,7 @@ public class ClassPathBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public int getPriority() {
+    public int getOrder() {
         return 3000;
     }
 }

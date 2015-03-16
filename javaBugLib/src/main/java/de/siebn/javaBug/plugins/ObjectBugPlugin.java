@@ -4,6 +4,7 @@ import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.objectOut.OutputCategory;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
+import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.XML;
 
 import java.lang.reflect.Field;
@@ -18,29 +19,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public final HashMap<Integer, Object> references = new HashMap<>();
     private ArrayList<Object> rootObjects = new ArrayList<>();
 
-    private final HashMap<Class<?>, AllClassMembers> allMembersMap = new HashMap<>();
     private JavaBug javaBug;
-
-    public class AllClassMembers {
-        public ArrayList<Field> fields = new ArrayList<>();
-        public ArrayList<Method> methods = new ArrayList<>();
-        private AllClassMembers(Class<?> clazz) {
-            addAllMembers(clazz);
-            Collections.sort(fields, new Comparator<Field>() {
-                @Override
-                public int compare(Field o1, Field o2) {
-                    return o1.getName().compareTo(o2.getName());
-                }
-            });
-            Collections.sort(methods, new Comparator<Method>() {@Override public int compare(Method o1, Method o2) {return o1.getName().compareTo(o2.getName());}});
-        }
-
-        private void addAllMembers(Class<?> clazz) {
-            Collections.addAll(fields, clazz.getDeclaredFields());
-            Collections.addAll(methods, clazz.getDeclaredMethods());
-            if (clazz.getSuperclass() != null) addAllMembers(clazz.getSuperclass());
-        }
-    }
 
     public List<OutputCategory> getOutputCategories(Class<?> clazz) {
         ArrayList<OutputCategory> outputCategories = new ArrayList<>();
@@ -48,13 +27,6 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             if (oc.canOutputClass(clazz))
                 outputCategories.add(oc);
         return outputCategories;
-    }
-
-    public AllClassMembers getAllMembers(Class<?> clazz) {
-        AllClassMembers allMembers = allMembersMap.get(clazz);
-        if (allMembers == null)
-            allMembersMap.put(clazz, allMembers = new AllClassMembers(clazz));
-        return allMembers;
     }
 
     public ObjectBugPlugin(JavaBug javaBug) {
@@ -81,7 +53,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public int getPriority() {
+    public int getOrder() {
         return 1000;
     }
 
@@ -121,20 +93,23 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public String getObjectDetails(Object o, String type) {
         XML ul = new XML("ul");
 
-        for (OutputCategory oc : javaBug.getObjectBug().getOutputCategories(o.getClass())) {
+        List<OutputCategory> outputCategories = javaBug.getObjectBug().getOutputCategories(o.getClass());
+        for (OutputCategory oc : outputCategories) {
             if (oc.getType().equals(type)) {
                 oc.add(ul, o);
                 return ul.getXml();
             }
         }
 
-        for (OutputCategory oc : javaBug.getObjectBug().getOutputCategories(o.getClass())) {
+        boolean alreadyOpened = false;
+        for (OutputCategory oc : outputCategories) {
             String name = oc.getName();
             if (name != null) {
                 XML ocul = ul.add("li").setAttr("expand", javaBug.getObjectBug().getObjectDetailsLink(o, oc.getType())).appendText(name);
-                if (oc.opened()) {
+                if (oc.opened(outputCategories, alreadyOpened)) {
                     XML expand = ocul.add("ul").setClass("expand");
                     oc.add(expand, o);
+                    alreadyOpened = true;
                 }
             }
         }
@@ -162,7 +137,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         int hash = Integer.parseInt(params[1], 16);
         String fieldName = params[2];
         Object o = references.get(hash);
-        AllClassMembers allMembers = getAllMembers(o.getClass());
+        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Field f : allMembers.fields) {
             if (f.getName().equals(fieldName)) {
                 TypeAdapters.TypeAdapter<?> adapter = TypeAdapters.getTypeAdapter(f.getType());
@@ -186,7 +161,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         int hash = Integer.parseInt(params[1], 16);
         String methodName = params[2];
         Object o = references.get(hash);
-        AllClassMembers allMembers = getAllMembers(o.getClass());
+        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Method m : allMembers.methods) {
             if (m.getName().equals(methodName)) {
                 Object r = m.invoke(o);
