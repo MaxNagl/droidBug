@@ -1,4 +1,4 @@
-package de.siebn.javaBug;
+package de.siebn.javaBug.testApplication;
 
 /**
  * Created by Sieben on 09.03.2015.

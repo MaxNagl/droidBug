@@ -1,4 +1,4 @@
-package de.siebn.javaBug;
+package de.siebn.javaBug.util;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

@@ -1,4 +1,4 @@
-package de.siebn.javaBug;
+package de.siebn.javaBug.util;
 
 import java.lang.reflect.Modifier;
 import java.util.Collections;

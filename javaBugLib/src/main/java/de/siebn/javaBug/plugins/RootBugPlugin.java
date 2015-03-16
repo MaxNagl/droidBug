@@ -1,4 +1,9 @@
-package de.siebn.javaBug;
+package de.siebn.javaBug.plugins;
+
+import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.util.HtmlPage;
+import de.siebn.javaBug.util.StringifierUtil;
+import de.siebn.javaBug.util.XML;
 
 import static de.siebn.javaBug.JavaBug.BugPlugin;
 

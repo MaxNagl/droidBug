@@ -1,11 +1,17 @@
 package de.siebn.javaBug;
 
+import de.siebn.javaBug.plugins.ObjectBugPlugin;
+import de.siebn.javaBug.util.StringifierUtil;
+import de.siebn.javaBug.util.XML;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -18,9 +24,11 @@ import java.util.regex.Pattern;
  * Created by Sieben on 04.03.2015.
  */
 public class JavaBug extends NanoHTTPD {
+    private final ObjectBugPlugin objectBugPlugin = new ObjectBugPlugin(this);
     private final ArrayList<Server> servers = new ArrayList<>();
     private final ArrayList<BugPlugin> plugins = new ArrayList<>();
     private final HashMap<Class<?>, ArrayList<?>> filteredPlugins = new HashMap<>();
+    private final int port;
 
     public interface Server {
         public boolean responsible(IHTTPSession session);
@@ -40,6 +48,7 @@ public class JavaBug extends NanoHTTPD {
 
     public JavaBug(int port) {
         super(port);
+        this.port = port;
     }
 
     public static class ExceptionResult extends RuntimeException {
@@ -155,22 +164,29 @@ public class JavaBug extends NanoHTTPD {
         }
     }
 
-    public static void main(String[] args) {
-        JavaBug jb = new JavaBug(7777);
-        jb.addPlugin(new RootBugPlugin(jb));
-        jb.addPlugin(new ThreadsBugPlugin());
-        jb.addPlugin(new ClassPathBugPlugin());
-        jb.addPlugin(ObjectBugPlugin.INSTANCE);
-
-        ObjectBugPlugin.INSTANCE.addRootObject(new TestClass());
-        ObjectBugPlugin.INSTANCE.addRootObject(jb);
-
-        jb.tryToStart();
-        while(true) {
-            try {
-                Thread.sleep(Long.MAX_VALUE);
-            } catch (InterruptedException e) {
+    /**
+     * Get IP address from first non-localhost interface
+     * @return  address or empty string
+     */
+    public ArrayList<String> getIPAddresses(boolean includeLoopback) {
+        ArrayList<String> adresses = new ArrayList<>();
+        try {
+            for (NetworkInterface intf : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+                for (InetAddress addr : Collections.list(intf.getInetAddresses())) {
+                    if (includeLoopback || !addr.isLoopbackAddress()) {
+                        String sAddr = addr.getHostAddress().toUpperCase().split("%")[0];
+                        if (sAddr.contains(":")) sAddr = "[" + sAddr + "]";
+                        sAddr = "http://" + sAddr + ":" + port;
+                        adresses.add(sAddr);
+                    }
+                }
             }
-        }
+        } catch (Exception ex) { } // for now eat exceptions
+        Collections.sort(adresses);
+        return adresses;
+    }
+
+    public ObjectBugPlugin getObjectBug() {
+        return objectBugPlugin;
     }
 }

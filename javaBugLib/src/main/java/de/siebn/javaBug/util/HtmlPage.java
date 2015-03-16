@@ -1,4 +1,6 @@
-package de.siebn.javaBug;
+package de.siebn.javaBug.util;
+
+import de.siebn.javaBug.util.XML;
 
 /**
  * Created by Sieben on 09.03.2015.

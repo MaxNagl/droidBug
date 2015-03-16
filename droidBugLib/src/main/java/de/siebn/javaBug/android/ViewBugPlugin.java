@@ -1,4 +1,4 @@
-package de.desiebn.droidbug;
+package de.siebn.javaBug.android;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -10,14 +10,19 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 import de.siebn.javaBug.*;
+import de.siebn.javaBug.plugins.ObjectBugPlugin;
+import de.siebn.javaBug.plugins.RootBugPlugin;
+import de.siebn.javaBug.util.XML;
 
 /**
  * Created by Sieben on 04.03.2015.
  */
 public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
-    final Activity activity;
+    private final JavaBug javaBug;
+    private final Activity activity;
 
-    public ViewBugPlugin(Activity activity) {
+    public ViewBugPlugin(JavaBug javaBug, Activity activity) {
+        this.javaBug = javaBug;
         this.activity = activity;
     }
 
@@ -91,7 +96,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     private void addViewTree(XML ul, View view) {
         XML li = ul.add("li").setClass("object");
         //li.add("a").setHref("/viewShot/" + Integer.toHexString(System.identityHashCode(view))).appendText(view.toString());
-        li.setAttr("onClick", "load('#viewDetails', '" + ObjectBugPlugin.INSTANCE.getObjectDetailsLink(view) + "', true)");
+        li.setAttr("onClick", "load('#viewDetails', '" + javaBug.getObjectBug().getObjectDetailsLink(view) + "', true)");
         li.appendText(view.toString());
         li.setAttr("hoverGroup", Integer.toHexString(System.identityHashCode(view)));
         if (view instanceof ViewGroup) {

@@ -1,4 +1,7 @@
-package de.siebn.javaBug;
+package de.siebn.javaBug.plugins;
+
+import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.util.XML;
 
 import java.util.Set;
 

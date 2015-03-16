@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import de.siebn.javaBug.android.ViewBugPlugin;
 import org.apache.http.conn.util.InetAddressUtils;
 
 import java.net.InetAddress;
@@ -16,12 +17,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import de.siebn.javaBug.ClassPathBugPlugin;
+import de.siebn.javaBug.plugins.ClassPathBugPlugin;
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.ObjectBugPlugin;
-import de.siebn.javaBug.RootBugPlugin;
-import de.siebn.javaBug.TestClass;
-import de.siebn.javaBug.ThreadsBugPlugin;
+import de.siebn.javaBug.plugins.ObjectBugPlugin;
+import de.siebn.javaBug.plugins.RootBugPlugin;
+import de.siebn.javaBug.plugins.ThreadsBugPlugin;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -34,13 +34,12 @@ public class MainActivity extends ActionBarActivity {
         JavaBug jb = new JavaBug(7778);
 
         jb.addPlugin(new RootBugPlugin(jb));
-        jb.addPlugin(new ThreadsBugPlugin());
+        jb.addPlugin(new ThreadsBugPlugin(jb));
         jb.addPlugin(new ClassPathBugPlugin());
-        jb.addPlugin(new ViewBugPlugin(this));
-        jb.addPlugin(ObjectBugPlugin.INSTANCE);
+        jb.addPlugin(new ViewBugPlugin(jb, this));
+        jb.addPlugin(jb.getObjectBug());
 
-        ObjectBugPlugin.INSTANCE.addRootObject(new TestClass());
-        ObjectBugPlugin.INSTANCE.addRootObject(jb);
+        jb.getObjectBug().addRootObject(jb);
 
         jb.tryToStart();
 

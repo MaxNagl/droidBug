@@ -1,4 +1,8 @@
-package de.siebn.javaBug;
+package de.siebn.javaBug.plugins;
+
+import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.NanoHTTPD;
+import de.siebn.javaBug.util.XML;
 
 import java.util.Set;
 
@@ -6,6 +10,12 @@ import java.util.Set;
  * Created by Sieben on 05.03.2015.
  */
 public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
+    private final JavaBug javaBug;
+
+    public ThreadsBugPlugin(JavaBug javaBug) {
+        this.javaBug = javaBug;
+    }
+
     @JavaBug.Serve("^/threads/")
     public String serveThreads() {
         XML xhtml = new XML();
@@ -25,7 +35,7 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
             if (thread.getId() == id) {
                 XML ul = new XML("ul");
                 ul.add("li").setClass("object").setAttr("expand", "!/stacktrace/" + id).appendText("Stacktrace");
-                ul.add("li").setClass("object").setAttr("expand", ObjectBugPlugin.INSTANCE.getObjectDetailsLink(thread)).appendText("Object");
+                ul.add("li").setClass("object").setAttr("expand", javaBug.getObjectBug().getObjectDetailsLink(thread)).appendText("Object");
                 return ul.getXml();
             }
         }

@@ -1,4 +1,4 @@
-package de.siebn.javaBug;
+package de.siebn.javaBug.typeAdapter;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
