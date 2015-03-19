@@ -14,16 +14,7 @@ public class JavaBugDemoApplication {
 
     public static void main(String[] args) {
         JavaBug jb = new JavaBug(7777);
-        jb.addPlugin(new RootBugPlugin(jb));
-        jb.addPlugin(new ThreadsBugPlugin(jb));
-        jb.addPlugin(new ClassPathBugPlugin());
-        jb.addPlugin(jb.getObjectBug());
-
-        jb.addPlugin(new FieldsOutput(jb));
-        jb.addPlugin(new MethodsOutput(jb));
-        jb.addPlugin(new StringOutput(jb));
-        jb.addPlugin(new PojoOutput(jb));
-        jb.addPlugin(new StackTraceOutput());
+        jb.addDefaultPlugins();
 
         jb.getObjectBug().addRootObject(new TestClass());
         jb.getObjectBug().addRootObject(jb);

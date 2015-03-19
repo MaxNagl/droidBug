@@ -12,16 +12,14 @@ import java.util.List;
 /**
  * Created by Sieben on 16.03.2015.
  */
-public class StringOutput implements OutputCategory {
-    private final JavaBug javaBug;
+public class StringOutput extends AbstractOutputCategory {
 
     public StringOutput(JavaBug javaBug) {
-        this.javaBug = javaBug;
+        super(javaBug, "string", null, 0);
     }
 
     @Override
     public void add(XML ul, Object o) {
-        TypeAdapters.TypeAdapter adapter = TypeAdapters.getTypeAdapter(o.getClass());
         XML li = ul.add("li").setClass("object");
         li.setAttr("expand", javaBug.getObjectBug().getObjectDetailsLink(o));
         li.add("span").setClass("type").appendText(o.getClass().getSimpleName());
@@ -29,27 +27,7 @@ public class StringOutput implements OutputCategory {
     }
 
     @Override
-    public String getType() {
-        return "string";
-    }
-
-    @Override
-    public String getName() {
-        return null;
-    }
-
-    @Override
     public boolean canOutputClass(Class<?> clazz) {
         return true;
-    }
-
-    @Override
-    public boolean opened(List<OutputCategory> others, boolean alreadyOpened) {
-        return false;
-    }
-
-    @Override
-    public int getOrder() {
-        return 0;
     }
 }

@@ -57,6 +57,10 @@ function init(tag) {
     });
     $('[invoke]', tag).each(function(){
         var t = $(this);
+        $('[parameter]', t).each(function() {
+            var p = $(this);
+            p.attr('contentEditable', 'true');
+        })
         var invoker = $('<span class="invoke">');
         t.append(invoker);
         invoker.on('click', function() {
@@ -70,11 +74,37 @@ function init(tag) {
                 })
                 t.removeClass("notOpenable");
             }
-            load(expand, t.attr('invoke'), true);
+            var params = {};
+            $('[parameter]', t).each(function() {
+                var p = $(this);
+                params[p.attr('parameter')] = p.text();
+                p.attr('contentEditable', 'true');
+            })
+            $.post(t.attr('invoke'), params).done(function(data) {
+                expand.html(data);
+                init(expand);
+            }).fail(function(jqXHR) {
+                alert(jqXHR.responseText);
+            });
         })
     });
+    $('[hoverGroup]', tag).each(function(){
+        var t = $(this);
+        t.mouseover(function() {
+            $('.hover').removeClass("hover");
+            $('[hoverGroup=' + t.attr('hoverGroup') + ']').addClass("hover");
+            event.stopPropagation();
+        })
+    });
+    $('[modTag]', tag).change(applyModTag);
+    $('[modTag]', tag).trigger("change");
     autoload(tag);
     splitup();
+}
+
+function applyModTag() {
+    var t = $(this);
+    if (t.prop("checked")) $(t.attr('modTag')).addClass(t.attr('modClass')); else $(t.attr('modTag')).removeClass(t.attr('modClass'));
 }
 
 function toggleExpand(t, handle) {
@@ -106,6 +136,7 @@ function load(tag, uri, doInit) {
     }).fail(function(jqXHR) {
         alert(jqXHR.responseText);
     });
+    event.stopPropagation();
 }
 
 function showAndAutoload() {

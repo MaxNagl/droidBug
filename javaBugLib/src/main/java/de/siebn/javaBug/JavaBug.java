@@ -1,6 +1,7 @@
 package de.siebn.javaBug;
 
-import de.siebn.javaBug.plugins.ObjectBugPlugin;
+import de.siebn.javaBug.objectOut.*;
+import de.siebn.javaBug.plugins.*;
 import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
 
@@ -66,6 +67,21 @@ public class JavaBug extends NanoHTTPD {
             @Override public int compare(BugPlugin o1, BugPlugin o2) { return o1.getOrder() - o2.getOrder(); }
         });
         addAnnotatedMethods(plugin);
+    }
+
+    public void addDefaultPlugins() {
+        addPlugin(new RootBugPlugin(this));
+        addPlugin(new ThreadsBugPlugin(this));
+        addPlugin(new ClassPathBugPlugin());
+        addPlugin(new FileBugPlugin());
+        addPlugin(getObjectBug());
+
+        addPlugin(new ArrayOutput(this));
+        addPlugin(new FieldsOutput(this));
+        addPlugin(new MethodsOutput(this));
+        addPlugin(new StringOutput(this));
+        addPlugin(new PojoOutput(this));
+        addPlugin(new StackTraceOutput(this));
     }
 
     public <T> List<T> getPlugins(Class<T> pluginClass) {

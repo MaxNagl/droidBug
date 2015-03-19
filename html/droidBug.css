@@ -21,4 +21,19 @@ h1{text-align:center;background:#444}
 .tabs{padding:0px 20px;background:#444}
 .flexCol{display:flex;flex-direction:column}
 .flexGrow{flex-grow:1}
-[split]>div{display:inline-block}
+[split="horizontal"]>div{display:inline-block;vertical-align:top}
+.viewRect.hover{background: rgba(100,100,255,0.2)}
+.hover{color:#F00}
+body:not(.showpublic) .modpublic{display:none}
+body:not(.showprivate) .modprivate{display:none}
+body:not(.showpackage) .modpackage{display:none}
+body:not(.showprotected) .modprotected{display:none}
+body:not(.showstatic) .modstatic{display:none}
+body:not(.showfinal) .modfinal{display:none}
+body:not(.showsynchronized) .modsynchronized{display:none}
+body:not(.showvolatile) .modvolatile{display:none}
+body:not(.showtransient) .modtransient{display:none}
+body:not(.shownative) .modnative{display:none}
+body:not(.showinterface) .modinterface{display:none}
+body:not(.showabstract) .modabstract{display:none}
+body:not(.showstrict) .modstrict{display:none}

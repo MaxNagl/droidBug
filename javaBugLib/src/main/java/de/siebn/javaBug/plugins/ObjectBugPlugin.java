@@ -103,7 +103,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
         boolean alreadyOpened = false;
         for (OutputCategory oc : outputCategories) {
-            String name = oc.getName();
+            String name = oc.getName(o);
             if (name != null) {
                 XML ocul = ul.add("li").setAttr("expand", javaBug.getObjectBug().getObjectDetailsLink(o, oc.getType())).appendText(name);
                 if (oc.opened(outputCategories, alreadyOpened)) {
@@ -132,8 +132,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @JavaBug.Serve("^/objectEdit/([^/]*)/([^/]*)")
     public String serveObjectEdit(NanoHTTPD.IHTTPSession session, String[] params) throws Exception {
-        if (session.getMethod() == NanoHTTPD.Method.POST)
-            session.parseBody(null);
+        if (session.getMethod() == NanoHTTPD.Method.POST) session.parseBody(null);
         int hash = Integer.parseInt(params[1], 16);
         String fieldName = params[2];
         Object o = references.get(hash);
@@ -158,14 +157,22 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @JavaBug.Serve("^/invoke/([^/]*)/([^/]*)")
     public String serveInvoke(NanoHTTPD.IHTTPSession session, String[] params) throws Exception {
+        if (session.getMethod() == NanoHTTPD.Method.POST) session.parseBody(null);
         int hash = Integer.parseInt(params[1], 16);
         String methodName = params[2];
         Object o = references.get(hash);
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Method m : allMembers.methods) {
             if (m.getName().equals(methodName)) {
-                Object r = m.invoke(o);
-                return r == null ? "null" : getObjectDetails(m.invoke(o), "string");
+                Class<?>[] parameterTypes = m.getParameterTypes();
+                Object[] ps = new Object[parameterTypes.length];
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    Class<?> c = parameterTypes[i];
+                    TypeAdapters.TypeAdapter adapter = TypeAdapters.getTypeAdapter(c);
+                    ps[i] = adapter.parse(c, session.getParms().get("p" + (i)));
+                }
+                Object r = m.invoke(o, ps);
+                return r == null ? "null" : getObjectDetails(r, "string");
             }
         }
         return "ERROR";

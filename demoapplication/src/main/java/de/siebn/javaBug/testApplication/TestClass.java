@@ -19,4 +19,8 @@ public class TestClass {
 
     public int primitiveInt;
     public Integer objectInteger;
+
+    public String test(String text) {
+        return "Called with: \"" + text + "\"";
+    }
 }

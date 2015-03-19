@@ -11,7 +11,7 @@ import java.util.List;
 public interface OutputCategory extends JavaBug.BugPlugin {
     public void add(XML ul, Object o);
     public String getType();
-    public String getName();
+    public String getName(Object o);
     public boolean canOutputClass(Class<?> clazz);
     public boolean opened(List<OutputCategory> others, boolean alreadyOpened);
 }

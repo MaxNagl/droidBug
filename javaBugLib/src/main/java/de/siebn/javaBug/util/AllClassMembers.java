@@ -2,10 +2,7 @@ package de.siebn.javaBug.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * Created by Sieben on 16.03.2015.
@@ -32,9 +29,9 @@ public class AllClassMembers {
         for (Method m : clazz.getDeclaredMethods()) {
             m.setAccessible(true);
             methods.add(m);
-            if (!clazz.equals(Object.class)) {
-                if (m.getName().startsWith("get") && m.getName().length() > 3 && m.getParameterTypes().length == 0) pojo.add(m);
-                if (m.getName().startsWith("set") && m.getName().length() > 3 && m.getParameterTypes().length == 1) pojo.add(m);
+            if (!clazz.equals(Object.class) && m.getName().length() > 3) {
+                if (m.getName().startsWith("get") && m.getParameterTypes().length == 0) pojo.add(m);
+                if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) pojo.add(m);
             }
         }
         if (clazz.getSuperclass() != null) addAllMembers(clazz.getSuperclass());
