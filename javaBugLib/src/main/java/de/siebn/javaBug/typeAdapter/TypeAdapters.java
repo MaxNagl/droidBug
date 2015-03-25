@@ -40,6 +40,11 @@ public class TypeAdapters {
         return null;
     }
 
+    public static boolean canParse(Class clazz) {
+        TypeAdapter adapter = getTypeAdapter(clazz);
+        return adapter.canParse(clazz);
+    }
+
     public static String toString(Object o) {
         return toString(o, 100);
     }

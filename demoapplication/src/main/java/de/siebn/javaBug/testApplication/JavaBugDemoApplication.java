@@ -15,6 +15,7 @@ public class JavaBugDemoApplication {
     public static void main(String[] args) {
         JavaBug jb = new JavaBug(7777);
         jb.addDefaultPlugins();
+        jb.addPlugin(new TestOutputCatergory(jb));
 
         jb.getObjectBug().addRootObject(new TestClass());
         jb.getObjectBug().addRootObject(jb);

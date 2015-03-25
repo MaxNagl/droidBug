@@ -14,7 +14,9 @@ h1{text-align:center;background:#444}
 .type{color:#CC7832}
 .modifier{color:#CC7832}
 .value{color:#A9B7C6}
+.predefined{display:none}
 [contentEditable]{border:1px solid #444;cursor:cursor:text;padding:0px 5px}
+.edited{color:#FF0}
 [tabContent]{display:inline-block;padding:5px 10px;border-bottom:4px solid #444;color:#AAA}
 .active[tabContent]{border-color:#777;color:#FFF}
 .tabContent{padding:20px;display:none;flex-grow:1;flex-basis:0;overflow:hidden}

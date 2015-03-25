@@ -5,6 +5,7 @@ import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.XML;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * Created by Sieben on 16.03.2015.
@@ -17,14 +18,15 @@ public class PojoOutput extends AbstractOutputCategory {
     @Override
     public void add(XML ul, Object o) {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        for (Method m : allMembers.pojo) {
-            addMethodInformation(ul, o, m);
+        for (Map.Entry<String, AllClassMembers.POJO> pojo : allMembers.pojos.entrySet()) {
+            addPojo(ul, o, pojo.getKey());
+            //addMethodInformation(ul, o, m, null, null);
         }
     }
 
     @Override
     public boolean canOutputClass(Class<?> clazz) {
         AllClassMembers allMembers = AllClassMembers.getForClass(clazz);
-        return allMembers.pojo.size() > 0;
+        return allMembers.pojos.size() > 0;
     }
 }

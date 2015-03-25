@@ -24,23 +24,25 @@ function init(tag) {
         var t = $(this);
         t.attr('contentEditable', 'true');
         t.unbind('keydown');
-        t.on('keydown', function(e) {
-            if(e.keyCode == 13) {
-                e.preventDefault();
-                $.post(t.attr('editurl'), {o : t.text()}).done(function(data) {
-                    t.html(data);
-                }).fail(function(jqXHR) {
-                    alert(jqXHR.responseText);
-                });
-            }
-        });
-        if (t.attr('editNullify')) {
-            var nullify = $('<span class="nullify">')
-            t.after(nullify);
-            nullify.on('click', function () {
-                load(t, t.attr('editurl'), false);
-            })
-        }
+        var commit = function() {
+            $.post(t.attr('editurl'), {o : t.text()}).done(function(data) {
+                t.html(data);
+                t.removeClass("edited");
+                t.attr('def', t.html());
+            }).fail(function(jqXHR) {
+                alert(jqXHR.responseText);
+            });
+        };
+        var nullify = function() {
+            $.post(t.attr('editurl'), {}).done(function(data) {
+                t.html(data);
+                t.removeClass("edited");
+                t.attr('def', t.html());
+            }).fail(function(jqXHR) {
+                alert(jqXHR.responseText);
+            });
+        };
+        makeEditable(t, commit, commit, nullify);
     });
     $('[expand]', tag).each(function(){
         var t = $(this);
@@ -78,7 +80,10 @@ function init(tag) {
             $('[parameter]', t).each(function() {
                 var p = $(this);
                 params[p.attr('parameter')] = p.text();
-                p.attr('contentEditable', 'true');
+            })
+            $('[predifined]', t).each(function() {
+                var p = $(this);
+                params[p.attr('predifined')] = p.attr('value');
             })
             $.post(t.attr('invoke'), params).done(function(data) {
                 expand.html(data);
@@ -88,6 +93,20 @@ function init(tag) {
             });
         })
     });
+    //$('[pojo]', tag).each(function(){
+    //    var t = $(this);
+    //    t.attr('contentEditable', 'true');
+    //    t.on('keydown', function(e) {
+    //        if(e.keyCode == 13) {
+    //            e.preventDefault();
+    //            $.post(t.attr('pojo'), {o : t.text()}).done(function(data) {
+    //                t.html(data);
+    //            }).fail(function(jqXHR) {
+    //                alert(jqXHR.responseText);
+    //            });
+    //        }
+    //    });
+    //});
     $('[hoverGroup]', tag).each(function(){
         var t = $(this);
         t.mouseover(function() {
@@ -100,6 +119,37 @@ function init(tag) {
     $('[modTag]', tag).trigger("change");
     autoload(tag);
     splitup();
+}
+
+function makeEditable(tag, onEnter, onFocusOut, onNullify) {
+    tag.on('keydown', function(e) {
+        if(e.keyCode == 27) {
+            tag.html(tag.agattr('def'));
+        }
+        if(e.keyCode == 13) {
+            e.preventDefault();
+            onEnter();
+        }
+    });
+    tag.on('keyup', function(e) {
+        if (tag.html() == tag.attr('def'))
+            tag.removeClass("edited");
+        else
+            tag.addClass("edited");
+    });
+    tag.focusin(function() {
+        tag.attr('def', tag.html());
+    });
+    tag.focusout(function() {
+        onFocusOut();
+    });
+    if (tag.attr('editNullify')) {
+        var nullify = $('<span class="nullify">')
+        tag.after(nullify);
+        nullify.on('click', function () {
+            onNullify();
+        })
+    }
 }
 
 function applyModTag() {

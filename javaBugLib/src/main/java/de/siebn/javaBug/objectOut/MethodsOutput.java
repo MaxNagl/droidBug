@@ -18,7 +18,7 @@ public class MethodsOutput extends AbstractOutputCategory {
     public void add(XML ul, Object o) {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Method m : allMembers.methods) {
-            addMethodInformation(ul, o, m);
+            addMethodInformation(ul, o, m, null, null);
         }
     }
 

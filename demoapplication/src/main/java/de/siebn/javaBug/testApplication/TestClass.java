@@ -20,7 +20,31 @@ public class TestClass {
     public int primitiveInt;
     public Integer objectInteger;
 
+    private String getter = "G";
+    private String setter = "S";
+    private String getterAndSetter = "SG";
+
     public String test(String text) {
         return "Called with: \"" + text + "\"";
+    }
+
+    public int multiply(int a, int b) {
+        return a * b;
+    }
+
+    public String getGetter() {
+        return getter;
+    }
+
+    public void setSetter(String setter) {
+        this.setter = setter;
+    }
+
+    public String getGetterAndSetter() {
+        return getterAndSetter;
+    }
+
+    public void setGetterAndSetter(String getterAndSetter) {
+        this.getterAndSetter = getterAndSetter;
     }
 }

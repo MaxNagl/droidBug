@@ -69,8 +69,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     @JavaBug.Serve("^/objectDetails/([^/]*)")
     public String serveObjectDetails(String[] params) {
         try {
-            int hash = Integer.parseInt(params[1], 16);
-            Object o = references.get(hash);
+            Object o = parseObjectReference(params[1]);
             return getObjectDetails(o, null);
         } catch (Exception e) {
             e.printStackTrace();
@@ -81,8 +80,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     @JavaBug.Serve("^/objectDetails/([^/]*)/([^/]*)")
     public String serveObjectDetailsType(String[] params) {
         try {
-            int hash = Integer.parseInt(params[2], 16);
-            Object o = references.get(hash);
+            Object o = parseObjectReference(params[2]);
             return getObjectDetails(o, params[1]);
         } catch (Exception e) {
             e.printStackTrace();
@@ -116,10 +114,21 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         return ul.getXml();
     }
 
+    public int parseHash(String hashString) {
+        return Integer.parseInt(hashString.substring(1), 16);
+    }
+
+    public Object parseObjectReference(String reference) {
+        return references.get(parseHash(reference));
+    }
+
+    public String getHash(Object o) {
+        return "@" + Integer.toHexString(System.identityHashCode(o));
+    }
+
     public String getObjectReference(Object o) {
-        String hexHash = Integer.toHexString(System.identityHashCode(o));
         references.put(System.identityHashCode(o), o);
-        return hexHash;
+        return getHash(o);
     }
 
     public String getObjectDetailsLink(Object o) {
@@ -133,9 +142,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     @JavaBug.Serve("^/objectEdit/([^/]*)/([^/]*)")
     public String serveObjectEdit(NanoHTTPD.IHTTPSession session, String[] params) throws Exception {
         if (session.getMethod() == NanoHTTPD.Method.POST) session.parseBody(null);
-        int hash = Integer.parseInt(params[1], 16);
+        Object o = parseObjectReference(params[1]);
         String fieldName = params[2];
-        Object o = references.get(hash);
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Field f : allMembers.fields) {
             if (f.getName().equals(fieldName)) {
@@ -149,31 +157,71 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
                     throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Could not parse \"" + session.getParms().get("o") + "\"");
                 }
                 f.set(o, val);
-                return String.valueOf(f.get(o));
+                return TypeAdapters.toString(f.get(o));
             }
         }
         return "ERROR";
     }
 
+    public String getInvokationLink(Object o, Method m) {
+        return "/invoke/" + getObjectReference(o) + "/" + getHash(m);
+    }
+
     @JavaBug.Serve("^/invoke/([^/]*)/([^/]*)")
     public String serveInvoke(NanoHTTPD.IHTTPSession session, String[] params) throws Exception {
         if (session.getMethod() == NanoHTTPD.Method.POST) session.parseBody(null);
-        int hash = Integer.parseInt(params[1], 16);
-        String methodName = params[2];
-        Object o = references.get(hash);
+        Object o = parseObjectReference(params[1]);
+        int methodHash = parseHash(params[2]);
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Method m : allMembers.methods) {
-            if (m.getName().equals(methodName)) {
+            if (System.identityHashCode(m) == methodHash) {
                 Class<?>[] parameterTypes = m.getParameterTypes();
                 Object[] ps = new Object[parameterTypes.length];
                 for (int i = 0; i < parameterTypes.length; i++) {
                     Class<?> c = parameterTypes[i];
                     TypeAdapters.TypeAdapter adapter = TypeAdapters.getTypeAdapter(c);
-                    ps[i] = adapter.parse(c, session.getParms().get("p" + (i)));
+                    String objectReference = session.getParms().get("o" + (i));
+                    if (objectReference != null) {
+                        ps[i] = parseObjectReference(objectReference);
+                    } else {
+                        String paramString = session.getParms().get("p" + (i));
+                        ps[i] = paramString == null ? null : adapter.parse(c, paramString);
+                    }
                 }
                 Object r = m.invoke(o, ps);
                 return r == null ? "null" : getObjectDetails(r, "string");
             }
+        }
+        throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Method not found");
+    }
+
+    public String getPojoLink(Object o, String field) {
+        return "/pojo/" + getObjectReference(o) + "/" + field;
+    }
+
+    @JavaBug.Serve("^/pojo/([^/]*)/([^/]*)")
+    public String servePojo(NanoHTTPD.IHTTPSession session, String[] params) throws Exception {
+        if (session.getMethod() == NanoHTTPD.Method.POST) session.parseBody(null);
+        Object o = parseObjectReference(params[1]);
+        String fieldName = params[2];
+        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
+        AllClassMembers.POJO pojo = allMembers.pojos.get(fieldName);
+        if (pojo != null && pojo.setter != null) {
+            Method f = pojo.setter;
+            Class type = f.getParameterTypes()[0];
+            TypeAdapters.TypeAdapter<?> adapter = TypeAdapters.getTypeAdapter(type);
+            if (adapter == null) throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No TypeAdapter found!");
+            Object val;
+            try {
+                String v = session.getParms().get("o");
+                val = adapter.parse(type, v == null ? null : v);
+            } catch (Exception e) {
+                throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Could not parse \"" + session.getParms().get("o") + "\"");
+            }
+            f.invoke(o, val);
+            if (pojo.getter != null)
+                return TypeAdapters.toString(pojo.getter.invoke(o));
+            return TypeAdapters.toString(val);
         }
         return "ERROR";
     }
