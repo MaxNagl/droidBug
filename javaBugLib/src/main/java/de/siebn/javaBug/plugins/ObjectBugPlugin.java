@@ -3,6 +3,7 @@ package de.siebn.javaBug.plugins;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.objectOut.OutputCategory;
+import de.siebn.javaBug.objectOut.PropertyBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.XML;
@@ -61,7 +62,10 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public String serveObjects() {
         XML ul = new XML("ul");
         for (Object o : rootObjects) {
-            addObjectInfo(ul.add("li").setClass("object"), o, null, null);
+            PropertyBuilder builder = new PropertyBuilder(this);
+            builder.createValue().setValue(o);
+            builder.setExpandObject(o, o.getClass());
+            builder.build(ul);
         }
         return ul.getXml();
     }
@@ -250,22 +254,5 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             return TypeAdapters.toString(val);
         }
         throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "ERROR");
-    }
-
-    public void addObjectInfo(XML li, Object value, Object object, Field field) {
-        if (value != null && (field == null || !field.getType().isPrimitive())) {
-            li.setAttr("expand", getObjectDetailsLink(value));
-        } else {
-            li.addClass("notOpenable");
-        }
-        XML f = li.add("span").setClass("field");
-        XML v = f.add("span").setClass("value");
-        TypeAdapters.TypeAdapter<Object> adapter = TypeAdapters.getTypeAdapter(value == null ? Object.class : value.getClass());
-        if (value != null && object != null && field != null && !Modifier.isFinal(field.getModifiers()) && adapter.canParse(value.getClass())) {
-            v.setAttr("editurl", getObjectEditLink(object, field));
-            if (!field.getType().isPrimitive())
-                v.setAttr("editNullify", "true");
-        }
-        v.appendText(TypeAdapters.toString(value));
     }
 }

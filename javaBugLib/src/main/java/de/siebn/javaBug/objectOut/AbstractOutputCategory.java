@@ -1,6 +1,7 @@
 package de.siebn.javaBug.objectOut;
 
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.objectOut.PropertyBuilder.ParameterBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.StringifierUtil;
@@ -9,7 +10,7 @@ import de.siebn.javaBug.util.XML;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.lang.reflect.Modifier;
 import java.util.List;
 
 /**
@@ -52,13 +53,6 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     public void addMethodInformation(XML ul, Object o, Method m, Object[] predifined, Object[] preset) {
         if (predifined == null) predifined = empty;
         if (preset == null) preset = empty;
-        XML li = ul.add("li").setClass("object notOpenable");
-        li.addClass(StringifierUtil.modifiersToString(m.getModifiers(), "mod", true));
-        addModifiers(li, m.getModifiers());
-        li.add("span").setClass("type").appendText(m.getReturnType().getSimpleName());
-        li.appendText(" ").add("span").setClass("fieldName").appendText(m.getName());
-        li.appendText("(");
-        boolean first = true;
         boolean canInvoke = true;
         Class<?>[] parameterTypes = m.getParameterTypes();
         for (int i = 0; i < parameterTypes.length; i++) {
@@ -66,38 +60,31 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             if (!TypeAdapters.getTypeAdapter(c).canParse(c) && (predifined.length <= i || predifined[i] == null))
                 canInvoke = false;
         }
+        PropertyBuilder builder = new PropertyBuilder(javaBug.getObjectBug());
+        builder.setModifiers(m.getModifiers());
+        builder.setType(m.getReturnType());
+        builder.setName(m.getName());
         for (int i = 0; i < parameterTypes.length; i++) {
-            if (predifined.length > i && predifined[i] != null) {
-                Class c = parameterTypes[i];
-                li.add("span").setClass("type predefined").setAttr("value", javaBug.getObjectBug().getObjectReference(predifined[i])).setAttr("predifined", "o" + i).appendText(c.getSimpleName());
-            } else {
-                Class c = parameterTypes[i];
-                if (!first) li.appendText(", ");
-                li.add("span").setClass("type").appendText(c.getSimpleName());
-                if (canInvoke) {
-                    li.appendText(" ");
-                    XML p = li.add("span").setClass("parameter").setAttr("parameter", "p" + i);
-                    if (preset.length > i && preset[i] != null) {
-                        p.appendText(TypeAdapters.getTypeAdapter(preset[i].getClass()).toString(preset[i]));
-                    }
-                }
-                first = false;
+            ParameterBuilder param = builder.addParameter();
+            param.setType(parameterTypes[i]);
+            if (canInvoke) {
+                param.setParameterNum(i);
+                param.setValue(preset.length > i ? preset[i] : null);
             }
         }
-        li.appendText(")");
-        if (canInvoke) {
-            li.setAttr("invoke", javaBug.getObjectBug().getInvokationLink(true, o, m));
-        }
+        if (canInvoke) builder.setInvokeLink(javaBug.getObjectBug().getInvokationLink(true, o, m));
+        builder.build(ul);
     }
 
     public void addPojo(XML ul, Object o, String field) {
         AllClassMembers.POJO pojo = AllClassMembers.getForClass(o.getClass()).pojos.get(field);
         if (pojo == null) return;
+
         boolean setAble = pojo.setter != null && TypeAdapters.canParse(pojo.setter.getParameterTypes()[0]);
         if (!setAble && pojo.getter == null) return;
-        XML li = ul.add("li").setClass("object notOpenable");
-        li.appendText(" ").add("span").setClass("fieldName").appendText(field);
-        li.appendText(": ");
+
+        PropertyBuilder builder = new PropertyBuilder(javaBug.getObjectBug());
+
         Object val = null;
         if (pojo.getter != null) {
             try {
@@ -107,27 +94,39 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             }
+            builder.setExpandObject(val, pojo.getter.getReturnType());
         }
-        XML p = li.add("span").setClass("parameter").appendText(String.valueOf(val));
+
+        builder.setName(field);
+        ParameterBuilder value = builder.createValue();
+        value.setValue(val);
         if (setAble) {
-            p.setAttr("editurl", javaBug.getObjectBug().getPojoLink(o, field));
-            if (!pojo.setter.getParameterTypes()[0].isPrimitive())
-                p.setAttr("editNullify", "true");
+            value.setEditLink(javaBug.getObjectBug().getPojoLink(o, field));
+            value.setNullable(!pojo.setter.getParameterTypes()[0].isPrimitive());
         }
+        builder.build(ul);
     }
 
     public void addFieldInformation(XML ul, Object o, Field f) {
-        XML li = ul.add("li").setClass("object");
-        li.addClass(StringifierUtil.modifiersToString(f.getModifiers(), "mod", true));
-        addModifiers(li, f.getModifiers());
-        li.add("span").setClass("type").appendText(f.getType().getSimpleName());
-        li.add("span").appendText(" ").setClass("fieldName").appendText(f.getName());
-        li.add("span").setClass("equals").appendText(" = ");
+        Object val = null;
         try {
-            javaBug.getObjectBug().addObjectInfo(li, f.get(o), o, f);
+            val = f.get(o);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
+        PropertyBuilder builder = new PropertyBuilder(javaBug.getObjectBug());
+        builder.setName(f.getName());
+        builder.setType(f.getType());
+        builder.setModifiers(f.getModifiers());
+        ParameterBuilder value = builder.createValue();
+        TypeAdapters.TypeAdapter<Object> adapter = TypeAdapters.getTypeAdapter(f.getType());
+        value.setValue(val);
+        if (adapter != null && !Modifier.isFinal(f.getModifiers()) && adapter.canParse(f.getType())) {
+            value.setEditLink(javaBug.getObjectBug().getObjectEditLink(o, f));
+            value.setNullable(!f.getType().isPrimitive());
+        }
+        builder.setExpandObject(val, f.getType());
+        builder.build(ul);
     }
 
     protected void addModifiers(XML tag, int modifiers) {

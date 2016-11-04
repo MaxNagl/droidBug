@@ -2,10 +2,12 @@ package de.siebn.javaBug.testApplication;
 
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.objectOut.AbstractOutputCategory;
+import de.siebn.javaBug.objectOut.OutputCategory;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.XML;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * Created by Sieben on 20.03.2015.

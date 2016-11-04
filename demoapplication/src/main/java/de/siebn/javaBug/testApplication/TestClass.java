@@ -34,6 +34,10 @@ public class TestClass extends TestBaseClass {
         return a * b;
     }
 
+    public int nonParsable(TestClass nonParsable) {
+        return 7;
+    }
+
     public String getGetter() {
         return getter;
     }

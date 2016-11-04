@@ -42,12 +42,17 @@ function init(tag) {
             });
         };
         var nullify = function() {
-            $.put(t.attr('editurl'), {}).done(function(data) {
-                t.html(data);
-                t.removeClass("edited");
-                t.attr('def', t.html());
-            }).fail(function(jqXHR) {
-                alert(jqXHR.responseText);
+            $.ajax({
+                type: "POST",
+                url: t.attr('editurl'),
+                success: function (data) {
+                    t.html(data);
+                    t.removeClass("edited");
+                    t.attr('def', t.html());
+                },
+                error: function (jqXHR) {
+                    alert(jqXHR.responseText);
+                }
             });
         };
         makeEditable(t, commit, commit, nullify);

@@ -5,6 +5,7 @@ import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.XML;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 
 /**
