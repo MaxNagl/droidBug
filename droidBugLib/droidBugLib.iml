@@ -25,9 +25,6 @@
       <excludeFolder url="file://$MODULE_DIR$/.gradle" />
       <excludeFolder url="file://$MODULE_DIR$/build" />
     </content>
-    <content url="file://$MODULE_DIR$/../html">
-      <sourceFolder url="file://$MODULE_DIR$/../html" type="java-resource" />
-    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="javaBugLib" exported="" />
