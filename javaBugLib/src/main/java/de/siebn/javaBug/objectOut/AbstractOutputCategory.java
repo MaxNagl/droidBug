@@ -86,15 +86,15 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         }
         li.appendText(")");
         if (canInvoke) {
-            li.setAttr("invoke", javaBug.getObjectBug().getInvokationLink(o, m));
+            li.setAttr("invoke", javaBug.getObjectBug().getInvokationLink(true, o, m));
         }
     }
 
     public void addPojo(XML ul, Object o, String field) {
         AllClassMembers.POJO pojo = AllClassMembers.getForClass(o.getClass()).pojos.get(field);
         if (pojo == null) return;
-        boolean setable = pojo.setter != null && TypeAdapters.canParse(pojo.setter.getParameterTypes()[0]);
-        if (!setable && pojo.getter == null) return;
+        boolean setAble = pojo.setter != null && TypeAdapters.canParse(pojo.setter.getParameterTypes()[0]);
+        if (!setAble && pojo.getter == null) return;
         XML li = ul.add("li").setClass("object notOpenable");
         li.appendText(" ").add("span").setClass("fieldName").appendText(field);
         li.appendText(": ");
@@ -109,7 +109,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             }
         }
         XML p = li.add("span").setClass("parameter").appendText(String.valueOf(val));
-        if (setable) {
+        if (setAble) {
             p.setAttr("editurl", javaBug.getObjectBug().getPojoLink(o, field));
             if (!pojo.setter.getParameterTypes()[0].isPrimitive())
                 p.setAttr("editNullify", "true");
@@ -124,7 +124,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         li.add("span").appendText(" ").setClass("fieldName").appendText(f.getName());
         li.add("span").setClass("equals").appendText(" = ");
         try {
-            javaBug.getObjectBug().addObjectInfo(li, f.get(o), javaBug.getObjectBug().getObjectReference(o), f);
+            javaBug.getObjectBug().addObjectInfo(li, f.get(o), o, f);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }

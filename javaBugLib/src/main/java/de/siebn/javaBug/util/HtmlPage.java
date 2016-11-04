@@ -13,9 +13,9 @@ public class HtmlPage {
         XML head = xhtml.add("head");
         XML body = xhtml.add("body");
 
-        head.add("link").setAttr("rel", "stylesheet").setAttr("href", "/file/" + new File("html/droidBug.css").getAbsolutePath());
+        head.add("link").setAttr("rel", "stylesheet").setAttr("href", "/file/droidBug.css");
         head.add("script").setAttr("src", "//code.jquery.com/jquery-2.1.3.js");
-        head.add("script").setAttr("src", "/file/" + new File("html/droidBug.js").getAbsolutePath());
+        head.add("script").setAttr("src", "/file/droidBug.js");
 
         return xhtml;
     }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -32,12 +33,9 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         JavaBug jb = new JavaBug(7778);
+        jb.addDefaultPlugins();
 
-        jb.addPlugin(new RootBugPlugin(jb));
-        jb.addPlugin(new ThreadsBugPlugin(jb));
-        jb.addPlugin(new ClassPathBugPlugin());
         jb.addPlugin(new ViewBugPlugin(jb, this));
-        jb.addPlugin(jb.getObjectBug());
 
         jb.getObjectBug().addRootObject(jb);
 

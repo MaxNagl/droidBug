@@ -837,6 +837,7 @@ public abstract class NanoHTTPD {
          * @arg files - map to modify
          */
         void parseBody(Map<String, String> files) throws IOException, ResponseException;
+        byte[] getBody() throws IOException, ResponseException;
     }
 
     protected class HTTPSession implements IHTTPSession {
@@ -957,6 +958,14 @@ public abstract class NanoHTTPD {
         }
 
         @Override
+        public byte[] getBody() throws IOException, ResponseException {
+            Integer contentLength = Integer.parseInt(getHeaders().get("content-length"));
+            byte[] buffer = new byte[contentLength];
+            getInputStream().read(buffer, 0, contentLength);
+            return buffer;
+        }
+
+        @Override
         public void parseBody(Map<String, String> files) throws IOException, ResponseException {
             RandomAccessFile randomAccessFile = null;
             BufferedReader in = null;
@@ -1032,10 +1041,10 @@ public abstract class NanoHTTPD {
                         postLine = postLineBuffer.toString().trim();
                         // Handle application/x-www-form-urlencoded
                         if ("application/x-www-form-urlencoded".equalsIgnoreCase(contentType)) {
-                        	decodeParms(postLine, parms);
+                            decodeParms(postLine, parms);
                         } else if (postLine.length() != 0) {
-                        	// Special case for raw POST data => create a special files entry "postData" with raw content data
-                        	files.put("postData", postLine);
+                            // Special case for raw POST data => create a special files entry "postData" with raw content data
+                            files.put("postData", postLine);
                         }
                     }
                 } else if (Method.PUT.equals(method)) {

@@ -3,7 +3,7 @@ package de.siebn.javaBug.testApplication;
 /**
  * Created by Sieben on 09.03.2015.
  */
-public class TestClass {
+public class TestClass extends TestBaseClass {
     public String publicString = "public";
     private String privateString = "private";
     public final String publicFinalString = "FINAL";
@@ -23,6 +23,8 @@ public class TestClass {
     private String getter = "G";
     private String setter = "S";
     private String getterAndSetter = "SG";
+
+    public String override = "";
 
     public String test(String text) {
         return "Called with: \"" + text + "\"";

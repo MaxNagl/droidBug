@@ -13,11 +13,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,6 +41,7 @@ public class JavaBug extends NanoHTTPD {
     public @interface Serve {
         String value();
         int priority() default 0;
+        String[] requiredParameters() default {};
     }
 
     public JavaBug(int port) {
@@ -121,17 +118,28 @@ public class JavaBug extends NanoHTTPD {
                                     for (int j = 0; j < params.length; j++) params[j] = matcher.group(j);
                                 }
                             }
+                            if (session.getMethod() == NanoHTTPD.Method.POST) session.parseBody(null);
+                            if (serve.requiredParameters().length > 0) {
+                                Map<String, String> params = session.getParms();
+                                for (String reqParam : serve.requiredParameters()) {
+                                    if (!params.containsKey(reqParam)) throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Missing parameter \"" + reqParam + "\"");
+                                }
+                            }
                             Object r = method.invoke(object, param);
                             if (r instanceof Response) return (Response) r;
                             if (r instanceof XML) return new Response(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, ((XML) r).getXml());
                             if (r instanceof byte[]) return new Response(Response.Status.OK, "application/octet-stream", new ByteArrayInputStream((byte[]) r));
                             if (r instanceof InputStream) return new Response(Response.Status.OK, "application/octet-stream", (InputStream) r);
                             return new Response(r.toString());
+                        } catch (RuntimeException e) {
+                            throw e;
                         } catch (IllegalAccessException e) {
                             throw new IllegalStateException(e);
                         } catch (InvocationTargetException e) {
                             if (e.getCause() instanceof RuntimeException)
                                 throw (RuntimeException) e.getCause();
+                            throw new IllegalStateException(e);
+                        } catch (Exception e) {
                             throw new IllegalStateException(e);
                         }
                     }

@@ -15,7 +15,8 @@ h1{text-align:center;background:#444}
 .modifier{color:#CC7832}
 .value{color:#A9B7C6}
 .predefined{display:none}
-[contentEditable]{border:1px solid #444;cursor:cursor:text;padding:0px 5px}
+[contentEditable]{border:1px solid #444;cursor:cursor:text;padding:0px 5px;display:inline-block}
+/*[contenteditable=true]:empty:before{content:"\00a0"}*/
 .edited{color:#FF0}
 [tabContent]{display:inline-block;padding:5px 10px;border-bottom:4px solid #444;color:#AAA}
 .active[tabContent]{border-color:#777;color:#FFF}
@@ -26,6 +27,7 @@ h1{text-align:center;background:#444}
 [split="horizontal"]>div{display:inline-block;vertical-align:top}
 .viewRect.hover{background: rgba(100,100,255,0.2)}
 .hover{color:#F00}
+input{margin:0px 5px}
 body:not(.showpublic) .modpublic{display:none}
 body:not(.showprivate) .modprivate{display:none}
 body:not(.showpackage) .modpackage{display:none}
