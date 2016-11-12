@@ -6,6 +6,7 @@ import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Retention;
@@ -22,6 +23,7 @@ import java.util.regex.Pattern;
  */
 public class JavaBug extends NanoHTTPD {
     private final ObjectBugPlugin objectBugPlugin = new ObjectBugPlugin(this);
+    private final FileBugPlugin fileBugPlugin = new FileBugPlugin();
     private final ArrayList<Server> servers = new ArrayList<>();
     private final ArrayList<BugPlugin> plugins = new ArrayList<>();
     private final HashMap<Class<?>, ArrayList<?>> filteredPlugins = new HashMap<>();
@@ -67,10 +69,12 @@ public class JavaBug extends NanoHTTPD {
     }
 
     public void addDefaultPlugins() {
+        fileBugPlugin.addRoot(new File(".").getAbsoluteFile());
+
         addPlugin(new RootBugPlugin(this));
         addPlugin(new ThreadsBugPlugin(this));
         addPlugin(new ClassPathBugPlugin());
-        addPlugin(new FileBugPlugin());
+        addPlugin(getFileBug());
         addPlugin(getObjectBug());
 
         addPlugin(new ArrayOutput(this));
@@ -212,5 +216,9 @@ public class JavaBug extends NanoHTTPD {
 
     public ObjectBugPlugin getObjectBug() {
         return objectBugPlugin;
+    }
+
+    public FileBugPlugin getFileBug() {
+        return fileBugPlugin;
     }
 }

@@ -62,9 +62,9 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public String serveObjects() {
         XML ul = new XML("ul");
         for (Object o : rootObjects) {
-            PropertyBuilder builder = new PropertyBuilder(this);
+            PropertyBuilder builder = new PropertyBuilder();
             builder.createValue().setValue(o);
-            builder.setExpandObject(o, o.getClass());
+            builder.setExpandObject(this, o, o.getClass());
             builder.build(ul);
         }
         return ul.getXml();

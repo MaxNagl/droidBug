@@ -3,10 +3,13 @@ li{list-style-type:none}
 html{height:100%}
 body{background:#222;color:#FFF;font-family:sans-serif;display:flex;flex-direction:column;height:100%}
 h1{text-align:center;background:#444}
+a{color:inherit;text-decoration:none;cursor:pointer}
+iframe{background:#FFF}
 .closed:before{display:inline-block;content:"\25BA";width:1em;color:#AAA}
 .opened:before{display:inline-block;content:"\25BC";width:1em;color:#AAA}
 .invoke:before{display:inline-block;content:"\2607";width:1em;color:#FFF}
 .nullify:before{display:inline-block;content:"\2205";color:#A00;margin-left:0.5em}
+.refresh:before{display:inline-block;content:"\27F3";width:1em;color:#FFF}
 .notOpenable{margin-left:1em}
 .expand{margin:5px 0px 10px 1.5em}
 .object{display:block;font-family:monospace;white-space:nowrap;max-width:50em;overflow:hidden;text-overflow:ellipsis;color:#777}
@@ -20,11 +23,11 @@ h1{text-align:center;background:#444}
 .edited{color:#FF0}
 [tabContent]{display:inline-block;padding:5px 10px;border-bottom:4px solid #444;color:#AAA}
 .active[tabContent]{border-color:#777;color:#FFF}
-.tabContent{padding:20px;display:none;flex-grow:1;flex-basis:0;overflow:hidden}
+.tabContent{padding:20px;display:none;flex-grow:1;flex-basis:0;overflow:auto}
 .tabs{padding:0px 20px;background:#444}
 .flexCol{display:flex;flex-direction:column}
 .flexGrow{flex-grow:1}
-[split="horizontal"]>div{display:inline-block;vertical-align:top}
+[split="horizontal"]>div{display:inline-block;vertical-align:top;overflow:hidden}
 .viewRect.hover{background: rgba(100,100,255,0.2)}
 .hover{color:#F00}
 input{margin:0px 5px}

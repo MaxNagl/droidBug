@@ -7,9 +7,6 @@ import de.siebn.javaBug.util.XML;
 import java.lang.reflect.Field;
 import java.util.List;
 
-/**
- * Created by Sieben on 16.03.2015.
- */
 public class FieldsOutput extends AbstractOutputCategory {
 
     public FieldsOutput(JavaBug javaBug) {
@@ -26,11 +23,6 @@ public class FieldsOutput extends AbstractOutputCategory {
 
     @Override
     public boolean canOutputClass(Class<?> clazz) {
-        return true;
-    }
-
-    @Override
-    public boolean opened(List<OutputCategory> others, boolean alreadyOpened) {
         return true;
     }
 }

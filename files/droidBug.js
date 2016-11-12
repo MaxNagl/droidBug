@@ -70,6 +70,33 @@ function init(tag) {
         }
         handle.removeClass("closed opened").addClass(t.children('.expand').length === 0 ? "closed" : "opened");
     });
+    $('[append]', tag).each(function(){
+        var t = $(this);
+        t.change(function() {
+            append = $('#' + t.attr('id') + 'Append');
+            console.log(append);
+            if($(this).is(":checked")) {
+                var to = $(t.attr('appendTo'));
+                if (append.length == 0) {
+                    append = $('<div>');
+                    append.addClass('append');
+                    append.attr('id', t.attr('id') + 'Append');
+                    to.append(append);
+                    load(append, t.attr('append'), true);
+                } else {
+                    append.show();
+                }
+            } else {
+                append.hide();
+            }
+        })
+    });
+    $('[replace]', tag).click(function(){
+        var t = $(this);
+        var replace = $(t.attr('replace'));
+        var replaceUrl = t.attr('replaceUrl');
+        load(replace, replaceUrl, true, true);
+    });
     $('[invoke]', tag).each(function(){
         var t = $(this);
         $('[parameter]', t).each(function() {
@@ -195,10 +222,17 @@ function openTab(t) {
     window.location.hash = hash;
 }
 
-function load(tag, uri, doInit) {
+function load(tag, uri, doInit, replace) {
+    var t = $(tag);
     $.get(uri).done(function(data) {
-        $(tag).html(data);
-        if (doInit) init($(tag));
+        if (replace) {
+            var data = $(data);
+            t.replaceWith(data);
+            t = data;
+        } else {
+            t.html(data);
+        }
+        if (doInit) init(t);
     }).fail(function(jqXHR) {
         alert(jqXHR.responseText);
     });
@@ -232,7 +266,6 @@ function splitup() {
         var src = t.parent().attr('split') === undefined ? t.parent() : t;
         var w = src.width();
         var h = src.height();
-        console.log(h + " " + s + " ");
         var children = t.children();
         children.each(function() {
             var c = $(this);

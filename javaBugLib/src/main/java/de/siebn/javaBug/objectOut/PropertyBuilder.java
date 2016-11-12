@@ -2,21 +2,19 @@ package de.siebn.javaBug.objectOut;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
 
-/**
- * Created by Sieben on 04.11.2016.
- */
+import static javafx.scene.input.KeyCode.M;
 
 public class PropertyBuilder {
-    private ObjectBugPlugin objectBug;
-
     private String name;
     private List<ParameterBuilder> parameters;
+    private List<ColumnBuilder> columns;
 
     private ParameterBuilder value;
     private String invokationLink;
@@ -24,9 +22,8 @@ public class PropertyBuilder {
     private Class<?> type;
     private String expandLink;
 
-    public PropertyBuilder(ObjectBugPlugin objectBug) {
-        this.objectBug = objectBug;
-    }
+    private String id = UUID.randomUUID().toString();
+    private String refreshLink;
 
     public PropertyBuilder setName(String name) {
         this.name = name;
@@ -42,9 +39,20 @@ public class PropertyBuilder {
         return parameter;
     }
 
-    public void build(XML xml) {
-        XML li = xml.add("li").setClass("object");
+    public ColumnBuilder addColumn() {
+        if (columns == null) {
+            columns = new ArrayList<>();
+        }
+        ColumnBuilder column = new ColumnBuilder();
+        columns.add(column);
+        return column;
+    }
+
+    public XML build(XML xml) {
+        XML li = xml == null ? new XML("span") : xml.add("li");
+        li.setClass("object");
         boolean addedText = false;
+        li.setId(id);
         if (modifiers != null) {
             li.addClass(StringifierUtil.modifiersToString(modifiers, "mod", true));
             li.add("span").setClass("modifier").appendText(StringifierUtil.modifiersToString(modifiers, null, false));
@@ -74,6 +82,21 @@ public class PropertyBuilder {
         if (value != null) {
             if (addedText) li.appendText(": ");
             if (value != null) value.build(li);
+            addedText = true;
+        }
+        if (columns != null) {
+            for (ColumnBuilder column : columns) {
+                if (addedText) li.appendText(" ");
+                column.build(li);
+                addedText = true;
+            }
+        }
+        if (refreshLink != null) {
+            if (addedText) li.appendText(" ");
+            XML refresh = li.add("span").setClass("refresh");
+            refresh.setAttr("replaceUrl", refreshLink);
+            refresh.setAttr("replace", "#" + id);
+            addedText = true;
         }
         if (invokationLink != null) {
             li.setAttr("invoke", invokationLink);
@@ -83,6 +106,7 @@ public class PropertyBuilder {
         } else {
             li.addClass("notOpenable");
         }
+        return li;
     }
 
     public ParameterBuilder createValue() {
@@ -110,7 +134,12 @@ public class PropertyBuilder {
         return this;
     }
 
-    public void setExpandObject(Object val, Class<?> type) {
+    public PropertyBuilder setRefreshLink(String refreshLink) {
+        this.refreshLink = refreshLink;
+        return this;
+    }
+
+    public void setExpandObject(ObjectBugPlugin objectBug, Object val, Class<?> type) {
         if (val != null && !type.isPrimitive()) {
             setExpandLink(objectBug.getObjectDetailsLink(val));
         }
@@ -167,6 +196,55 @@ public class PropertyBuilder {
         public ParameterBuilder setParameterNum(int num) {
             this.parameterNum = num;
             return this;
+        }
+    }
+
+    public class ColumnBuilder {
+        private String text;
+        private String clazz;
+        private String link;
+        private String appendLink;
+
+        public ColumnBuilder setText(String text) {
+            this.text = text;
+            return this;
+        }
+
+        public ColumnBuilder setClass(String clazz) {
+            this.clazz = clazz;
+            return this;
+        }
+
+        public ColumnBuilder setLink(String link) {
+            this.link = link;
+            return this;
+        }
+
+        public ColumnBuilder setAppendLink(String appendLink) {
+            this.appendLink = appendLink;
+            return this;
+        }
+
+        public void build(XML xml) {
+            XML span = xml.add("span").setClass("column");
+            if (clazz != null) span.addClass(clazz);
+            if (appendLink != null) {
+                String uniqueID = UUID.randomUUID().toString();
+                XML input = span.add("input");
+                input.setId(uniqueID);
+                input.setAttr("append", appendLink);
+                input.setAttr("appendTo", "#" + PropertyBuilder.this.id);
+                input.setAttr("type", "checkbox");
+                XML label = span.add("label");
+                label.setAttr("for", uniqueID);
+                label.appendText(text);
+            } else {
+                if (text != null) span.appendText(text);
+            }
+            if (link != null) {
+                span = xml.add("a");
+                span.setHref(link);
+            }
         }
     }
 }

@@ -60,7 +60,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             if (!TypeAdapters.getTypeAdapter(c).canParse(c) && (predifined.length <= i || predifined[i] == null))
                 canInvoke = false;
         }
-        PropertyBuilder builder = new PropertyBuilder(javaBug.getObjectBug());
+        PropertyBuilder builder = new PropertyBuilder();
         builder.setModifiers(m.getModifiers());
         builder.setType(m.getReturnType());
         builder.setName(m.getName());
@@ -83,7 +83,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         boolean setAble = pojo.setter != null && TypeAdapters.canParse(pojo.setter.getParameterTypes()[0]);
         if (!setAble && pojo.getter == null) return;
 
-        PropertyBuilder builder = new PropertyBuilder(javaBug.getObjectBug());
+        PropertyBuilder builder = new PropertyBuilder();
 
         Object val = null;
         if (pojo.getter != null) {
@@ -94,7 +94,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             }
-            builder.setExpandObject(val, pojo.getter.getReturnType());
+            builder.setExpandObject(javaBug.getObjectBug(), val, pojo.getter.getReturnType());
         }
 
         builder.setName(field);
@@ -114,7 +114,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
-        PropertyBuilder builder = new PropertyBuilder(javaBug.getObjectBug());
+        PropertyBuilder builder = new PropertyBuilder();
         builder.setName(f.getName());
         builder.setType(f.getType());
         builder.setModifiers(f.getModifiers());
@@ -125,7 +125,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             value.setEditLink(javaBug.getObjectBug().getObjectEditLink(o, f));
             value.setNullable(!f.getType().isPrimitive());
         }
-        builder.setExpandObject(val, f.getType());
+        builder.setExpandObject(javaBug.getObjectBug(), val, f.getType());
         builder.build(ul);
     }
 
