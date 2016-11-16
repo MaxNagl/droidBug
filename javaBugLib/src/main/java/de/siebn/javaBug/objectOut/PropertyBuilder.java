@@ -10,6 +10,7 @@ import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
 
 import static javafx.scene.input.KeyCode.M;
+import static javafx.scene.input.KeyCode.X;
 
 public class PropertyBuilder {
     private String name;
@@ -21,6 +22,7 @@ public class PropertyBuilder {
     private Integer modifiers;
     private Class<?> type;
     private String expandLink;
+    private XML expand;
 
     private String id = UUID.randomUUID().toString();
     private String refreshLink;
@@ -53,19 +55,30 @@ public class PropertyBuilder {
         li.setClass("object");
         boolean addedText = false;
         li.setId(id);
+        XML input = li.add("input");
+        input.setAttr("type", "checkbox");
+        input.addClass("opener");
+        input.setId(id + "opener");
+        input.setAttr("appendTo", "#" + id);
+        input.setAttr("appendId", id + "append");
+        XML label = li.add("label");
+        label.setAttr("for", id + "opener");
+        if (expandLink != null) {
+            input.setAttr("append", expandLink);
+        }
         if (modifiers != null) {
             li.addClass(StringifierUtil.modifiersToString(modifiers, "mod", true));
-            li.add("span").setClass("modifier").appendText(StringifierUtil.modifiersToString(modifiers, null, false));
+            label.add("span").setClass("modifier").appendText(StringifierUtil.modifiersToString(modifiers, null, false));
             addedText = true;
         }
         if (type != null) {
-            if (addedText) li.appendText(" ");
-            li.add("span").setClass("type").appendText(type.getSimpleName());
+            if (addedText) label.appendText(" ");
+            label.add("span").setClass("type").appendText(type.getSimpleName());
             addedText = true;
         }
         if (name != null) {
-            if (addedText) li.appendText(" ");
-            li.add("span").setClass("fieldName").appendText(name);
+            if (addedText) label.appendText(" ");
+            label.add("span").setClass("fieldName").appendText(name);
             addedText = true;
         }
         if (parameters != null) {
@@ -99,12 +112,16 @@ public class PropertyBuilder {
             addedText = true;
         }
         if (invokationLink != null) {
-            li.setAttr("invoke", invokationLink);
+            XML span = li.add("span");
+            span.addClass("invoke");
+            span.setAttr("addParams", "#" + id);
+            span.setAttr("append", invokationLink);
+            span.setAttr("appendTo", "#" + id);
+            span.setAttr("appendId", id + "append");
         }
-        if (expandLink != null) {
-            li.setAttr("expand", expandLink);
-        } else {
-            li.addClass("notOpenable");
+        if (expand != null) {
+            li.addElement(expand);
+            input.setAttr("checked", "true");
         }
         return li;
     }
@@ -137,6 +154,12 @@ public class PropertyBuilder {
     public PropertyBuilder setRefreshLink(String refreshLink) {
         this.refreshLink = refreshLink;
         return this;
+    }
+
+    public XML createExtended(String tag) {
+        expand = new XML(tag);
+        expand.setId(id + "append");
+        return expand;
     }
 
     public void setExpandObject(ObjectBugPlugin objectBug, Object val, Class<?> type) {

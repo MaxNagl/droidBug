@@ -77,6 +77,7 @@ public class XML {
     public XML getById(String id) {
         return new XML(document, document.getElementById(id));
     }
+
     public XML getFirstByTag(String tag) {
         NodeList elements = element.getElementsByTagName(tag);
         return elements.getLength() == 0 ? null : new XML(document, (Element) elements.item(0));
@@ -94,6 +95,10 @@ public class XML {
 		element.setIdAttribute("id", true);
 		return this;
 	}
+
+    public String getId() {
+        return element.getAttribute("id");
+    }
 	
 	public XML setClass(String clazz) {
 		element.setAttribute("class", clazz);

@@ -1,5 +1,6 @@
 package de.siebn.javaBug;
 
+import de.siebn.javaBug.NanoHTTPD.Response.Status;
 import de.siebn.javaBug.objectOut.*;
 import de.siebn.javaBug.plugins.*;
 import de.siebn.javaBug.util.StringifierUtil;
@@ -15,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,13 +28,16 @@ public class JavaBug extends NanoHTTPD {
     private final FileBugPlugin fileBugPlugin = new FileBugPlugin();
     private final ArrayList<Server> servers = new ArrayList<>();
     private final ArrayList<BugPlugin> plugins = new ArrayList<>();
+    private final HashMap<Class<?>, Object> pluginMap = new HashMap<>();
     private final HashMap<Class<?>, ArrayList<?>> filteredPlugins = new HashMap<>();
     private final int port;
 
-    public interface Server {
-        public boolean responsible(IHTTPSession session);
-        public Response serve(IHTTPSession session);
-        public int getPriority();
+    public AsyncRunner invocationRunner;
+
+    public abstract class Server {
+        public abstract boolean responsible(IHTTPSession session);
+        public abstract Response serve(IHTTPSession session);
+        public abstract int getPriority();
     }
 
     public interface BugPlugin {
@@ -51,6 +56,10 @@ public class JavaBug extends NanoHTTPD {
         this.port = port;
     }
 
+    public void setInvocationRunner(AsyncRunner invocationRunner) {
+        this.invocationRunner = invocationRunner;
+    }
+
     public static class ExceptionResult extends RuntimeException {
         private final Response.Status status;
 
@@ -62,6 +71,7 @@ public class JavaBug extends NanoHTTPD {
 
     public void addPlugin(BugPlugin plugin) {
         plugins.add(plugin);
+        pluginMap.put(plugin.getClass(), plugin);
         Collections.sort(plugins, new Comparator<BugPlugin>() {
             @Override public int compare(BugPlugin o1, BugPlugin o2) { return o1.getOrder() - o2.getOrder(); }
         });
@@ -94,6 +104,11 @@ public class JavaBug extends NanoHTTPD {
                     filtered.add((T) plugin);
         }
         return filtered;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getPlugin(Class<T> pluginClass) {
+        return (T) pluginMap.get(pluginClass);
     }
 
     private void addAnnotatedMethods(final Object object) {
@@ -129,7 +144,7 @@ public class JavaBug extends NanoHTTPD {
                                     if (!params.containsKey(reqParam)) throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Missing parameter \"" + reqParam + "\"");
                                 }
                             }
-                            Object r = method.invoke(object, param);
+                            Object r = invokeSync(object, method, param);
                             if (r instanceof Response) return (Response) r;
                             if (r instanceof XML) return new Response(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, ((XML) r).getXml());
                             if (r instanceof byte[]) return new Response(Response.Status.OK, "application/octet-stream", new ByteArrayInputStream((byte[]) r));
@@ -143,7 +158,7 @@ public class JavaBug extends NanoHTTPD {
                             if (e.getCause() instanceof RuntimeException)
                                 throw (RuntimeException) e.getCause();
                             throw new IllegalStateException(e);
-                        } catch (Exception e) {
+                        } catch (Throwable e) {
                             throw new IllegalStateException(e);
                         }
                     }
@@ -157,14 +172,42 @@ public class JavaBug extends NanoHTTPD {
         }
     }
 
+    private Object invokeSync(final Object object, final java.lang.reflect.Method method, final Object[] param) throws Throwable {
+        AsyncRunner runner = invocationRunner;
+        if (runner == null) {
+            return method.invoke(object, param);
+        }
+        final AtomicReference<Object> response = new AtomicReference<>();
+        final AtomicReference<Throwable> error = new AtomicReference<>();
+        runner.exec(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (response) {
+                    try {
+                        response.set(method.invoke(object, param));
+                    } catch (Throwable t) {
+                        error.set(t);
+                    }
+                    response.notifyAll();
+                }
+            }
+        });
+        synchronized (response) {
+            while (response.get() == null && error.get() == null) {
+                try {
+                    response.wait();
+                } catch (Exception e) {}
+            }
+        }
+        System.out.println("ASDF " + response.get() + " " + error.get());
+        if (error.get() != null) {
+            throw error.get();
+        }
+        return response.get();
+    }
+
     public void addServers(Server server) {
         servers.add(server);
-//        Collections.sort(servers, new Comparator<Server>() {
-//            @Override
-//            public int compare(Server o1, Server o2) {
-//                return o2.getOrder() - o1.getOrder();
-//            }
-//        });
     }
 
     @Override
@@ -177,6 +220,9 @@ public class JavaBug extends NanoHTTPD {
             return new Response(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "404");
         } catch (ExceptionResult e) {
             return new Response(e.status, NanoHTTPD.MIME_PLAINTEXT, e.getMessage());
+        } catch (Throwable t) {
+            t.printStackTrace();
+            return new Response(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, t.getMessage());
         } finally {
             System.out.println("Serving: " + session.getUri() + " in: " + StringifierUtil.nanoSecondsToString(System.nanoTime() - start));
         }

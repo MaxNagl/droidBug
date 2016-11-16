@@ -7,21 +7,25 @@ import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
-/**
- * Created by Sieben on 16.03.2015.
- */
 public abstract class AbstractOutputCategory implements OutputCategory {
     private final static Object[] empty = new Object[0];
     protected final JavaBug javaBug;
     protected final String type;
     protected final String name;
     protected int order;
+
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface Property {
+        String value();
+    }
 
     public AbstractOutputCategory(JavaBug javaBug, String type, String name, int order) {
         this.javaBug = javaBug;
@@ -48,6 +52,33 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     @Override
     public int getOrder() {
         return order;
+    }
+
+    @Override
+    public void add(XML ul, Object o) {
+        for (Method m : AllClassMembers.getForClass(getClass()).methods) {
+            Property getterSetter = m.getAnnotation(Property.class);
+            if (getterSetter != null) {
+                addProperty(ul, getterSetter.value(), o, m);
+            }
+        }
+    }
+
+    private void addProperty(XML ul, String name, Object o, Method setter) {
+        XML li = ul.add("li").setClass("object notOpenable");
+        li.add("span").setClass("fieldName").appendText(name);
+        li.appendText(": ");
+        Object val = null;
+        try {
+            val = setter.invoke(this, o, null, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        XML p = li.add("span").setClass("parameter").appendText(String.valueOf(val));
+        p.setAttr("editurl", javaBug.getObjectBug().getInvokationLink(false, this, setter, o, null, true));
+        p.setAttr("param", "p1");
+        if (!setter.getReturnType().isPrimitive())
+            p.setAttr("editNullify", "true");
     }
 
     public void addMethodInformation(XML ul, Object o, Method m, Object[] predifined, Object[] preset) {

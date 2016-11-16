@@ -57,96 +57,15 @@ function init(tag) {
         };
         makeEditable(t, commit, commit, nullify);
     });
-    $('[expand]', tag).each(function(){
-        var t = $(this);
-        var handle = $('<span class="closed">');
-        t.prepend(handle);
-        handle.on('click', function() {
-            toggleExpand(t, handle);
-        })
-        if (t.attr('expand').substr(0, 1) == '!') {
-            t.attr('expand', t.attr('expand').substring(1));
-            toggleExpand(t, handle);
-        }
-        handle.removeClass("closed opened").addClass(t.children('.expand').length === 0 ? "closed" : "opened");
-    });
-    $('[append]', tag).each(function(){
-        var t = $(this);
-        t.change(function() {
-            append = $('#' + t.attr('id') + 'Append');
-            console.log(append);
-            if($(this).is(":checked")) {
-                var to = $(t.attr('appendTo'));
-                if (append.length == 0) {
-                    append = $('<div>');
-                    append.addClass('append');
-                    append.attr('id', t.attr('id') + 'Append');
-                    to.append(append);
-                    load(append, t.attr('append'), true);
-                } else {
-                    append.show();
-                }
-            } else {
-                append.hide();
-            }
-        })
-    });
+    $('input', tag).change(append);
+    $('span[append]', tag).click(append);
     $('[replace]', tag).click(function(){
         var t = $(this);
         var replace = $(t.attr('replace'));
         var replaceUrl = t.attr('replaceUrl');
-        load(replace, replaceUrl, true, true);
+        loadGet(replace, replaceUrl, true, true);
     });
-    $('[invoke]', tag).each(function(){
-        var t = $(this);
-        $('[parameter]', t).each(function() {
-            var p = $(this);
-            p.attr('contentEditable', 'true');
-        })
-        var invoker = $('<span class="invoke">');
-        t.append(invoker);
-        invoker.on('click', function() {
-            var expand = t.children('.expand');
-            if (expand.length === 0) {
-                t.append(expand = $('<div class="expand">'));
-                var handle = $('<span class="opened">');
-                t.prepend(handle);
-                handle.on('click', function() {
-                    toggleExpand(t, handle);
-                })
-                t.removeClass("notOpenable");
-            }
-            var params = {};
-            $('[parameter]', t).each(function() {
-                var p = $(this);
-                params[p.attr('parameter')] = p.text();
-            })
-            $('[predifined]', t).each(function() {
-                var p = $(this);
-                params[p.attr('predifined')] = p.attr('value');
-            })
-            $.post(t.attr('invoke'), params).done(function(data) {
-                expand.html(data);
-                init(expand);
-            }).fail(function(jqXHR) {
-                alert(jqXHR.responseText);
-            });
-        })
-    });
-    //$('[pojo]', tag).each(function(){
-    //    var t = $(this);
-    //    t.attr('contentEditable', 'true');
-    //    t.on('keydown', function(e) {
-    //        if(e.keyCode == 13) {
-    //            e.preventDefault();
-    //            $.post(t.attr('pojo'), {o : t.text()}).done(function(data) {
-    //                t.html(data);
-    //            }).fail(function(jqXHR) {
-    //                alert(jqXHR.responseText);
-    //            });
-    //        }
-    //    });
-    //});
+    $('[parameter]', tag).attr('contentEditable', 'true');
     $('[hoverGroup]', tag).each(function(){
         var t = $(this);
         t.mouseover(function() {
@@ -159,6 +78,53 @@ function init(tag) {
     $('[modTag]', tag).trigger("change");
     autoload(tag);
     splitup();
+}
+
+function append() {
+    var t = $(this);
+    var appendUri = t.attr('append');
+    if (appendUri === undefined) return;
+    var appendId = t.attr('appendId') ? t.attr('appendId') : t.attr('id') + 'Append';
+    var append = $('#' + appendId);
+    var refresh = t.prop("tagName") != "INPUT";
+    if(refresh || t.is(':checked')) {
+        var to = $(t.attr('appendTo'));
+        if (append.length == 0) {
+            append = $('<div>');
+            append.addClass('append');
+            append.attr('id', appendId);
+            to.append(append);
+            refresh = true;
+        } else {
+            append.show();
+        }
+        if (refresh) {
+            if (t.attr('addParams')) {
+                console.log(collectParams($(t.attr('addParams'))));
+                load(append, $.post(t.attr('append'), collectParams($(t.attr('addParams')))), true);
+            } else {
+                load(append, $.get(t.attr('append')), true);
+            }
+        }
+        $('input[appendId=' + appendId + ']').prop('checked', true);
+        $('input[appendId=' + appendId + ']').attr('append', 'D');
+    } else {
+        append.hide();
+        $('input[appendId=' + appendId + ']').prop('checked', false);
+    }
+}
+
+function collectParams(tag) {
+    var params = {};
+    $('[parameter]', tag).each(function() {
+        var p = $(this);
+        params[p.attr('parameter')] = p.text();
+    })
+    $('[predifined]', tag).each(function() {
+        var p = $(this);
+        params[p.attr('predifined')] = p.attr('value');
+    })
+    return params;
 }
 
 function makeEditable(tag, onEnter, onFocusOut, onNullify) {
@@ -200,18 +166,6 @@ function applyModTag() {
     if (t.prop("checked")) $(t.attr('modTag')).addClass(t.attr('modClass')); else $(t.attr('modTag')).removeClass(t.attr('modClass'));
 }
 
-function toggleExpand(t, handle) {
-    var expand = t.children('.expand');
-    if (expand.length === 0) {
-        t.append(expand = $('<div class="expand">'));
-        if (t.attr('expand') != undefined)
-            load(expand, t.attr('expand'), true);
-    } else {
-        expand.toggle();
-    }
-    handle.removeClass("closed opened").addClass(expand.is(':visible') ? "opened" : "closed");
-}
-
 function openTab(t) {
     t.addClass('active');
     $('.' + t.attr('tabContent')).each(showAndAutoload);
@@ -222,9 +176,17 @@ function openTab(t) {
     window.location.hash = hash;
 }
 
-function load(tag, uri, doInit, replace) {
+function loadGet(tag, uri, doInit, replace) {
+    load(tag, $.get(uri), doInit, replace);
+}
+
+function loadPost(tag, uri, param, doInit, replace) {
+    load(tag, uri, doInit, replace);
+}
+
+function load(tag, loader, doInit, replace) {
     var t = $(tag);
-    $.get(uri).done(function(data) {
+    loader.done(function(data) {
         if (replace) {
             var data = $(data);
             t.replaceWith(data);
@@ -249,7 +211,7 @@ function autoload(tag) {
         var t = $(this);
         var uri = t.attr('autoload');
         t.removeAttr('autoload');
-        load(t, uri, true);
+        loadGet(t, uri, true);
     })
 }
 
@@ -271,7 +233,7 @@ function splitup() {
             var c = $(this);
             if (s) {
                 c.height(h);
-                c.width(w / children.length);
+                c.width((w - 50) / children.length);
             } else {
                 c.width(w);
                 c.height(h / children.length);

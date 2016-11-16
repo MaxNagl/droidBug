@@ -20,10 +20,11 @@ public class StringOutput extends AbstractOutputCategory {
 
     @Override
     public void add(XML ul, Object o) {
-        XML li = ul.add("li").setClass("object");
-        li.setAttr("expand", javaBug.getObjectBug().getObjectDetailsLink(o));
-        li.add("span").setClass("type").appendText(o.getClass().getSimpleName());
-        li.appendText(" ").add("span").setClass("value").appendText(TypeAdapters.toString(o));
+        PropertyBuilder builder = new PropertyBuilder();
+        builder.setName(TypeAdapters.toString(o));
+        builder.setType(o.getClass());
+        builder.setExpandLink(javaBug.getObjectBug().getObjectDetailsLink(o));
+        builder.build(ul);
     }
 
     @Override

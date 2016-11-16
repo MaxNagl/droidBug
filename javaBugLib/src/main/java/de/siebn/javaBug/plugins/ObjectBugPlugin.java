@@ -107,12 +107,15 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         for (OutputCategory oc : outputCategories) {
             String name = oc.getName(o);
             if (name != null) {
-                XML ocul = ul.add("li").setAttr("expand", javaBug.getObjectBug().getObjectDetailsLink(o, oc.getType())).appendText(name);
+                PropertyBuilder builder = new PropertyBuilder();
+                builder.setName(name);
+                builder.setExpandLink(javaBug.getObjectBug().getObjectDetailsLink(o, oc.getType()));
                 if (oc.opened(outputCategories, alreadyOpened)) {
-                    XML expand = ocul.add("ul").setClass("expand");
+                    XML expand = builder.createExtended("ul").setClass("expand");
                     oc.add(expand, o);
                     alreadyOpened = true;
                 }
+                XML ocul = builder.build(ul);
             }
         }
         return ul.getXml();

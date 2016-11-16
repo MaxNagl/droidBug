@@ -4,10 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
-import android.webkit.MimeTypeMap;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import de.siebn.javaBug.NanoHTTPD.AsyncRunner;
 import de.siebn.javaBug.android.ViewBugPlugin;
 import org.apache.http.conn.util.InetAddressUtils;
 
@@ -18,11 +18,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import de.siebn.javaBug.plugins.ClassPathBugPlugin;
+import de.siebn.javaBug.android.ViewOutput;
+import de.siebn.javaBug.android.ViewShotOutput;
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.plugins.ObjectBugPlugin;
-import de.siebn.javaBug.plugins.RootBugPlugin;
-import de.siebn.javaBug.plugins.ThreadsBugPlugin;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -36,10 +34,19 @@ public class MainActivity extends ActionBarActivity {
         jb.addDefaultPlugins();
 
         jb.addPlugin(new ViewBugPlugin(jb, this));
+        jb.addPlugin(new ViewShotOutput(jb));
+        jb.addPlugin(new ViewOutput(jb));
 
         jb.getObjectBug().addRootObject(jb);
 
         jb.tryToStart();
+
+        jb.setInvocationRunner(new AsyncRunner() {
+            @Override
+            public void exec(Runnable code) {
+                runOnUiThread(code);
+            }
+        });
 
         LinearLayout lin = (LinearLayout) findViewById(R.id.browserAdresses);
         for (String ipAdress : getIPAddresses()) {
