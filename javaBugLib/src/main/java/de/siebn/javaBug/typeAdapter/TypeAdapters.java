@@ -1,17 +1,18 @@
 package de.siebn.javaBug.typeAdapter;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Created by Sieben on 06.03.2015.
- */
+import static javafx.scene.input.KeyCode.T;
+
 public class TypeAdapters {
     private final static ArrayList<TypeAdapter<?>> adapters = new ArrayList<>();
     private final static Map<Class<?>, TypeAdapter> adapterMap = new HashMap<>();
@@ -40,18 +41,47 @@ public class TypeAdapters {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
+    public static<T> TypeAdapter<T> getTypeAdapterClass(Class<?> clazz) {
+        for (TypeAdapter t : adapters) {
+            if (t.getClass().equals(clazz)) {
+                return t;
+            }
+        }
+        try {
+            return (TypeAdapter<T>) clazz.getConstructor().newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static<T> List<TypeAdapter<T>> getTypeAdapterClasses(Class[] classes) {
+        ArrayList<TypeAdapter<T>> list = new ArrayList<>();
+        for (Class<?> clazz : classes) {
+            list.add((TypeAdapter<T>) getTypeAdapterClass(clazz));
+        }
+        return list;
+    }
+
     public static boolean canParse(Class clazz) {
         TypeAdapter adapter = getTypeAdapter(clazz);
         return adapter.canParse(clazz);
     }
 
     public static String toString(Object o) {
-        return toString(o, 100);
+        return toString(o, null, 100);
     }
 
-    public static String toString(Object o, int maxLength) {
+    public static String toString(Object o, TypeAdapter adapter) {
+        return toString(o, adapter, 100);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    public static String toString(Object o, TypeAdapter adapter, int maxLength) {
         if (o == null) return "null";
-        TypeAdapters.TypeAdapter<Object> adapter = TypeAdapters.getTypeAdapter(o.getClass());
+        if (adapter == null) adapter = TypeAdapters.getTypeAdapter(o.getClass());
         String s = adapter.toString(o);
         if (s.length() > maxLength) s = s.substring(0, maxLength - 3) + "...";
         return s;
@@ -69,24 +99,22 @@ public class TypeAdapters {
     }
 
     public interface TypeAdapter<T> {
-        public T parse(Class<? extends T> clazz, String string);
-        public String toString(T object);
-        public boolean canAdapt(Class<?> clazz);
-        public boolean canParse(Class<?> clazz);
-        public boolean showOverview();
-        public int getProirity(); // Adapters with a high priority are prefered
+        T parse(Class<? extends T> clazz, String string);
+        String toString(T object);
+        boolean canAdapt(Class<?> clazz);
+        boolean canParse(Class<?> clazz);
+        int getProirity(); // Adapters with a high priority are prefered
+        String getUnit();
     }
 
-    public static abstract class AbstractAdapter<T> implements TypeAdapter<T> {
+    public static abstract class AbstractTypeAdapter<T> implements TypeAdapter<T> {
         protected final Set<Class<? extends T>> classes = new HashSet<>();
         protected final int proirity;
         private final boolean canParse;
-        private final boolean showOverview;
 
-        public AbstractAdapter(int proirity, boolean canParse, boolean showOverview) {
+        public AbstractTypeAdapter(int proirity, boolean canParse) {
             this.proirity = proirity;
             this.canParse = canParse;
-            this.showOverview = showOverview;
         }
 
         @Override
@@ -100,7 +128,7 @@ public class TypeAdapters {
         }
 
         @Override
-        public String toString(Object object) {
+        public String toString(T object) {
             return String.valueOf(object);
         }
 
@@ -110,20 +138,20 @@ public class TypeAdapters {
         }
 
         @Override
-        public boolean showOverview() {
-            return showOverview;
-        }
-
-        @Override
         public T parse(Class<? extends T> clazz, String string) {
             throw new IllegalStateException();
         }
+
+        @Override
+        public String getUnit() {
+            return null;
+        }
     }
 
-    public static class PrimitiveAdapter extends AbstractAdapter<Object> {
+    public static class PrimitiveAdapter extends AbstractTypeAdapter<Object> {
 
         public PrimitiveAdapter() {
-            super(Integer.MIN_VALUE + 2, true, true);
+            super(Integer.MIN_VALUE + 2, true);
             classes.add(Integer.class);
             classes.add(Long.class);
             classes.add(Boolean.class);
@@ -153,10 +181,10 @@ public class TypeAdapters {
         }
     }
 
-    public static class StringAdapter extends AbstractAdapter<Object> {
+    public static class StringAdapter extends AbstractTypeAdapter<Object> {
 
         public StringAdapter() {
-            super(Integer.MIN_VALUE + 2, true, true);
+            super(Integer.MIN_VALUE + 2, true);
             classes.add(String.class);
             classes.add(CharSequence.class);
         }
@@ -167,9 +195,9 @@ public class TypeAdapters {
         }
     }
 
-    public static class ArrayAdapter extends AbstractAdapter<Object> {
+    public static class ArrayAdapter extends AbstractTypeAdapter<Object> {
         public ArrayAdapter() {
-            super(Integer.MIN_VALUE + 1, false, false);
+            super(Integer.MIN_VALUE + 1, false);
         }
 
         @Override
@@ -183,9 +211,9 @@ public class TypeAdapters {
         }
     }
 
-    public static class ObjectAdapter extends AbstractAdapter<Object> {
+    public static class ObjectAdapter extends AbstractTypeAdapter<Object> {
         public ObjectAdapter() {
-            super(Integer.MIN_VALUE, false, false);
+            super(Integer.MIN_VALUE, false);
         }
 
         @Override

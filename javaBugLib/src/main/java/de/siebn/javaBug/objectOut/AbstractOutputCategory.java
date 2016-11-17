@@ -2,7 +2,9 @@ package de.siebn.javaBug.objectOut;
 
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.objectOut.ListItemBuilder.ParameterBuilder;
+import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
+import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
@@ -13,6 +15,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractOutputCategory implements OutputCategory {
@@ -25,6 +28,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Property {
         String value();
+        Class<?>[] typeAdapters() default {};
     }
 
     public AbstractOutputCategory(JavaBug javaBug, String type, String name, int order) {
@@ -59,26 +63,44 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         for (Method m : AllClassMembers.getForClass(getClass()).methods) {
             Property getterSetter = m.getAnnotation(Property.class);
             if (getterSetter != null) {
-                addProperty(ul, getterSetter.value(), o, m);
+                addProperty(ul, getterSetter, o, m);
             }
         }
     }
 
-    private void addProperty(XML ul, String name, Object o, Method setter) {
-        XML li = ul.add("li").setClass("object notOpenable");
-        li.add("span").setClass("fieldName").appendText(name + " AAAA");
-        li.appendText(": ");
+    private void addProperty(XML ul, Property property, Object o, Method setter) {
+        ListItemBuilder builder = new ListItemBuilder();
+        builder.setName(property.value());
         Object val = null;
         try {
             val = setter.invoke(this, o, null, false);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        XML p = li.add("span").setClass("parameter").appendText(String.valueOf(val));
-        p.setAttr("editurl", javaBug.getObjectBug().getInvokationLink(false, this, setter, o, null, true));
-        p.setAttr("param", "p1");
-        if (!setter.getReturnType().isPrimitive())
-            p.setAttr("editNullify", "true");
+
+        ArrayList<TypeAdapter<Object>> typeAdapters = new ArrayList<>();
+        if (property.typeAdapters().length != 0) {
+            typeAdapters.addAll(TypeAdapters.getTypeAdapterClasses(property.typeAdapters()));
+        } else {
+            typeAdapters.add(null);
+        }
+
+        for (TypeAdapter<?> typeAdapter : typeAdapters) {
+            ParameterBuilder value = builder.addValue();
+            value.setValue(val);
+            InvocationLinkBuilder invocation = javaBug.getObjectBug().new InvocationLinkBuilder().setObject(this).setMethod(setter).setPredefined(0, o);
+            if (typeAdapter != null) {
+                invocation.setTypeAdapter(1, typeAdapter).setReturTypeAdapter(typeAdapter);
+                value.setUnit(typeAdapter.getUnit());
+            }
+            value.setEditLink(invocation.setPredefined(2, true).build());
+            value.setUpdateLink(invocation.setPredefined(2, false).build());
+            value.setNullable(!setter.getReturnType().isPrimitive());
+            value.setParameterNum(1);
+            value.setTypeAdapter(typeAdapter);
+        }
+
+        builder.build(ul);
     }
 
     public void addMethodInformation(XML ul, Object o, Method m, Object[] predifined, Object[] preset) {
@@ -129,7 +151,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         }
 
         builder.setName(field);
-        ParameterBuilder value = builder.createValue();
+        ParameterBuilder value = builder.addValue();
         value.setValue(val);
         if (setAble) {
             value.setEditLink(javaBug.getObjectBug().getPojoLink(o, field));
@@ -149,7 +171,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         builder.setName(f.getName());
         builder.setType(f.getType());
         builder.setModifiers(f.getModifiers());
-        ParameterBuilder value = builder.createValue();
+        ParameterBuilder value = builder.addValue();
         TypeAdapters.TypeAdapter<Object> adapter = TypeAdapters.getTypeAdapter(f.getType());
         value.setValue(val);
         if (adapter != null && !Modifier.isFinal(f.getModifiers()) && adapter.canParse(f.getType())) {

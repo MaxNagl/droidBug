@@ -6,15 +6,16 @@ import java.util.UUID;
 
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
+import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
 
 public class ListItemBuilder {
     private String name;
     private List<ParameterBuilder> parameters;
+    private List<ParameterBuilder> values;
     private List<ColumnBuilder> columns;
 
-    private ParameterBuilder value;
     private String invokationLink;
     private Integer modifiers;
     private Class<?> type;
@@ -23,29 +24,6 @@ public class ListItemBuilder {
 
     private String id = UUID.randomUUID().toString();
     private String refreshLink;
-
-    public ListItemBuilder setName(String name) {
-        this.name = name;
-        return this;
-    }
-
-    public ParameterBuilder addParameter() {
-        if (parameters == null) {
-            parameters = new ArrayList<>();
-        }
-        ParameterBuilder parameter = new ParameterBuilder();
-        parameters.add(parameter);
-        return parameter;
-    }
-
-    public ColumnBuilder addColumn() {
-        if (columns == null) {
-            columns = new ArrayList<>();
-        }
-        ColumnBuilder column = new ColumnBuilder();
-        columns.add(column);
-        return column;
-    }
 
     public XML build(XML xml) {
         XML li = xml == null ? new XML("span") : xml.add("li");
@@ -89,9 +67,12 @@ public class ListItemBuilder {
             li.appendText(")");
             addedText = true;
         }
-        if (value != null) {
-            if (addedText) li.appendText(": ");
-            if (value != null) value.build(li);
+        if (values != null) {
+            if (addedText) li.appendText(":");
+            for (ParameterBuilder value : values) {
+                li.appendText(" ");
+                value.build(li);
+            }
             addedText = true;
         }
         if (columns != null) {
@@ -123,8 +104,35 @@ public class ListItemBuilder {
         return li;
     }
 
-    public ParameterBuilder createValue() {
-        value = new ParameterBuilder();
+    public ListItemBuilder setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public ParameterBuilder addParameter() {
+        if (parameters == null) {
+            parameters = new ArrayList<>();
+        }
+        ParameterBuilder parameter = new ParameterBuilder();
+        parameters.add(parameter);
+        return parameter;
+    }
+
+    public ColumnBuilder addColumn() {
+        if (columns == null) {
+            columns = new ArrayList<>();
+        }
+        ColumnBuilder column = new ColumnBuilder();
+        columns.add(column);
+        return column;
+    }
+
+    public ParameterBuilder addValue() {
+        if (values == null) {
+            values = new ArrayList<>();
+        }
+        ParameterBuilder value = new ParameterBuilder();
+        values.add(value);
         return value;
     }
 
@@ -171,11 +179,9 @@ public class ListItemBuilder {
         private boolean nullable;
         private Class<?> type;
         private Integer parameterNum;
-
-        public ParameterBuilder setEditLink(String editLink) {
-            this.editLink = editLink;
-            return this;
-        }
+        private String updateLink;
+        private TypeAdapter<?> typeAdapter;
+        private String unit;
 
         public void build(XML xml) {
             boolean valueField = value != null || parameterNum != null || editLink != null;
@@ -189,11 +195,18 @@ public class ListItemBuilder {
                     p.appendText(TypeAdapters.getTypeAdapter(value.getClass()).toString(value));
                 }
                 if (parameterNum != null) {
-                    p.setAttr("parameter", "p" + parameterNum);
+                    p.setAttr("param", "p" + parameterNum);
                 }
                 if (editLink != null) {
-                    p.setAttr("editurl", editLink);
+                    p.setAttr("editUrl", editLink);
                     if (nullable) p.setAttr("editNullify", "true");
+                }
+                if (updateLink != null) {
+                    p.setAttr("updateUrl", updateLink);
+                }
+                p.setAttr("updateAll", "#" + ListItemBuilder.this.id);
+                if (unit != null) {
+                    xml.appendText(unit);
                 }
             }
         }
@@ -215,6 +228,26 @@ public class ListItemBuilder {
 
         public ParameterBuilder setParameterNum(int num) {
             this.parameterNum = num;
+            return this;
+        }
+
+        public ParameterBuilder setEditLink(String editLink) {
+            this.editLink = editLink;
+            return this;
+        }
+
+        public ParameterBuilder setUpdateLink(String udateLink) {
+            this.updateLink = udateLink;
+            return this;
+        }
+
+        public ParameterBuilder setTypeAdapter(TypeAdapter<?> typeAdapter) {
+            this.typeAdapter = typeAdapter;
+            return this;
+        }
+
+        public ParameterBuilder setUnit(String unit) {
+            this.unit = unit;
             return this;
         }
     }

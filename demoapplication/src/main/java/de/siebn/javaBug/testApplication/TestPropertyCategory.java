@@ -2,6 +2,7 @@ package de.siebn.javaBug.testApplication;
 
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.objectOut.AbstractOutputCategory;
+import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.XML;
 
@@ -19,6 +20,13 @@ public class TestPropertyCategory extends AbstractOutputCategory {
 
     @Property("value")
     public int setIntValue(TestClass test, Integer value, boolean set) {
+        if (set)
+            test.primitiveInt = value;
+        return test.primitiveInt;
+    }
+
+    @Property(value = "valueMultiple", typeAdapters = {TypeAdapters.PrimitiveAdapter.class, DoubleIntAdapter.class})
+    public int setIntValueMultiple(TestClass test, Integer value, boolean set) {
         if (set)
             test.primitiveInt = value;
         return test.primitiveInt;

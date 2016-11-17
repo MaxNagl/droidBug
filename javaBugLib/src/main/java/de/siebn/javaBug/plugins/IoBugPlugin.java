@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale.Builder;
 import java.util.Set;
 
 import de.siebn.javaBug.JavaBug;
@@ -38,7 +37,7 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
         for (MonitoredIo mio : monitoredIos) {
             ListItemBuilder builder = new ListItemBuilder();
-            //builder.createValue().setValue(mio);
+            //builder.addValue().setValue(mio);
             builder.setName(mio.title);
             builder.addColumn().setText("In: " + HumanReadable.formatByteSizeBinary(mio.in.bout.size()));
             builder.addColumn().setText("Out: " + HumanReadable.formatByteSizeBinary(mio.out.bout.size()));
@@ -103,12 +102,12 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         public void overview(XML xml) {
             ListItemBuilder builder = new ListItemBuilder();
             builder.setName("Input");
-            builder.createValue().setValue(HumanReadable.formatByteSizeBinary(in.bout.size()));
+            builder.addValue().setValue(HumanReadable.formatByteSizeBinary(in.bout.size()));
             builder.build(xml);
 
             builder = new ListItemBuilder();
             builder.setName("Output");
-            builder.createValue().setValue(HumanReadable.formatByteSizeBinary(out.bout.size()));
+            builder.addValue().setValue(HumanReadable.formatByteSizeBinary(out.bout.size()));
             builder.build(xml);
         }
 

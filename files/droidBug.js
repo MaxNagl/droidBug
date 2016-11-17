@@ -20,39 +20,49 @@ function init(tag) {
         });
         openTab(open);
     });
-    $('[editurl]', tag).each(function(){
+    $('[editUrl]', tag).each(function(){
         var t = $(this);
         t.attr('contentEditable', 'true');
         t.unbind('keydown');
+        var success = function (data) {
+            t.html(data);
+            t.removeClass("edited");
+            t.attr('def', t.html());
+            if (t.attr('updateAll')) {
+                console.log($(t.attr('updateAll')));
+                $('[updateUrl]', $(t.attr('updateAll'))).each(function() {
+                    var t2 = $(this);
+                    if (!t2.is(t)) {
+                        $.get(t2.attr('updateUrl')).done(function(data) {
+                            t2.html(data);
+                            t2.removeClass("edited");
+                            t2.attr('def', t2.html());
+                        })
+                    }
+                })
+                console.log();
+            }
+        }
+        var error = function (data) {
+            alert(jqXHR.responseText);
+        }
         var commit = function() {
             var param = {};
             param[t.attr('param') === undefined ? "value" : t.attr('param')] = t.text();
             $.ajax({
                 type: "POST",
-                url: t.attr('editurl'),
+                url: t.attr('editUrl'),
                 data: param,
-                success: function (data) {
-                    t.html(data);
-                    t.removeClass("edited");
-                    t.attr('def', t.html());
-                },
-                error: function (jqXHR) {
-                    alert(jqXHR.responseText);
-                }
+                success: success,
+                error: error
             });
         };
         var nullify = function() {
             $.ajax({
                 type: "POST",
-                url: t.attr('editurl'),
-                success: function (data) {
-                    t.html(data);
-                    t.removeClass("edited");
-                    t.attr('def', t.html());
-                },
-                error: function (jqXHR) {
-                    alert(jqXHR.responseText);
-                }
+                url: t.attr('editUrl'),
+                success: success,
+                error: error
             });
         };
         makeEditable(t, commit, commit, nullify);
@@ -65,7 +75,7 @@ function init(tag) {
         var replaceUrl = t.attr('replaceUrl');
         loadGet(replace, replaceUrl, true, true);
     });
-    $('[parameter]', tag).attr('contentEditable', 'true');
+    $('[param]', tag).attr('contentEditable', 'true');
     $('[hoverGroup]', tag).each(function(){
         var t = $(this);
         t.mouseover(function() {
@@ -116,9 +126,9 @@ function append() {
 
 function collectParams(tag) {
     var params = {};
-    $('[parameter]', tag).each(function() {
+    $('[param]', tag).each(function() {
         var p = $(this);
-        params[p.attr('parameter')] = p.text();
+        params[p.attr('param')] = p.text();
     })
     $('[predifined]', tag).each(function() {
         var p = $(this);

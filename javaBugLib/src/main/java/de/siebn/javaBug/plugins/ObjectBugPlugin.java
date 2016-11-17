@@ -1,25 +1,45 @@
 package de.siebn.javaBug.plugins;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.objectOut.AnnotatedOutputCategory;
-import de.siebn.javaBug.objectOut.MethodsOutput;
-import de.siebn.javaBug.objectOut.OutputCategory;
 import de.siebn.javaBug.objectOut.ListItemBuilder;
+import de.siebn.javaBug.objectOut.OutputCategory;
 import de.siebn.javaBug.objectOut.OutputMethod;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
+import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.XML;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.*;
+import static javafx.scene.input.KeyCode.T;
 
 public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public final HashMap<Integer, Object> references = new HashMap<>();
     private ArrayList<Object> rootObjects = new ArrayList<>();
 
     private JavaBug javaBug;
+
+    public ObjectBugPlugin(JavaBug javaBug) {
+        this.javaBug = javaBug;
+    }
+
+    public static int parseHash(String hashString) {
+        return Integer.parseInt(hashString.substring(hashString.startsWith("/") ? 2 : 1), 16);
+    }
+
+    public static String getHash(Object o) {
+        return "@" + Integer.toHexString(System.identityHashCode(o));
+    }
 
     public List<OutputCategory> getOutputCategories(Class<?> clazz) {
         ArrayList<OutputCategory> outputCategories = new ArrayList<>();
@@ -39,10 +59,6 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             }
         });
         return outputCategories;
-    }
-
-    public ObjectBugPlugin(JavaBug javaBug) {
-        this.javaBug = javaBug;
     }
 
     public void addRootObject(Object object) {
@@ -74,7 +90,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         XML ul = new XML("ul");
         for (Object o : rootObjects) {
             ListItemBuilder builder = new ListItemBuilder();
-            builder.createValue().setValue(o);
+            builder.addValue().setValue(o);
             builder.setExpandObject(this, o, o.getClass());
             builder.build(ul);
         }
@@ -132,16 +148,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         return ul.getXml();
     }
 
-    public static int parseHash(String hashString) {
-        return Integer.parseInt(hashString.substring(hashString.startsWith("/") ? 2 : 1), 16);
-    }
-
     public Object parseObjectReference(String reference) {
         return references.get(parseHash(reference));
-    }
-
-    public static String getHash(Object o) {
-        return "@" + Integer.toHexString(System.identityHashCode(o));
     }
 
     public String getObjectReference(Object o) {
@@ -171,7 +179,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         Field f = allMembers.getField(fieldName);
         if (f != null) {
             TypeAdapters.TypeAdapter<?> adapter = TypeAdapters.getTypeAdapter(f.getType());
-            if (adapter == null) throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No TypeAdapter found!");
+            if (adapter == null)
+                throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No TypeAdapter found!");
             Object val;
             String v = session.getParms().get("value");
             try {
@@ -186,13 +195,14 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     public String getInvokationLink(boolean details, Object o, Method m, Object... predefined) {
-        StringBuffer link = new StringBuffer("/invoke");
+        StringBuilder link = new StringBuilder("/invoke");
         link.append("?object=").append(getObjectReference(o));
         if (details) link.append("&details=").append(details ? "true" : "false");
         link.append("&method=").append(getHash(m));
         int param = 0;
         for (Object p : predefined) {
-            if (p != null) link.append("&p").append(param).append("=").append(getObjectReference(p));
+            if (p != null)
+                link.append("&p").append(param).append("=").append(getObjectReference(p));
             param++;
         }
         return link.toString();
@@ -210,8 +220,14 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
                 Object[] ps = new Object[parameterTypes.length];
                 for (int i = 0; i < parameterTypes.length; i++) {
                     Class<?> c = parameterTypes[i];
-                    TypeAdapters.TypeAdapter adapter = TypeAdapters.getTypeAdapter(c);
-                    String parameter = parms.get("p" + (i));
+                    TypeAdapters.TypeAdapter adapter;
+                    String ta = parms.get("ta" + (i));
+                    if (ta != null) {
+                        adapter = TypeAdapters.getTypeAdapterClass((Class<?>) parseObjectReference(ta));
+                    } else {
+                        adapter = TypeAdapters.getTypeAdapter(c);
+                    }
+                    String parameter = parms.get("p" + i);
                     if (parameter != null) {
                         if (parameter.startsWith("@")) {
                             ps[i] = parseObjectReference(parameter);
@@ -224,10 +240,13 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
                 }
                 Object r = m.invoke(o, ps);
                 if (r == null) return "null";
-                if (parms.containsKey("details") && !parms.get("details").equals("false"))
+                if (parms.containsKey("details") && !parms.get("details").equals("false")) {
                     return getObjectDetails(r, "string");
-                else
-                    return TypeAdapters.toString(r);
+                } else {
+                    String rta = parms.get("rta");
+                    TypeAdapters.TypeAdapter adapter = rta == null ? null : TypeAdapters.getTypeAdapterClass((Class<?>) parseObjectReference(rta));
+                    return TypeAdapters.toString(r, adapter);
+                }
             }
         }
         throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Method not found");
@@ -244,17 +263,21 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         String fieldName = parms.get("field");
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         AllClassMembers.POJO pojo = allMembers.pojos.get(fieldName);
-        if (pojo == null) throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Pojo not found!");
+        if (pojo == null)
+            throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Pojo not found!");
         if (session.getMethod() == NanoHTTPD.Method.GET) {
-            if (pojo.getter == null) throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Getter found!");
+            if (pojo.getter == null)
+                throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Getter found!");
             return TypeAdapters.toString(pojo.getter.invoke(o));
         }
         if (session.getMethod() == NanoHTTPD.Method.POST) {
-            if (pojo.setter == null) throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No setter found!");
+            if (pojo.setter == null)
+                throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No setter found!");
             Method f = pojo.setter;
             Class type = f.getParameterTypes()[0];
             TypeAdapters.TypeAdapter<?> adapter = TypeAdapters.getTypeAdapter(type);
-            if (adapter == null) throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No TypeAdapter found!");
+            if (adapter == null)
+                throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No TypeAdapter found!");
             Object val;
             String v = parms.get("value");
             try {
@@ -268,5 +291,74 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             return TypeAdapters.toString(val);
         }
         throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "ERROR");
+    }
+
+    public class InvocationLinkBuilder {
+        private Object object;
+        private boolean details;
+        private Method method;
+        private HashMap<Integer, Object> predefined;
+        private HashMap<Integer, Class<?>> typeAdapters;
+        private Class<?> returnTypeAdapter;
+
+        public InvocationLinkBuilder setObject(Object object) {
+            this.object = object;
+            return this;
+        }
+
+        public InvocationLinkBuilder setDetails(boolean details) {
+            this.details = details;
+            return this;
+        }
+
+        public InvocationLinkBuilder setMethod(Method method) {
+            this.method = method;
+            return this;
+        }
+
+        public InvocationLinkBuilder setPredefined(int param, Object value) {
+            if (this.predefined == null) this.predefined = new HashMap<>();
+            this.predefined.put(param, value);
+            return this;
+        }
+
+        public InvocationLinkBuilder setPredefinedList(Object... predefined) {
+            for (int i = 0; i < predefined.length; i++) {
+                if (predefined[i] != null) setPredefined(i, predefined[i]);
+            }
+            return this;
+        }
+
+        public InvocationLinkBuilder setTypeAdapter(int param, TypeAdapter<?> typeAdapter) {
+            if (this.typeAdapters == null) this.typeAdapters = new HashMap<>();
+            this.typeAdapters.put(param, typeAdapter.getClass());
+            return this;
+        }
+
+        public InvocationLinkBuilder setReturTypeAdapter(TypeAdapter<?> typeAdapter) {
+            this.returnTypeAdapter = typeAdapter.getClass();
+            return this;
+        }
+
+        public String build() {
+            StringBuilder link = new StringBuilder("/invoke");
+            link.append("?object=").append(getObjectReference(object));
+            if (details) link.append("&details=true");
+            link.append("&method=").append(getHash(method));
+            if (predefined != null) {
+                for (Entry<Integer, Object> entry : predefined.entrySet()) {
+                    link.append("&p").append(entry.getKey()).append("=").append(getObjectReference(entry.getValue()));
+                }
+            }
+            if (typeAdapters != null) {
+                for (Entry<Integer, Class<?>> entry : typeAdapters.entrySet()) {
+                    link.append("&ta").append(entry.getKey()).append("=").append(getObjectReference(entry.getValue()));
+                }
+            }
+            if (returnTypeAdapter != null) {
+                link.append("&rta=" + getObjectReference(returnTypeAdapter));
+            }
+            return link.toString();
+        }
     }
 }
