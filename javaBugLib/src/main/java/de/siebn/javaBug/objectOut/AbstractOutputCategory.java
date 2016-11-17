@@ -1,7 +1,7 @@
 package de.siebn.javaBug.objectOut;
 
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.objectOut.PropertyBuilder.ParameterBuilder;
+import de.siebn.javaBug.objectOut.ListItemBuilder.ParameterBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.StringifierUtil;
@@ -66,7 +66,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
 
     private void addProperty(XML ul, String name, Object o, Method setter) {
         XML li = ul.add("li").setClass("object notOpenable");
-        li.add("span").setClass("fieldName").appendText(name);
+        li.add("span").setClass("fieldName").appendText(name + " AAAA");
         li.appendText(": ");
         Object val = null;
         try {
@@ -91,7 +91,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             if (!TypeAdapters.getTypeAdapter(c).canParse(c) && (predifined.length <= i || predifined[i] == null))
                 canInvoke = false;
         }
-        PropertyBuilder builder = new PropertyBuilder();
+        ListItemBuilder builder = new ListItemBuilder();
         builder.setModifiers(m.getModifiers());
         builder.setType(m.getReturnType());
         builder.setName(m.getName());
@@ -114,7 +114,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         boolean setAble = pojo.setter != null && TypeAdapters.canParse(pojo.setter.getParameterTypes()[0]);
         if (!setAble && pojo.getter == null) return;
 
-        PropertyBuilder builder = new PropertyBuilder();
+        ListItemBuilder builder = new ListItemBuilder();
 
         Object val = null;
         if (pojo.getter != null) {
@@ -145,7 +145,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
-        PropertyBuilder builder = new PropertyBuilder();
+        ListItemBuilder builder = new ListItemBuilder();
         builder.setName(f.getName());
         builder.setType(f.getType());
         builder.setModifiers(f.getModifiers());

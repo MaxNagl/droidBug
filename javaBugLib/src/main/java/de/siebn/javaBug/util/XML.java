@@ -115,11 +115,11 @@ public class XML {
 		element.setAttribute("href", href);
 		return this;
 	}
-	
-	public XML appendText(String text) {
-		element.appendChild(document.createTextNode(text));
-		return this;
-	}
+
+    public XML appendText(String text) {
+        element.appendChild(document.createTextNode(text));
+        return this;
+    }
 
     public XML addElement(XML e) {
         if (!element.getOwnerDocument().equals(e.element.getOwnerDocument()))

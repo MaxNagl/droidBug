@@ -1,13 +1,8 @@
 package de.siebn.javaBug.objectOut;
 
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
-import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
-
-import java.lang.reflect.Field;
-import java.util.List;
 
 /**
  * Created by Sieben on 16.03.2015.
@@ -20,7 +15,7 @@ public class StringOutput extends AbstractOutputCategory {
 
     @Override
     public void add(XML ul, Object o) {
-        PropertyBuilder builder = new PropertyBuilder();
+        ListItemBuilder builder = new ListItemBuilder();
         builder.setName(TypeAdapters.toString(o));
         builder.setType(o.getClass());
         builder.setExpandLink(javaBug.getObjectBug().getObjectDetailsLink(o));

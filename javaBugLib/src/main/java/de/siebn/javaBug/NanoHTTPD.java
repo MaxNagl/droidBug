@@ -183,7 +183,7 @@ public abstract class NanoHTTPD {
                                 try {
                                     outputStream = finalAccept.getOutputStream();
                                     TempFileManager tempFileManager = tempFileManagerFactory.create();
-                                    HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream, finalAccept.getInetAddress());
+                                    HTTPSession session = createHttpSession(outputStream, tempFileManager, inputStream, finalAccept);
                                     while (!finalAccept.isClosed()) {
                                         session.execute();
                                     }
@@ -209,6 +209,10 @@ public abstract class NanoHTTPD {
         myThread.setDaemon(true);
         myThread.setName("NanoHttpd Main Listener");
         myThread.start();
+    }
+
+    protected HTTPSession createHttpSession(OutputStream outputStream, TempFileManager tempFileManager, InputStream inputStream, Socket finalAccept) {
+        return new HTTPSession(tempFileManager, inputStream, outputStream, finalAccept.getInetAddress());
     }
 
     /**

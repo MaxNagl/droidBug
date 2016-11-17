@@ -10,11 +10,13 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -86,6 +88,7 @@ public class JavaBug extends NanoHTTPD {
         addPlugin(new ClassPathBugPlugin());
         addPlugin(getFileBug());
         addPlugin(getObjectBug());
+        addPlugin(new IoBugPlugin(this));
 
         addPlugin(new ArrayOutput(this));
         addPlugin(new FieldsOutput(this));
@@ -199,7 +202,6 @@ public class JavaBug extends NanoHTTPD {
                 } catch (Exception e) {}
             }
         }
-        System.out.println("ASDF " + response.get() + " " + error.get());
         if (error.get() != null) {
             throw error.get();
         }
@@ -258,6 +260,17 @@ public class JavaBug extends NanoHTTPD {
         } catch (Exception ex) { } // for now eat exceptions
         Collections.sort(adresses);
         return adresses;
+    }
+
+    @Override
+    protected HTTPSession createHttpSession(OutputStream outputStream, TempFileManager tempFileManager, InputStream inputStream, Socket finalAccept) {
+        IoBugPlugin ioBug = getPlugin(IoBugPlugin.class);
+        if (ioBug != null) {
+            outputStream = ioBug.wrapOutputStream(finalAccept, outputStream);
+            inputStream = ioBug.wrapInputStream(finalAccept, inputStream);
+            ioBug.setTitle(finalAccept, Thread.currentThread().getName());
+        }
+        return super.createHttpSession(outputStream, tempFileManager, inputStream, finalAccept);
     }
 
     public ObjectBugPlugin getObjectBug() {

@@ -9,10 +9,7 @@ import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
 
-import static javafx.scene.input.KeyCode.M;
-import static javafx.scene.input.KeyCode.X;
-
-public class PropertyBuilder {
+public class ListItemBuilder {
     private String name;
     private List<ParameterBuilder> parameters;
     private List<ColumnBuilder> columns;
@@ -27,7 +24,7 @@ public class PropertyBuilder {
     private String id = UUID.randomUUID().toString();
     private String refreshLink;
 
-    public PropertyBuilder setName(String name) {
+    public ListItemBuilder setName(String name) {
         this.name = name;
         return this;
     }
@@ -131,27 +128,27 @@ public class PropertyBuilder {
         return value;
     }
 
-    public PropertyBuilder setInvokeLink(String invokationLink) {
+    public ListItemBuilder setInvokeLink(String invokationLink) {
         this.invokationLink = invokationLink;
         return this;
     }
 
-    public PropertyBuilder setModifiers(int modifiers) {
+    public ListItemBuilder setModifiers(int modifiers) {
         this.modifiers = modifiers;
         return this;
     }
 
-    public PropertyBuilder setType(Class<?> type) {
+    public ListItemBuilder setType(Class<?> type) {
         this.type = type;
         return this;
     }
 
-    public PropertyBuilder setExpandLink(String expandLink) {
+    public ListItemBuilder setExpandLink(String expandLink) {
         this.expandLink = expandLink;
         return this;
     }
 
-    public PropertyBuilder setRefreshLink(String refreshLink) {
+    public ListItemBuilder setRefreshLink(String refreshLink) {
         this.refreshLink = refreshLink;
         return this;
     }
@@ -256,7 +253,7 @@ public class PropertyBuilder {
                 XML input = span.add("input");
                 input.setId(uniqueID);
                 input.setAttr("append", appendLink);
-                input.setAttr("appendTo", "#" + PropertyBuilder.this.id);
+                input.setAttr("appendTo", "#" + ListItemBuilder.this.id);
                 input.setAttr("type", "checkbox");
                 XML label = span.add("label");
                 label.setAttr("for", uniqueID);

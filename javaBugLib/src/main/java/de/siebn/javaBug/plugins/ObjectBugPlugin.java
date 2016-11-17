@@ -2,20 +2,19 @@ package de.siebn.javaBug.plugins;
 
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.NanoHTTPD;
+import de.siebn.javaBug.objectOut.AnnotatedOutputCategory;
+import de.siebn.javaBug.objectOut.MethodsOutput;
 import de.siebn.javaBug.objectOut.OutputCategory;
-import de.siebn.javaBug.objectOut.PropertyBuilder;
+import de.siebn.javaBug.objectOut.ListItemBuilder;
+import de.siebn.javaBug.objectOut.OutputMethod;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.XML;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.*;
 
-/**
- * Created by Sieben on 05.03.2015.
- */
 public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public final HashMap<Integer, Object> references = new HashMap<>();
     private ArrayList<Object> rootObjects = new ArrayList<>();
@@ -27,6 +26,18 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         for (OutputCategory oc : javaBug.getPlugins(OutputCategory.class))
             if (oc.canOutputClass(clazz))
                 outputCategories.add(oc);
+        for (Method method : AllClassMembers.getForClass(clazz).methods) {
+            OutputMethod output = method.getAnnotation(OutputMethod.class);
+            if (output != null) {
+                outputCategories.add(new AnnotatedOutputCategory(output, clazz, method));
+            }
+        }
+        Collections.sort(outputCategories, new Comparator<OutputCategory>() {
+            @Override
+            public int compare(OutputCategory o1, OutputCategory o2) {
+                return o1.getOrder() - o2.getOrder();
+            }
+        });
         return outputCategories;
     }
 
@@ -62,7 +73,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public String serveObjects() {
         XML ul = new XML("ul");
         for (Object o : rootObjects) {
-            PropertyBuilder builder = new PropertyBuilder();
+            ListItemBuilder builder = new ListItemBuilder();
             builder.createValue().setValue(o);
             builder.setExpandObject(this, o, o.getClass());
             builder.build(ul);
@@ -107,7 +118,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         for (OutputCategory oc : outputCategories) {
             String name = oc.getName(o);
             if (name != null) {
-                PropertyBuilder builder = new PropertyBuilder();
+                ListItemBuilder builder = new ListItemBuilder();
                 builder.setName(name);
                 builder.setExpandLink(javaBug.getObjectBug().getObjectDetailsLink(o, oc.getType()));
                 if (oc.opened(outputCategories, alreadyOpened)) {

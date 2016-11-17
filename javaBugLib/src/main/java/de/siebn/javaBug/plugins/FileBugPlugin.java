@@ -19,7 +19,7 @@ import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.NanoHTTPD.Response;
 import de.siebn.javaBug.NanoHTTPD.Response.Status;
-import de.siebn.javaBug.objectOut.PropertyBuilder;
+import de.siebn.javaBug.objectOut.ListItemBuilder;
 import de.siebn.javaBug.util.HumanReadable;
 import de.siebn.javaBug.util.XML;
 
@@ -68,7 +68,7 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         if (files != null) {
             sortFiles(files);
             for (File file : files) {
-                PropertyBuilder builder = new PropertyBuilder();
+                ListItemBuilder builder = new ListItemBuilder();
                 builder.setName(file.getAbsolutePath());
                 if (file.isDirectory()) {
                     builder.setExpandLink("/files/" + file.getAbsolutePath());
@@ -102,7 +102,7 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         String query = session.getQueryParameterString();
         if (query != null) src += "?" + query;
         iframe.setAttr("src", src);
-        PropertyBuilder builder = new PropertyBuilder();
+        ListItemBuilder builder = new ListItemBuilder();
         builder.setRefreshLink(session.getUri() + (query == null ? "" : "?" + query));
         builder.setName("Tail");
         XML li = builder.build(null);
