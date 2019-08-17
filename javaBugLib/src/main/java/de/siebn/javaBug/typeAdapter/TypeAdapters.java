@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static javafx.scene.input.KeyCode.T;
-
 public class TypeAdapters {
     private final static ArrayList<TypeAdapter<?>> adapters = new ArrayList<>();
     private final static Map<Class<?>, TypeAdapter> adapterMap = new HashMap<>();

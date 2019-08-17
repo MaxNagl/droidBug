@@ -21,8 +21,6 @@ import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.XML;
 
-import static javafx.scene.input.KeyCode.T;
-
 public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public final HashMap<Integer, Object> references = new HashMap<>();
     private ArrayList<Object> rootObjects = new ArrayList<>();

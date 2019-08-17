@@ -92,7 +92,7 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         return list;
     }
 
-    @JavaBug.Serve("^/files(.*)")
+    //@JavaBug.Serve("^/files(.*)")
     public String serverFiles(String[] param) throws IOException {
         XML xml = new XML();
         String path = param[1];
