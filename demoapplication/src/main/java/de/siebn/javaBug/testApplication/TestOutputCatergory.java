@@ -1,6 +1,7 @@
 package de.siebn.javaBug.testApplication;
 
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JsonBugList;
 import de.siebn.javaBug.objectOut.AbstractOutputCategory;
 import de.siebn.javaBug.objectOut.OutputCategory;
 import de.siebn.javaBug.util.AllClassMembers;
@@ -16,6 +17,20 @@ public class TestOutputCatergory extends AbstractOutputCategory {
 
     public TestOutputCatergory(JavaBug javaBug) {
         super(javaBug, "test", "Test", 0);
+    }
+
+    @Override
+    public void add(JsonBugList list, Object o) {
+        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
+        for (Method m : allMembers.methods) {
+            if (m.getName().equals("multiply")) {
+                addMethodInformation(list, o, m, null, null);
+                addMethodInformation(list, o, m, null, new Object[]{2});
+                addMethodInformation(list, o, m, null, new Object[]{1, 2});
+                addMethodInformation(list, o, m, new Object[]{2}, null);
+                addMethodInformation(list, o, m, new Object[]{2}, new Object[]{1, 2});
+            }
+        }
     }
 
     @Override

@@ -3,6 +3,7 @@
 @colorGrey: #777;
 @colorLightGrey: #CCC;
 @colorPurple: #9876AA;
+@colorOrange: #CC7832;
 
 * {
     padding: 0px;
@@ -65,6 +66,14 @@ body {
             content: "\25BC";
         }
     }
+    .modifier {
+        color:@colorOrange;
+        padding-right: 8px;
+    }
+    .clazz {
+        color:@colorOrange;
+        padding-right: 8px;
+    }
     .property {
         color:@colorGrey;
         padding-left: 16px;
@@ -74,6 +83,18 @@ body {
         color:@colorGrey;
         padding-left: 16px;
     }
+    .callable {
+        .invoke {
+            cursor:pointer;
+        }
+    }
+}
+
+.editable {
+    border: 1px solid #444;
+    cursor: cursor:text;
+    padding: 0px 5px;
+    display: inline-block;
 }
 
 .objectContent {

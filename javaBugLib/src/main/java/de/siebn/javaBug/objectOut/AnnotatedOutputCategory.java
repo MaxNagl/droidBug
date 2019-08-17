@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import de.siebn.javaBug.JsonBugList;
 import de.siebn.javaBug.util.XML;
 
 public class AnnotatedOutputCategory implements OutputCategory {
@@ -18,6 +19,11 @@ public class AnnotatedOutputCategory implements OutputCategory {
     }
 
     @Override
+    public String getId() {
+        return getClass().getSimpleName();
+    }
+
+    @Override
     @SuppressWarnings("TryWithIdenticalCatches")
     public void add(XML ul, Object o) {
         try {
@@ -27,6 +33,10 @@ public class AnnotatedOutputCategory implements OutputCategory {
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void add(JsonBugList list, Object o) {
     }
 
     @Override

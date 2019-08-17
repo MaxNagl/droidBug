@@ -3,13 +3,17 @@ package de.siebn.javaBug;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JsonBugObject extends JsonBugBase {
+public class JsonBugEntry extends JsonBugBase {
+    public String modifiers;
+    public String clazz;
     public String name;
+    public String value;
     public String expand;
     public List<Property> properties;
     public List<Action> actions;
+    public Callable callable;
 
-    public JsonBugObject() {
+    public JsonBugEntry() {
         super("object");
     }
 
@@ -49,6 +53,23 @@ public class JsonBugObject extends JsonBugBase {
         public Action(String name, String action, String value) {
             this.name = name;
             this.action = action;
+            this.value = value;
+        }
+    }
+
+    public static class Callable {
+        public List<Parameter> parameters = new ArrayList<>();
+        public String url;
+    }
+
+    public static class Parameter {
+        public String name;
+        public String clazz;
+        public String value;
+
+        public Parameter(String name, String clazz, String value) {
+            this.name = name;
+            this.clazz = clazz;
             this.value = value;
         }
     }

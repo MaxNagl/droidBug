@@ -19,9 +19,9 @@ import java.util.UUID;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.JsonBugBase;
 import de.siebn.javaBug.JsonBugList;
-import de.siebn.javaBug.JsonBugObject;
-import de.siebn.javaBug.JsonBugObject.Action;
-import de.siebn.javaBug.JsonBugObject.Property;
+import de.siebn.javaBug.JsonBugEntry;
+import de.siebn.javaBug.JsonBugEntry.Action;
+import de.siebn.javaBug.JsonBugEntry.Property;
 import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.NanoHTTPD.Response;
 import de.siebn.javaBug.NanoHTTPD.Response.Status;
@@ -76,7 +76,7 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         if (files != null) {
             sortFiles(files);
             for (File file : files) {
-                JsonBugObject f = new JsonBugObject();
+                JsonBugEntry f = new JsonBugEntry();
                 f.name = file.getAbsolutePath();
                 if (file.isDirectory()) {
                     f.expand = "/filesJson/" + file.getAbsolutePath();

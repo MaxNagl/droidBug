@@ -1,6 +1,7 @@
 package de.siebn.javaBug.objectOut;
 
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JsonBugList;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.XML;
 
@@ -12,6 +13,14 @@ import java.lang.reflect.Method;
 public class MethodsOutput extends AbstractOutputCategory {
     public MethodsOutput(JavaBug javaBug) {
         super(javaBug, "methods", "Methods", 3000);
+    }
+
+    @Override
+    public void add(JsonBugList list, Object o) {
+        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
+        for (Method m : allMembers.methods) {
+            addMethodInformation(list, o, m, null, null);
+        }
     }
 
     @Override

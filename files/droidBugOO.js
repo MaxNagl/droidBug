@@ -67,6 +67,22 @@ class BugObject {
             this.titleView.addClass("closed")
             this.titleView.click(bugObject.toggleExpand.bind(this));
         }
+        if (data.clazz != null) {
+            var clazzView = $('<span class="clazz">' + data.clazz + '</span>');
+            this.titleView.prepend(clazzView);
+        }
+        if (data.modifiers != null) {
+            var valView = $('<span class="modifier">' + data.modifiers + '</span>');
+            this.titleView.prepend(valView);
+        }
+        if (data.callable != null) {
+            this.view.append(new Callable(data.callable).view);
+        }
+        if (data.value != null) {
+            var valView = $('<span class="value">' + data.value + '</span>');
+            this.view.append(": ");
+            this.view.append(valView);
+        }
         if (data.properties != null) {
             data.properties.forEach(function (property) {
                 var pView = $('<span title="' + property.name + '" class="property">' + property.value + '</span>');
@@ -108,6 +124,42 @@ class BugObject {
             this.titleView.toggleClass("opened")
             this.titleView.toggleClass("closed")
         }
+    }
+}
+
+class Callable {
+    constructor(data) {
+        this.data = data;
+        this.view = $('<span class="callable"></span>');
+        this.view.append("(");
+        this.data.parameters.forEach(function (parameter, index) {
+            if (index != 0) this.view.append(", ");
+            var val = parameter.value == undefined ? "" : parameter.value
+            parameter.view = $('<span class="parameter"><span class="clazz">' + parameter.clazz + '</span></span>');
+            parameter.editView = $('<span class="editable">' + val + '</span>');
+            parameter.editView.attr('contentEditable', 'true');
+            parameter.view.append(parameter.editView);
+            this.view.append(parameter.view);
+        }, this);
+        this.view.append(")");
+        this.invokeView = $('<span class="invoke">\u2607</span>');
+        this.invokeView.click(() => { this.onClick() });
+        this.view.append(this.invokeView);
+    }
+
+    onClick() {
+        var request = {};
+        this.data.parameters.forEach(function (parameter, index) {
+            request['p' + index] = parameter.editView.text();
+        });
+        $.ajax({
+          type: "GET",
+          url: this.data.url,
+          data: request,
+          success: function() {
+            alert(JSON.stringify(request));
+          },
+        });
     }
 }
 

@@ -1,6 +1,10 @@
 package de.siebn.javaBug.objectOut;
 
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JsonBugEntry.Callable;
+import de.siebn.javaBug.JsonBugEntry.Parameter;
+import de.siebn.javaBug.JsonBugList;
+import de.siebn.javaBug.JsonBugEntry;
 import de.siebn.javaBug.objectOut.ListItemBuilder.ParameterBuilder;
 import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
@@ -39,6 +43,11 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     }
 
     @Override
+    public String getId() {
+        return getClass().getSimpleName();
+    }
+
+    @Override
     public String getType() {
         return type;
     }
@@ -59,6 +68,16 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     }
 
     @Override
+    public void add(JsonBugList list, Object o) {
+        for (Method m : AllClassMembers.getForClass(getClass()).methods) {
+            Property getterSetter = m.getAnnotation(Property.class);
+            if (getterSetter != null && showGetterSetter(o, m)) {
+                addProperty(list, getterSetter, o, m);
+            }
+        }
+    }
+
+    @Override
     public void add(XML ul, Object o) {
         for (Method m : AllClassMembers.getForClass(getClass()).methods) {
             Property getterSetter = m.getAnnotation(Property.class);
@@ -71,6 +90,101 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     protected boolean showGetterSetter(Object o, Method method) {
         return true;
     }
+
+    private void addProperty(JsonBugList list, Property property, Object o, Method setter) {
+        JsonBugEntry json = new JsonBugEntry();
+        json.name = property.value();
+
+        try {
+            json.value = setter.invoke(this, o, null, false).toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        list.elements.add(json);
+    }
+
+    public void addMethodInformation(JsonBugList list, Object o, Method m, Object[] predifined, Object[] preset) {
+        if (predifined == null) predifined = empty;
+        if (preset == null) preset = empty;
+        boolean canInvoke = true;
+        Class<?>[] parameterTypes = m.getParameterTypes();
+        for (int i = 0; i < parameterTypes.length; i++) {
+            Class c = parameterTypes[i];
+            if (!TypeAdapters.getTypeAdapter(c).canParse(c) && (predifined.length <= i || predifined[i] == null))
+                canInvoke = false;
+        }
+        JsonBugEntry json = new JsonBugEntry();
+        json.modifiers = StringifierUtil.modifiersToString(m.getModifiers(), null, false);
+        json.clazz = m.getReturnType().getSimpleName();
+        json.name = m.getName();
+
+        json.callable = new Callable();
+        for (int i = 0; i < parameterTypes.length; i++) {
+            Parameter parameter = new Parameter("", parameterTypes[i].getSimpleName(), preset.length > i ? TypeAdapters.toString(preset[i]) : null);
+            json.callable.parameters.add(parameter);
+        }
+        if (canInvoke) json.callable.url = javaBug.getObjectBug().getInvokationLink(true, o, m);
+
+        list.elements.add(json);
+    }
+
+    public void addFieldInformation(JsonBugList list, Object o, Field f) {
+        Object val = null;
+        try {
+            val = f.get(o);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        ListItemBuilder builder = new ListItemBuilder();
+
+        JsonBugEntry json = new JsonBugEntry();
+        json.modifiers = StringifierUtil.modifiersToString(f.getModifiers(), null, false);
+        json.clazz = f.getType().getSimpleName();
+        json.name = f.getName();
+        json.value = TypeAdapters.toString(val);
+        list.elements.add(json);
+    }
+
+    public void addPojo(JsonBugList list, Object o, String field) {
+        AllClassMembers.POJO pojo = AllClassMembers.getForClass(o.getClass()).pojos.get(field);
+        if (pojo == null) return;
+
+        boolean setAble = pojo.setter != null && TypeAdapters.canParse(pojo.setter.getParameterTypes()[0]);
+        if (!setAble && pojo.getter == null) return;
+
+        ListItemBuilder builder = new ListItemBuilder();
+
+        Object val = null;
+        if (pojo.getter != null) {
+            try {
+                val = pojo.getter.invoke(o);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+            builder.setExpandObject(javaBug.getObjectBug(), val, pojo.getter.getReturnType());
+        }
+
+        JsonBugEntry json = new JsonBugEntry();
+        json.name = field;
+        json.value = TypeAdapters.toString(val);
+        list.elements.add(json);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     private void addProperty(XML ul, Property property, Object o, Method setter) {
         ListItemBuilder builder = new ListItemBuilder();

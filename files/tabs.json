@@ -1,5 +1,10 @@
 [
   {
+    "id": "tabObjects",
+    "title": "Objects",
+    "content": "/objectsJson/"
+  },
+  {
     "id": "tabFiles",
     "title": "Files",
     "content": "/filesJson/"

@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JsonBugBase;
+import de.siebn.javaBug.JsonBugList;
+import de.siebn.javaBug.JsonBugEntry;
 import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.objectOut.AnnotatedOutputCategory;
 import de.siebn.javaBug.objectOut.ListItemBuilder;
@@ -81,6 +84,48 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     @Override
     public int getOrder() {
         return 1000;
+    }
+
+    @JavaBug.Serve("^/objectsJson/")
+    public JsonBugBase serveObjectsJsonRoot(String[] params) {
+        JsonBugList list = new JsonBugList();
+        for (Object o : rootObjects) {
+            list.elements.add(getJsonBugObjectFor(o));
+        }
+        return list;
+    }
+
+    @JavaBug.Serve("^/objectsJson/([^/]*)/details/")
+    public JsonBugBase serveObjectsJsonDetails(String[] params) {
+        Object o = parseObjectReference(params[1]);
+        JsonBugList list = new JsonBugList();
+        for (OutputCategory cat : getOutputCategories(o.getClass())) {
+            JsonBugEntry c = new JsonBugEntry();
+            c.name = cat.getName(o);
+            c.expand = "/objectsJson/" + getObjectReference(o) + "/details/" + cat.getId();
+            list.elements.add(c);
+        }
+        return list;
+    }
+
+    @JavaBug.Serve("^/objectsJson/([^/]*)/details/([^/]+)")
+    public JsonBugBase serveObjectsJsonDetailsCategory(String[] params) {
+        Object o = parseObjectReference(params[1]);
+        String category = params[2];
+        JsonBugList list = new JsonBugList();
+        for (OutputCategory cat : getOutputCategories(o.getClass())) {
+            if (cat.getId().equals(category)) {
+                cat.add(list, o);
+            }
+        }
+        return list;
+    }
+
+    public JsonBugEntry getJsonBugObjectFor(Object o) {
+        JsonBugEntry e = new JsonBugEntry();
+        e.name = o.getClass().getName();
+        e.expand = "/objectsJson/" + getObjectReference(o) + "/details/";
+        return e;
     }
 
     @JavaBug.Serve("^/objects/")
