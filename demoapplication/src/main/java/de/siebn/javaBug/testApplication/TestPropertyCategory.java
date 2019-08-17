@@ -25,7 +25,7 @@ public class TestPropertyCategory extends AbstractOutputCategory {
         return test.primitiveInt;
     }
 
-    @Property(value = "valueMultiple", typeAdapters = {TypeAdapters.PrimitiveAdapter.class, DoubleIntAdapter.class})
+    @Property(value = "valueMultiple", typeAdapters = {TypeAdapters.PrimitiveAdapter.class, DoubleIntAdapter.class, ChooseIntAdapter.class})
     public int setIntValueMultiple(TestClass test, Integer value, boolean set) {
         if (set)
             test.primitiveInt = value;

@@ -81,11 +81,10 @@ public class JavaBug extends NanoHTTPD {
     }
 
     public void addDefaultPlugins() {
-        fileBugPlugin.addRoot(new File(".").getAbsoluteFile());
+        fileBugPlugin.addRoot("/", new File(".").getAbsoluteFile());
 
         addPlugin(new RootBugPlugin(this));
         addPlugin(new ThreadsBugPlugin(this));
-        addPlugin(new ClassPathBugPlugin());
         addPlugin(getFileBug());
         addPlugin(getObjectBug());
         addPlugin(new IoBugPlugin(this));
@@ -150,6 +149,7 @@ public class JavaBug extends NanoHTTPD {
                             Object r = invokeSync(object, method, param);
                             if (r instanceof Response) return (Response) r;
                             if (r instanceof XML) return new Response(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, ((XML) r).getXml());
+                            if (r instanceof JsonBugBase) return new Response(Response.Status.OK, "application/json", ((JsonBugBase) r).toJson());
                             if (r instanceof byte[]) return new Response(Response.Status.OK, "application/octet-stream", new ByteArrayInputStream((byte[]) r));
                             if (r instanceof InputStream) return new Response(Response.Status.OK, "application/octet-stream", (InputStream) r);
                             return new Response(r.toString());

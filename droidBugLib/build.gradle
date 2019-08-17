@@ -1,5 +1,4 @@
 apply plugin: 'java'
-apply plugin: 'idea'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -14,14 +13,8 @@ sourceSets {
     }
 }
 
-idea {
-    module {
-        scopes.PROVIDED.plus += [configurations.provided]
-    }
-}
-
 dependencies {
-    provided 'com.google.android:android:4.1.1.4'
+    compileOnly 'com.google.android:android:4.1.1.4'
     compile project(':javaBugLib')
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }

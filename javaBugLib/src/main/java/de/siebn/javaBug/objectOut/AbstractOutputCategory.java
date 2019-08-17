@@ -62,10 +62,14 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     public void add(XML ul, Object o) {
         for (Method m : AllClassMembers.getForClass(getClass()).methods) {
             Property getterSetter = m.getAnnotation(Property.class);
-            if (getterSetter != null) {
+            if (getterSetter != null && showGetterSetter(o, m)) {
                 addProperty(ul, getterSetter, o, m);
             }
         }
+    }
+
+    protected boolean showGetterSetter(Object o, Method method) {
+        return true;
     }
 
     private void addProperty(XML ul, Property property, Object o, Method setter) {

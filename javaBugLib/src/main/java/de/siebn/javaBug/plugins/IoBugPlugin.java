@@ -143,17 +143,30 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         }
     }
 
-    private class MonitoredOutputStream extends FilterOutputStream {
-        private ByteArrayOutputStream bout = new ByteArrayOutputStream();
+    private class MonitoredOutputStream extends OutputStream {
+        private final ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        private final OutputStream out;
 
         public MonitoredOutputStream(OutputStream out) {
-            super(out);
+            this.out = out;
         }
 
         @Override
         public void write(int b) throws IOException {
             bout.write(b);
-            super.write(b);
+            out.write(b);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            bout.write(b, off, len);
+            out.write(b, off, len);
+        }
+
+        @Override
+        public void write(byte[] b) throws IOException {
+            bout.write(b);
+            out.write(b);
         }
     }
 }

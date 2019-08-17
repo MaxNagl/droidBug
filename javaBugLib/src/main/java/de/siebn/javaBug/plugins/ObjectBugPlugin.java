@@ -137,6 +137,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
                 ListItemBuilder builder = new ListItemBuilder();
                 builder.setName(name);
                 builder.setExpandLink(javaBug.getObjectBug().getObjectDetailsLink(o, oc.getType()));
+                builder.setRefreshLink(javaBug.getObjectBug().getObjectDetailsLink(o, oc.getType()));
                 if (oc.opened(outputCategories, alreadyOpened)) {
                     XML expand = builder.createExtended("ul").setClass("expand");
                     oc.add(expand, o);

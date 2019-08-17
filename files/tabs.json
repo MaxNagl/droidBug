@@ -1,0 +1,12 @@
+[
+  {
+    "id": "tabFiles",
+    "title": "Files",
+    "content": "/filesJson/"
+  },
+  {
+    "id": "tab2",
+    "title": "Tab 2",
+    "content": "/file/content2.json"
+  }
+]

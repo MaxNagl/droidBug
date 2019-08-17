@@ -107,6 +107,10 @@ public class TypeAdapters {
         String getUnit();
     }
 
+    public interface TypeSelectionAdapter<T> extends TypeAdapter<T> {
+        Map<String, String> getValues();
+    }
+
     public static abstract class AbstractTypeAdapter<T> implements TypeAdapter<T> {
         protected final Set<Class<? extends T>> classes = new HashSet<>();
         protected final int proirity;

@@ -1,29 +1,29 @@
 package de.desiebn.droidbug;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import de.siebn.javaBug.NanoHTTPD.AsyncRunner;
-import de.siebn.javaBug.android.ViewBugPlugin;
-import org.apache.http.conn.util.InetAddressUtils;
-
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import de.siebn.javaBug.android.ViewOutput;
-import de.siebn.javaBug.android.ViewShotOutput;
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.NanoHTTPD.AsyncRunner;
+import de.siebn.javaBug.android.LayoutParameterOutput;
+import de.siebn.javaBug.android.ViewBugPlugin;
+import de.siebn.javaBug.android.ViewShotOutput;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +33,12 @@ public class MainActivity extends ActionBarActivity {
         JavaBug jb = new JavaBug(7778);
         jb.addDefaultPlugins();
 
+        jb.getFileBug().addRoot("files", getFilesDir());
+        jb.getFileBug().addRoot("external files", getExternalFilesDir(null));
+
         jb.addPlugin(new ViewBugPlugin(jb, this));
         jb.addPlugin(new ViewShotOutput(jb));
-        jb.addPlugin(new ViewOutput(jb));
+        jb.addPlugin(new LayoutParameterOutput(jb));
 
         jb.getObjectBug().addRootObject(jb);
 
@@ -52,7 +55,7 @@ public class MainActivity extends ActionBarActivity {
         for (String ipAdress : getIPAddresses()) {
             TextView tv = new TextView(this);
             String httpAdress = "http://";
-            httpAdress += InetAddressUtils.isIPv4Address(ipAdress) ? ipAdress : ("[" + ipAdress + "]");
+            httpAdress += isIPv4Address(ipAdress) ? ipAdress : ("[" + ipAdress + "]");
             httpAdress += ":" + jb.getListeningPort();
             tv.setText(httpAdress);
             tv.setTextAppearance(this, android.R.style.TextAppearance_DeviceDefault_Medium);
@@ -73,7 +76,8 @@ public class MainActivity extends ActionBarActivity {
 
     /**
      * Get IP address from first non-localhost interface
-     * @return  address or empty string
+     *
+     * @return address or empty string
      */
     public static ArrayList<String> getIPAddresses() {
         ArrayList<String> adresses = new ArrayList<>();
@@ -86,17 +90,26 @@ public class MainActivity extends ActionBarActivity {
                     }
                 }
             }
-        } catch (Exception ex) { } // for now eat exceptions
+        } catch (Exception ex) {
+        } // for now eat exceptions
         Collections.sort(adresses, new Comparator<String>() {
             @Override
             public int compare(String lhs, String rhs) {
-                boolean l = InetAddressUtils.isIPv4Address(lhs);
-                boolean r = InetAddressUtils.isIPv4Address(lhs);
+                boolean l = isIPv4Address(lhs);
+                boolean r = isIPv4Address(lhs);
                 if (l && !r) return -1;
                 if (!l && r) return 1;
                 return lhs.compareTo(rhs);
             }
         });
         return adresses;
+    }
+
+    private static boolean isIPv4Address(String addr) {
+        try {
+            return InetAddress.getByName(addr) instanceof Inet4Address;
+        } catch (UnknownHostException e) {
+            return false;
+        }
     }
 }

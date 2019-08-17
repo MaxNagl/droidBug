@@ -21,7 +21,6 @@ public class PojoOutput extends AbstractOutputCategory {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Map.Entry<String, AllClassMembers.POJO> pojo : allMembers.pojos.entrySet()) {
             addPojo(ul, o, pojo.getKey());
-            //addMethodInformation(ul, o, m, null, null);
         }
     }
 

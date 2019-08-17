@@ -1,0 +1,5 @@
+{
+  "type": "object",
+  "name": "Tab 1 Object",
+  "expand": "/file/content2.json"
+}

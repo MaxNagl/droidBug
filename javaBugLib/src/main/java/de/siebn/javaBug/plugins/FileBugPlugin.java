@@ -1,5 +1,6 @@
 package de.siebn.javaBug.plugins;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,26 +9,32 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JsonBugBase;
+import de.siebn.javaBug.JsonBugList;
+import de.siebn.javaBug.JsonBugObject;
+import de.siebn.javaBug.JsonBugObject.Action;
+import de.siebn.javaBug.JsonBugObject.Property;
 import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.NanoHTTPD.Response;
 import de.siebn.javaBug.NanoHTTPD.Response.Status;
 import de.siebn.javaBug.objectOut.ListItemBuilder;
 import de.siebn.javaBug.util.HumanReadable;
+import de.siebn.javaBug.util.JsUtil;
 import de.siebn.javaBug.util.XML;
 
 public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
-    private List<File> roots = new ArrayList<>();
+    private Map<File, String> roots = new LinkedHashMap<>();
 
-    public void addRoot(File root) {
-        roots.add(root);
+    public void addRoot(String name, File root) {
+        roots.put(root, name);
     }
 
     @Override
@@ -50,13 +57,49 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         return 0;
     }
 
+    @JavaBug.Serve("^/filesJson/(.*)")
+    public JsonBugBase serverFilesJson(String[] param) throws IOException {
+        JsonBugList list = new JsonBugList();
+        String path = param[1];
+        File files[];
+        boolean showRoots = path == null || path.length() == 0;
+        if (showRoots) {
+            files = roots.keySet().toArray(new File[0]);
+        } else {
+            File file = new File(param[1]);
+            if (!file.exists()) {
+//                xml.appendText("Not Found.");
+                return list;
+            }
+            files = file.listFiles();
+        }
+        if (files != null) {
+            sortFiles(files);
+            for (File file : files) {
+                JsonBugObject f = new JsonBugObject();
+                f.name = file.getAbsolutePath();
+                if (file.isDirectory()) {
+                    f.expand = "/filesJson/" + file.getAbsolutePath();
+                } else {
+                    f.getOrCreateActions().add(new Action("view", Action.ACTION_DOWNLOAD, "/file/" + file.getAbsolutePath()));
+                    f.getOrCreateActions().add(new Action("download", Action.ACTION_DOWNLOAD, "/fileDownload/" + file.getAbsolutePath()));
+                }
+                long size = file.length();
+                f.getOrCreateProperties().add(new Property("size", HumanReadable.formatByteSizeBinary(size)));
+                list.elements.add(f);
+            }
+        }
+        return list;
+    }
+
     @JavaBug.Serve("^/files(.*)")
     public String serverFiles(String[] param) throws IOException {
         XML xml = new XML();
         String path = param[1];
         File files[];
-        if (path == null || path.length() == 0) {
-            files = roots.toArray(new File[roots.size()]);
+        boolean showRoots = path == null || path.length() == 0;
+        if (showRoots) {
+            files = roots.keySet().toArray(new File[0]);
         } else {
             File file = new File(param[1]);
             if (!file.exists()) {
@@ -69,9 +112,11 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
             sortFiles(files);
             for (File file : files) {
                 ListItemBuilder builder = new ListItemBuilder();
-                builder.setName(file.getAbsolutePath());
+                String name = file.getAbsolutePath();
+                if (showRoots) name = roots.get(file) + " (" + name + ")";
+                builder.setName(name);
                 if (file.isDirectory()) {
-                    builder.setExpandLink("/files/" + file.getAbsolutePath());
+                    builder.setExpandLink("/files" + file.getAbsolutePath());
                 } else {
                     long size = file.length();
                     builder.addColumn().setText(HumanReadable.formatByteSizeBinary(size)).setClass("byteSize");
@@ -97,17 +142,19 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @JavaBug.Serve("^/fileIframe/(.*)")
     public String serverFileIframe(String[] param, NanoHTTPD.IHTTPSession session) throws IOException {
-        XML iframe = new XML("iframe");
+        XML span = new XML("span");
+        XML iframe = span.add("iframe");
+        String id = UUID.randomUUID().toString();
+        iframe.setId(id);
         String src = param[0].replace("fileIframe", "file");
         String query = session.getQueryParameterString();
         if (query != null) src += "?" + query;
         iframe.setAttr("src", src);
-        ListItemBuilder builder = new ListItemBuilder();
-        builder.setRefreshLink(session.getUri() + (query == null ? "" : "?" + query));
-        builder.setName("Tail");
-        XML li = builder.build(null);
-        li.add("div").addElement(iframe);
-        return li.getXml();
+        XML refresh = span.add("span");
+        refresh.appendText(" \u27F3");
+        String jQueryIframe = JsUtil.getJQuerySelector(iframe);
+        refresh.setAttr("onclick", jQueryIframe + ".attr(\"src\", " + jQueryIframe + ".attr(\"src\"))");
+        return span.getXml();
     }
 
     @JavaBug.Serve("^/file/(.*)")
@@ -120,6 +167,13 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
             return new Response(Status.OK, mimeType, getTail(in, tail));
         }
         return new Response(Status.OK, mimeType, in);
+    }
+
+    @JavaBug.Serve("^/fileDownload/(.*)")
+    public NanoHTTPD.Response serverFileDownload(String[] param, NanoHTTPD.IHTTPSession session) throws IOException {
+        Response response = serverFile(param, session);
+        response.addHeader("Content-Disposition", "attachment");
+        return response;
     }
 
     private String getTail(InputStream in, int count) throws IOException {
@@ -140,10 +194,10 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
     private InputStream openStream(String fname) throws IOException {
         File file = new File(fname);
         if (file.exists())
-            return new FileInputStream(file);
+            return new BufferedInputStream(new FileInputStream(file));
         file = new File("files/" + fname);
         if (file.exists())
-            return new FileInputStream(file);
+            return new BufferedInputStream(new FileInputStream(file));
         URL url = getClass().getClassLoader().getResource(fname);
         if (url != null)
             return url.openStream();

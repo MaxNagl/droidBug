@@ -46,7 +46,7 @@ public class RootBugPlugin implements BugPlugin {
             XML checkbox = label.add("input").setAttr("type", "checkbox").setAttr("modTag", "body").setAttr("modClass", "show" + e);
             if (e.equals("public") || e.equals("static") || e.equals("final") || e.equals("synchronized") || e.equals("native"))
                 checkbox.setAttr("checked", "true");
-            label.appendText(e + " ");
+            label.add("span").appendText(e + " ");
         }
 
         return page.getHtml();

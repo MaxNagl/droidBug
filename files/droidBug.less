@@ -1,0 +1,81 @@
+@colorBg: #222;
+@colorBgLight: #444;
+@colorGrey: #777;
+@colorLightGrey: #CCC;
+@colorPurple: #9876AA;
+
+* {
+    padding: 0px;
+    margin: 0px;
+    list-style-type: none;
+    text-decoration: none;
+    color: white;
+}
+
+body {
+    background-color: @colorBg;
+}
+
+#loading {
+    font-size: 500%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#tabs {
+    background-color: @colorBgLight;
+    .tab {
+        cursor: pointer;
+        display: inline-block;
+        padding: 5px 10px;
+        border-bottom: 4px solid #444;
+        color: #AAA;
+        &.active {
+            border-color: #777;
+            color: #FFF;
+        }
+    }
+}
+
+#tabsContents {
+    padding: 10px;
+}
+
+.bugObject {
+    display:block;
+    font-family:monospace;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    .title {
+        cursor:pointer;
+        color:@colorPurple;
+        &:before {
+            display: inline-block;
+            width: 16px;
+            color:@colorLightGrey;
+            content: " ";
+        }
+        &.closed:before {
+            content: "\25BA";
+        }
+        &.opened:before {
+            content: "\25BC";
+        }
+    }
+    .property {
+        color:@colorGrey;
+        padding-left: 16px;
+    }
+    .action {
+        cursor:pointer;
+        color:@colorGrey;
+        padding-left: 16px;
+    }
+}
+
+.objectContent {
+    padding-left: 16px;
+}

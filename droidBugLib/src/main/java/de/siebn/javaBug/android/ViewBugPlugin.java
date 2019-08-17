@@ -95,8 +95,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     private void addViewTree(XML ul, View view) {
         XML li = ul.add("li").setClass("object");
-        //li.add("a").setHref("/viewShot/" + Integer.toHexString(System.identityHashCode(view))).appendText(view.toString());
-        li.setAttr("onClick", "load('#viewDetails', '" + javaBug.getObjectBug().getObjectDetailsLink(view) + "', true)");
+        li.setAttr("onClick", "loadGet('#viewDetails', '" + javaBug.getObjectBug().getObjectDetailsLink(view) + "', true)");
         li.appendText(view.toString());
         li.setAttr("hoverGroup", Integer.toHexString(System.identityHashCode(view)));
         if (view instanceof ViewGroup) {

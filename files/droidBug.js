@@ -22,21 +22,27 @@ function init(tag) {
     });
     $('[editUrl]', tag).each(function(){
         var t = $(this);
+        var isSelect = t.prop("tagName") == "SELECT";
         t.attr('contentEditable', 'true');
         t.unbind('keydown');
+        var setValue = function (tag, data) {
+            tag.attr('def', t.html());
+            if (tag.prop("tagName") == "SELECT") {
+                tag.val(data);
+            } else {
+                tag.html(data);
+            }
+            tag.removeClass("edited");
+        }
         var success = function (data) {
-            t.html(data);
-            t.removeClass("edited");
-            t.attr('def', t.html());
+            setValue(t, data);
             if (t.attr('updateAll')) {
                 console.log($(t.attr('updateAll')));
                 $('[updateUrl]', $(t.attr('updateAll'))).each(function() {
                     var t2 = $(this);
                     if (!t2.is(t)) {
                         $.get(t2.attr('updateUrl')).done(function(data) {
-                            t2.html(data);
-                            t2.removeClass("edited");
-                            t2.attr('def', t2.html());
+                            setValue(t2, data);
                         })
                     }
                 })
@@ -47,8 +53,11 @@ function init(tag) {
             alert(jqXHR.responseText);
         }
         var commit = function() {
+            if (isSelect && t.val() == t.attr('def')) console.log("SAME");
+            if (isSelect && t.val() == t.attr('def')) return;
             var param = {};
-            param[t.attr('param') === undefined ? "value" : t.attr('param')] = t.text();
+            var paramKey = t.attr('param') === undefined ? "value" : t.attr('param');
+            param[paramKey] = isSelect ? t.val() : t.text();
             $.ajax({
                 type: "POST",
                 url: t.attr('editUrl'),
@@ -65,7 +74,11 @@ function init(tag) {
                 error: error
             });
         };
-        makeEditable(t, commit, commit, nullify);
+        if (isSelect) {
+            t.change(commit);
+        } else {
+            makeEditable(t, commit, commit, nullify);
+        }
     });
     $('input', tag).change(append);
     $('span[append]', tag).click(append);

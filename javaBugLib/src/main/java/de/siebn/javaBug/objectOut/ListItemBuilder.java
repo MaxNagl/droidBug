@@ -2,11 +2,13 @@ package de.siebn.javaBug.objectOut;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
+import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeSelectionAdapter;
 import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
 
@@ -84,9 +86,12 @@ public class ListItemBuilder {
         }
         if (refreshLink != null) {
             if (addedText) li.appendText(" ");
-            XML refresh = li.add("span").setClass("refresh");
-            refresh.setAttr("replaceUrl", refreshLink);
-            refresh.setAttr("replace", "#" + id);
+            XML refresh = li.add("span");
+            refresh.addClass("refresh");
+            refresh.setAttr("addParams", "#" + id);
+            refresh.setAttr("append", refreshLink);
+            refresh.setAttr("appendTo", "#" + id);
+            refresh.setAttr("appendId", id + "append");
             addedText = true;
         }
         if (invokationLink != null) {
@@ -190,9 +195,26 @@ public class ListItemBuilder {
                 if (valueField) xml.appendText(" ");
             }
             if (valueField) {
-                XML p = xml.add("span").setClass("parameter");
-                if (value != null) {
-                    p.appendText(TypeAdapters.getTypeAdapter(value.getClass()).toString(value));
+                TypeAdapter ta = typeAdapter;
+                if (value != null && ta == null) {
+                    ta = TypeAdapters.getTypeAdapter(value.getClass());
+                }
+                XML p = xml.add(ta instanceof TypeSelectionAdapter ? "select" : "span").setClass("parameter");
+                if (ta instanceof TypeSelectionAdapter) {
+                    String sVal = ta.toString(value);
+                    XML sel = null;
+                    for (Map.Entry<String, String> entry : ((TypeSelectionAdapter<?>) ta).getValues().entrySet()) {
+                        XML option = p.add("option").setAttr("value", entry.getKey()).appendText(entry.getValue());
+                        System.out.println(sVal + " " + entry.getKey());
+                        if (sVal.equals(entry.getKey()) || (sel == null && entry.getKey().length() == 0)) {
+                            sel = option;
+                        }
+                    }
+                    if (sel != null) sel.setAttr("selected", "selected");
+                } else {
+                    if (value != null) {
+                        p.appendText(ta.toString(value));
+                    }
                 }
                 if (parameterNum != null) {
                     p.setAttr("param", "p" + parameterNum);
