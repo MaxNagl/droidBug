@@ -60,6 +60,7 @@ class BugEntry {
     constructor(data) {
         var bugEntry = this;
         this.data = data;
+        this.elements = [];
         this.view = $('<div class="bugEntry">');
         this.titleView = $('<span class="title">' + data.name + '</span>');
         this.view.append(this.titleView);
@@ -75,9 +76,11 @@ class BugEntry {
             var valView = $('<span class="modifier">' + data.modifiers + '</span>');
             this.titleView.prepend(valView);
         }
-        if (data.callables != null) {
-            data.callables.forEach(function (callable) {
-                this.view.append(new Callable(callable, this).view);
+        if (data.elements != null) {
+            data.elements.forEach(function (callable) {
+                var model = new Callable(callable, this);
+                this.view.append(model.view);
+                this.elements.push(model);
             }, this);
         }
         if (data.value != null) {
@@ -136,19 +139,19 @@ class BugEntry {
         this.titleView.removeClass("closed")
     }
 
-    refreshCallables() {
-        if (this.data.callables != null) {
-            this.data.callables.forEach(function (callable) {
-                callable.callable.refresh();
-            }, this);
-        }
+    refreshElements() {
+        this.elements.forEach(function (element) {
+            if (element.refresh != null) {
+                element.refresh();
+            }
+        }, this);
     }
 }
 
 class Callable {
     constructor(data, bugEntry) {
         var invoke = () => { this.invoke() };
-        var reset = () => { this.bugEntry.refreshCallables(); };
+        var reset = () => { this.bugEntry.refreshElements(); };
         this.bugEntry = bugEntry;
         this.data = data;
         this.view = $('<span class="callable"></span>');
@@ -171,7 +174,6 @@ class Callable {
             this.invokeView.click(invoke);
             this.view.append(this.invokeView);
         }
-        data.callable = this;
     }
 
     invoke() {
@@ -185,16 +187,16 @@ class Callable {
             url: this.data.url,
             data: request,
             success: function(result) {
-                if (callable.data.type == "expandResult") {
+                if (callable.data.action == "expandResult") {
                     callable.bugEntry.setExpanded(loadContentData(result).view);
-                } else if (callable.data.type == "refreshCallables") {
-                    callable.bugEntry.refreshCallables();
+                } else if (callable.data.action == "refreshElements") {
+                    callable.bugEntry.refreshElements();
                 }
             },
             error: function(result) {
-                if (callable.data.type == "expandResult") {
+                if (callable.data.action == "expandResult") {
                     callable.bugEntry.setExpanded($('<span class="error">' + getError(result) + '</span>'));
-                } else if (callable.data.type == "refreshCallables") {
+                } else if (callable.data.action == "refreshCallables") {
                         alert(getError(result));
                 }
              },

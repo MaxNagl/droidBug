@@ -113,7 +113,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         }
 
         for (TypeAdapter typeAdapter : typeAdapters) {
-            Callable callable = new Callable(Callable.TYPE_REFRESH_CALLABLES);
+            Callable callable = new Callable(Callable.ACTION_REFRESH_ELEMENTS);
             Parameter parameter = new Parameter("p1", null, null, json.value);
             callable.parameters.add(parameter);
             InvocationLinkBuilder invocation = javaBug.getObjectBug().new InvocationLinkBuilder().setObject(this).setMethod(setter).setPredefined(0, o);
@@ -147,7 +147,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         json.clazz = m.getReturnType().getSimpleName();
         json.name = m.getName();
 
-        Callable callable = new Callable(Callable.TYPE_EXPAND_RESULT);
+        Callable callable = new Callable(Callable.ACTION_EXPAND_RESULT);
         callable.parentheses = true;
         for (int i = 0; i < parameterTypes.length; i++) {
             Parameter parameter = new Parameter("p" + i, null, parameterTypes[i].getSimpleName(), preset.length > i ? TypeAdapters.toString(preset[i]) : null);
