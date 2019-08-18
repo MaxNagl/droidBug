@@ -6,6 +6,7 @@ import de.siebn.javaBug.JsonBugEntry.Parameter;
 import de.siebn.javaBug.JsonBugList;
 import de.siebn.javaBug.JsonBugEntry;
 import de.siebn.javaBug.objectOut.ListItemBuilder.ParameterBuilder;
+import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
@@ -121,10 +122,10 @@ public abstract class AbstractOutputCategory implements OutputCategory {
 
         json.callable = new Callable();
         for (int i = 0; i < parameterTypes.length; i++) {
-            Parameter parameter = new Parameter("", parameterTypes[i].getSimpleName(), preset.length > i ? TypeAdapters.toString(preset[i]) : null);
+            Parameter parameter = new Parameter("p" + i, null, parameterTypes[i].getSimpleName(), preset.length > i ? TypeAdapters.toString(preset[i]) : null);
             json.callable.parameters.add(parameter);
         }
-        if (canInvoke) json.callable.url = javaBug.getObjectBug().getInvokationLink(true, o, m);
+        if (canInvoke) json.callable.url = javaBug.getObjectBug().getInvokationLink(ObjectBugPlugin.RETURN_TYPE_JSON, o, m);
 
         list.elements.add(json);
     }
@@ -243,7 +244,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
                 param.setValue(preset.length > i ? preset[i] : null);
             }
         }
-        if (canInvoke) builder.setInvokeLink(javaBug.getObjectBug().getInvokationLink(true, o, m));
+        if (canInvoke) builder.setInvokeLink(javaBug.getObjectBug().getInvokationLink(ObjectBugPlugin.RETURN_TYPE_XML, o, m));
         builder.build(ul);
     }
 

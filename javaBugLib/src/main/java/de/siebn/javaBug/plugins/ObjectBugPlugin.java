@@ -125,6 +125,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         JsonBugEntry e = new JsonBugEntry();
         e.name = o.getClass().getName();
         e.expand = "/objectsJson/" + getObjectReference(o) + "/details/";
+        e.value = TypeAdapters.toString(o);
         return e;
     }
 
@@ -238,10 +239,14 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         return "ERROR";
     }
 
-    public String getInvokationLink(boolean details, Object o, Method m, Object... predefined) {
+    public static String RETURN_TYPE_STRING = "string";
+    public static String RETURN_TYPE_XML = "xml";
+    public static String RETURN_TYPE_JSON = "json";
+
+    public String getInvokationLink(String returnType, Object o, Method m, Object... predefined) {
         StringBuilder link = new StringBuilder("/invoke");
         link.append("?object=").append(getObjectReference(o));
-        if (details) link.append("&details=").append(details ? "true" : "false");
+        link.append("&returnType=").append(returnType);
         link.append("&method=").append(getHash(m));
         int param = 0;
         for (Object p : predefined) {
@@ -253,7 +258,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @JavaBug.Serve(value = "^/invoke", requiredParameters = {"object", "method"})
-    public String serveInvoke(NanoHTTPD.IHTTPSession session) throws Exception {
+    public Object serveInvoke(NanoHTTPD.IHTTPSession session) throws Exception {
         Map<String, String> parms = session.getParms();
         Object o = parseObjectReference(parms.get("object"));
         int methodHash = parseHash(parms.get("method"));
@@ -284,8 +289,11 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
                 }
                 Object r = m.invoke(o, ps);
                 if (r == null) return "null";
-                if (parms.containsKey("details") && !parms.get("details").equals("false")) {
+                String returnType = parms.get("returnType");
+                if (RETURN_TYPE_STRING.equals(returnType)) {
                     return getObjectDetails(r, "string");
+                } else if (RETURN_TYPE_JSON.equals(returnType)) {
+                    return getJsonBugObjectFor(r);
                 } else {
                     String rta = parms.get("rta");
                     TypeAdapters.TypeAdapter adapter = rta == null ? null : TypeAdapters.getTypeAdapterClass((Class<?>) parseObjectReference(rta));

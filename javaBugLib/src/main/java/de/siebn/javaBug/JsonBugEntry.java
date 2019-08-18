@@ -63,11 +63,13 @@ public class JsonBugEntry extends JsonBugBase {
     }
 
     public static class Parameter {
+        public String id;
         public String name;
         public String clazz;
         public String value;
 
-        public Parameter(String name, String clazz, String value) {
+        public Parameter(String id, String name, String clazz, String value) {
+            this.id = id;
             this.name = name;
             this.clazz = clazz;
             this.value = value;

@@ -76,7 +76,7 @@ class BugObject {
             this.titleView.prepend(valView);
         }
         if (data.callable != null) {
-            this.view.append(new Callable(data.callable).view);
+            this.view.append(new Callable(data.callable, this).view);
         }
         if (data.value != null) {
             var valView = $('<span class="value">' + data.value + '</span>');
@@ -125,10 +125,20 @@ class BugObject {
             this.titleView.toggleClass("closed")
         }
     }
+
+    setExpanded(view) {
+        this.getContentView().empty();
+        this.expanderContentView = view;
+        this.getContentView().append(this.expanderContentView);
+        this.titleView.addClass("opened")
+        this.titleView.removeClass("closed")
+    }
 }
 
 class Callable {
-    constructor(data) {
+    constructor(data, bugObject) {
+        var invoke = () => { this.onClick() };
+        this.bugObject = bugObject;
         this.data = data;
         this.view = $('<span class="callable"></span>');
         this.view.append("(");
@@ -136,29 +146,34 @@ class Callable {
             if (index != 0) this.view.append(", ");
             var val = parameter.value == undefined ? "" : parameter.value
             parameter.view = $('<span class="parameter"><span class="clazz">' + parameter.clazz + '</span></span>');
+            if (parameter.name != null) parameter.view.append($('<span class="name">' + parameter.name + '</span>'));
             parameter.editView = $('<span class="editable">' + val + '</span>');
-            parameter.editView.attr('contentEditable', 'true');
+            makeEditable(parameter.editView, invoke);
             parameter.view.append(parameter.editView);
             this.view.append(parameter.view);
         }, this);
         this.view.append(")");
         this.invokeView = $('<span class="invoke">\u2607</span>');
-        this.invokeView.click(() => { this.onClick() });
+        this.invokeView.click(invoke);
         this.view.append(this.invokeView);
     }
 
     onClick() {
+        var bugObject = this.bugObject;
         var request = {};
         this.data.parameters.forEach(function (parameter, index) {
-            request['p' + index] = parameter.editView.text();
+            request[parameter.id] = parameter.editView.text();
         });
         $.ajax({
-          type: "GET",
-          url: this.data.url,
-          data: request,
-          success: function() {
-            alert(JSON.stringify(request));
-          },
+            type: "GET",
+            url: this.data.url,
+            data: request,
+            success: function(result) {
+                bugObject.setExpanded(loadContentData(result).view);
+            },
+            error: function(result) {
+                bugObject.setExpanded($('<span class="error">' + getError(result) + '</span>'));
+             },
         });
     }
 }
@@ -191,6 +206,24 @@ function loadContentData(data) {
     if (data.type == 'object') val = new BugObject(data);
     if (data.type == 'list') val = new BugList(data);
     return val;
+}
+
+function getError(result) {
+    if (result.responseText != undefined) {
+        return result.responseText;
+    } else {
+        return 'HTTP Error: ' + result.status + " " + result.statusText;
+    }
+}
+
+function makeEditable(view, invoke) {
+    view.attr('contentEditable', 'true');
+    view.on('keydown', function(e) {
+        if(e.keyCode == 13) {
+            e.preventDefault();
+            invoke();
+        }
+   });
 }
 
 $(function () {

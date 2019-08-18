@@ -1,11 +1,5 @@
 package de.siebn.javaBug;
 
-import de.siebn.javaBug.NanoHTTPD.Response.Status;
-import de.siebn.javaBug.objectOut.*;
-import de.siebn.javaBug.plugins.*;
-import de.siebn.javaBug.util.StringifierUtil;
-import de.siebn.javaBug.util.XML;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -17,10 +11,30 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import de.siebn.javaBug.NanoHTTPD.Response.Status;
+import de.siebn.javaBug.objectOut.ArrayOutput;
+import de.siebn.javaBug.objectOut.FieldsOutput;
+import de.siebn.javaBug.objectOut.MethodsOutput;
+import de.siebn.javaBug.objectOut.PojoOutput;
+import de.siebn.javaBug.objectOut.StackTraceOutput;
+import de.siebn.javaBug.objectOut.StringOutput;
+import de.siebn.javaBug.plugins.FileBugPlugin;
+import de.siebn.javaBug.plugins.IoBugPlugin;
+import de.siebn.javaBug.plugins.ObjectBugPlugin;
+import de.siebn.javaBug.plugins.RootBugPlugin;
+import de.siebn.javaBug.plugins.ThreadsBugPlugin;
+import de.siebn.javaBug.util.StringifierUtil;
+import de.siebn.javaBug.util.XML;
 
 /**
  * Created by Sieben on 04.03.2015.
@@ -38,7 +52,9 @@ public class JavaBug extends NanoHTTPD {
 
     public abstract class Server {
         public abstract boolean responsible(IHTTPSession session);
+
         public abstract Response serve(IHTTPSession session);
+
         public abstract int getPriority();
     }
 
@@ -49,7 +65,9 @@ public class JavaBug extends NanoHTTPD {
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Serve {
         String value();
+
         int priority() default 0;
+
         String[] requiredParameters() default {};
     }
 
@@ -75,7 +93,10 @@ public class JavaBug extends NanoHTTPD {
         plugins.add(plugin);
         pluginMap.put(plugin.getClass(), plugin);
         Collections.sort(plugins, new Comparator<BugPlugin>() {
-            @Override public int compare(BugPlugin o1, BugPlugin o2) { return o1.getOrder() - o2.getOrder(); }
+            @Override
+            public int compare(BugPlugin o1, BugPlugin o2) {
+                return o1.getOrder() - o2.getOrder();
+            }
         });
         addAnnotatedMethods(plugin);
     }
@@ -199,7 +220,8 @@ public class JavaBug extends NanoHTTPD {
             while (response.get() == null && error.get() == null) {
                 try {
                     response.wait();
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
             }
         }
         if (error.get() != null) {
@@ -224,7 +246,7 @@ public class JavaBug extends NanoHTTPD {
             return new Response(e.status, NanoHTTPD.MIME_PLAINTEXT, e.getMessage());
         } catch (Throwable t) {
             t.printStackTrace();
-            return new Response(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, t.getMessage());
+            return new Response(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, t.getClass().getSimpleName() + ": " + t.getMessage());
         } finally {
             System.out.println("Serving: " + session.getUri() + " in: " + StringifierUtil.nanoSecondsToString(System.nanoTime() - start));
         }
@@ -242,7 +264,8 @@ public class JavaBug extends NanoHTTPD {
 
     /**
      * Get IP address from first non-localhost interface
-     * @return  address or empty string
+     *
+     * @return address or empty string
      */
     public ArrayList<String> getIPAddresses(boolean includeLoopback) {
         ArrayList<String> adresses = new ArrayList<>();
@@ -257,7 +280,8 @@ public class JavaBug extends NanoHTTPD {
                     }
                 }
             }
-        } catch (Exception ex) { } // for now eat exceptions
+        } catch (Exception ex) {
+        } // for now eat exceptions
         Collections.sort(adresses);
         return adresses;
     }
