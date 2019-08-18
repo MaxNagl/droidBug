@@ -56,16 +56,16 @@ class Tab {
     }
 }
 
-class BugObject {
+class BugEntry {
     constructor(data) {
-        var bugObject = this;
+        var bugEntry = this;
         this.data = data;
-        this.view = $('<div class="bugObject">');
+        this.view = $('<div class="bugEntry">');
         this.titleView = $('<span class="title">' + data.name + '</span>');
         this.view.append(this.titleView);
         if (data.expand != null) {
             this.titleView.addClass("closed")
-            this.titleView.click(bugObject.toggleExpand.bind(this));
+            this.titleView.click(bugEntry.toggleExpand.bind(this));
         }
         if (data.clazz != null) {
             var clazzView = $('<span class="clazz">' + data.clazz + '</span>');
@@ -75,8 +75,10 @@ class BugObject {
             var valView = $('<span class="modifier">' + data.modifiers + '</span>');
             this.titleView.prepend(valView);
         }
-        if (data.callable != null) {
-            this.view.append(new Callable(data.callable, this).view);
+        if (data.callables != null) {
+            data.callables.forEach(function (callable) {
+                this.view.append(new Callable(callable, this).view);
+            }, this);
         }
         if (data.value != null) {
             var valView = $('<span class="value">' + data.value + '</span>');
@@ -105,7 +107,7 @@ class BugObject {
 
     getContentView() {
         if (this.contentView == null) {
-            this.contentView = $('<div class="objectContent">');
+            this.contentView = $('<div class="entryContent">');
             this.view.append(this.contentView);
         }
         return this.contentView;
@@ -133,33 +135,47 @@ class BugObject {
         this.titleView.addClass("opened")
         this.titleView.removeClass("closed")
     }
+
+    refreshCallables() {
+        if (this.data.callables != null) {
+            this.data.callables.forEach(function (callable) {
+                callable.callable.refresh();
+            }, this);
+        }
+    }
 }
 
 class Callable {
-    constructor(data, bugObject) {
-        var invoke = () => { this.onClick() };
-        this.bugObject = bugObject;
+    constructor(data, bugEntry) {
+        var invoke = () => { this.invoke() };
+        var reset = () => { this.bugEntry.refreshCallables(); };
+        this.bugEntry = bugEntry;
         this.data = data;
         this.view = $('<span class="callable"></span>');
-        this.view.append("(");
+        if (data.parentheses == true) this.view.append("("); else this.view.append(" ");
         this.data.parameters.forEach(function (parameter, index) {
             if (index != 0) this.view.append(", ");
             var val = parameter.value == undefined ? "" : parameter.value
-            parameter.view = $('<span class="parameter"><span class="clazz">' + parameter.clazz + '</span></span>');
+            parameter.view = $('<span class="parameter"></span>');
+            if (parameter.clazz != null) parameter.view.append($('<span class="clazz">' + parameter.clazz + '</span>'));
             if (parameter.name != null) parameter.view.append($('<span class="name">' + parameter.name + '</span>'));
             parameter.editView = $('<span class="editable">' + val + '</span>');
-            makeEditable(parameter.editView, invoke);
+            makeEditable(parameter.editView, invoke, reset);
             parameter.view.append(parameter.editView);
+            if (parameter.unit != null) parameter.view.append(parameter.unit);
             this.view.append(parameter.view);
         }, this);
-        this.view.append(")");
-        this.invokeView = $('<span class="invoke">\u2607</span>');
-        this.invokeView.click(invoke);
-        this.view.append(this.invokeView);
+        if (data.parentheses == true) {
+            this.view.append(")");
+            this.invokeView = $('<span class="invoke">\u2607</span>');
+            this.invokeView.click(invoke);
+            this.view.append(this.invokeView);
+        }
+        data.callable = this;
     }
 
-    onClick() {
-        var bugObject = this.bugObject;
+    invoke() {
+        var callable = this;
         var request = {};
         this.data.parameters.forEach(function (parameter, index) {
             request[parameter.id] = parameter.editView.text();
@@ -169,18 +185,42 @@ class Callable {
             url: this.data.url,
             data: request,
             success: function(result) {
-                bugObject.setExpanded(loadContentData(result).view);
+                if (callable.data.type == "expandResult") {
+                    callable.bugEntry.setExpanded(loadContentData(result).view);
+                } else if (callable.data.type == "refreshCallables") {
+                    callable.bugEntry.refreshCallables();
+                }
             },
             error: function(result) {
-                bugObject.setExpanded($('<span class="error">' + getError(result) + '</span>'));
+                if (callable.data.type == "expandResult") {
+                    callable.bugEntry.setExpanded($('<span class="error">' + getError(result) + '</span>'));
+                } else if (callable.data.type == "refreshCallables") {
+                        alert(getError(result));
+                }
              },
+        });
+    }
+
+    refresh() {
+        this.data.parameters.forEach(function (parameter, index) {
+            if (parameter.refresh != null) {
+                $.ajax({
+                    type: "GET",
+                    url: parameter.refresh,
+                    success: function(result) {
+                        parameter.editView.text(result);
+                    },
+                    error: function(result) {
+                        alert(getError(result));
+                     },
+                });
+            }
         });
     }
 }
 
 class BugList {
     constructor(data) {
-        var bugObject = this;
         this.data = data;
         this.view = $('<div class="bugList">');
         for (var i = 0; i < data.elements.length; i++) {
@@ -203,7 +243,7 @@ function loadContent(content, callback) {
 
 function loadContentData(data) {
     var val;
-    if (data.type == 'object') val = new BugObject(data);
+    if (data.type == 'entry') val = new BugEntry(data);
     if (data.type == 'list') val = new BugList(data);
     return val;
 }
@@ -216,12 +256,16 @@ function getError(result) {
     }
 }
 
-function makeEditable(view, invoke) {
+function makeEditable(view, invoke, reset) {
     view.attr('contentEditable', 'true');
     view.on('keydown', function(e) {
-        if(e.keyCode == 13) {
+        if(e.keyCode == 13 && invoke != null) {
             e.preventDefault();
             invoke();
+        }
+        if(e.keyCode == 27 && reset != null) {
+            e.preventDefault();
+            reset();
         }
    });
 }

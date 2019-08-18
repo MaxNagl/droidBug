@@ -11,10 +11,10 @@ public class JsonBugEntry extends JsonBugBase {
     public String expand;
     public List<Property> properties;
     public List<Action> actions;
-    public Callable callable;
+    public List<Callable> callables;
 
     public JsonBugEntry() {
-        super("object");
+        super("entry");
     }
 
     public List<Property> getOrCreateProperties() {
@@ -25,6 +25,11 @@ public class JsonBugEntry extends JsonBugBase {
     public List<Action> getOrCreateActions() {
         if (actions == null) actions = new ArrayList<>();
         return actions;
+    }
+
+    public List<Callable> getOrCreateCallables() {
+        if (callables == null) callables = new ArrayList<>();
+        return callables;
     }
 
     public static class Property {
@@ -58,8 +63,17 @@ public class JsonBugEntry extends JsonBugBase {
     }
 
     public static class Callable {
+        public static String TYPE_REFRESH_CALLABLES = "refreshCallables";
+        public static String TYPE_EXPAND_RESULT = "expandResult";
+
+        public String type;
         public List<Parameter> parameters = new ArrayList<>();
         public String url;
+        public boolean parentheses;
+
+        public Callable(String type) {
+            this.type = type;
+        }
     }
 
     public static class Parameter {
@@ -67,6 +81,8 @@ public class JsonBugEntry extends JsonBugBase {
         public String name;
         public String clazz;
         public String value;
+        public String unit;
+        public String refresh;
 
         public Parameter(String id, String name, String clazz, String value) {
             this.id = id;

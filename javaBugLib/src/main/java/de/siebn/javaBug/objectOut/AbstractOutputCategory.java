@@ -1,19 +1,5 @@
 package de.siebn.javaBug.objectOut;
 
-import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.JsonBugEntry.Callable;
-import de.siebn.javaBug.JsonBugEntry.Parameter;
-import de.siebn.javaBug.JsonBugList;
-import de.siebn.javaBug.JsonBugEntry;
-import de.siebn.javaBug.objectOut.ListItemBuilder.ParameterBuilder;
-import de.siebn.javaBug.plugins.ObjectBugPlugin;
-import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
-import de.siebn.javaBug.typeAdapter.TypeAdapters;
-import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
-import de.siebn.javaBug.util.AllClassMembers;
-import de.siebn.javaBug.util.StringifierUtil;
-import de.siebn.javaBug.util.XML;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
@@ -22,6 +8,20 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+
+import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JsonBugEntry;
+import de.siebn.javaBug.JsonBugEntry.Callable;
+import de.siebn.javaBug.JsonBugEntry.Parameter;
+import de.siebn.javaBug.JsonBugList;
+import de.siebn.javaBug.objectOut.ListItemBuilder.ParameterBuilder;
+import de.siebn.javaBug.plugins.ObjectBugPlugin;
+import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
+import de.siebn.javaBug.typeAdapter.TypeAdapters;
+import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
+import de.siebn.javaBug.util.AllClassMembers;
+import de.siebn.javaBug.util.StringifierUtil;
+import de.siebn.javaBug.util.XML;
 
 public abstract class AbstractOutputCategory implements OutputCategory {
     private final static Object[] empty = new Object[0];
@@ -33,6 +33,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Property {
         String value();
+
         Class<?>[] typeAdapters() default {};
     }
 
@@ -92,14 +93,40 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         return true;
     }
 
+    @SuppressWarnings("unchecked")
     private void addProperty(JsonBugList list, Property property, Object o, Method setter) {
         JsonBugEntry json = new JsonBugEntry();
         json.name = property.value();
 
+        Object val = null;
         try {
-            json.value = setter.invoke(this, o, null, false).toString();
+            val = setter.invoke(this, o, null, false);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        ArrayList<TypeAdapter<Object>> typeAdapters = new ArrayList<>();
+        if (property.typeAdapters().length != 0) {
+            typeAdapters.addAll(TypeAdapters.getTypeAdapterClasses(property.typeAdapters()));
+        } else {
+            typeAdapters.add(null);
+        }
+
+        for (TypeAdapter typeAdapter : typeAdapters) {
+            Callable callable = new Callable(Callable.TYPE_REFRESH_CALLABLES);
+            Parameter parameter = new Parameter("p1", null, null, json.value);
+            callable.parameters.add(parameter);
+            InvocationLinkBuilder invocation = javaBug.getObjectBug().new InvocationLinkBuilder().setObject(this).setMethod(setter).setPredefined(0, o);
+            if (typeAdapter != null) {
+                invocation.setTypeAdapter(1, typeAdapter).setReturTypeAdapter(typeAdapter);
+                parameter.unit = typeAdapter.getUnit();
+                parameter.value = typeAdapter.toString(val);
+            } else {
+                parameter.value = TypeAdapters.toString(val);
+            }
+            callable.url = invocation.setPredefined(2, true).build();
+            parameter.refresh = invocation.setPredefined(2, false).build();
+            json.getOrCreateCallables().add(callable);
         }
 
         list.elements.add(json);
@@ -120,12 +147,14 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         json.clazz = m.getReturnType().getSimpleName();
         json.name = m.getName();
 
-        json.callable = new Callable();
+        Callable callable = new Callable(Callable.TYPE_EXPAND_RESULT);
+        callable.parentheses = true;
         for (int i = 0; i < parameterTypes.length; i++) {
             Parameter parameter = new Parameter("p" + i, null, parameterTypes[i].getSimpleName(), preset.length > i ? TypeAdapters.toString(preset[i]) : null);
-            json.callable.parameters.add(parameter);
+            callable.parameters.add(parameter);
         }
-        if (canInvoke) json.callable.url = javaBug.getObjectBug().getInvokationLink(ObjectBugPlugin.RETURN_TYPE_JSON, o, m);
+        if (canInvoke) callable.url = javaBug.getObjectBug().getInvokationLink(ObjectBugPlugin.RETURN_TYPE_JSON, o, m);
+        json.getOrCreateCallables().add(callable);
 
         list.elements.add(json);
     }
@@ -173,18 +202,6 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         json.value = TypeAdapters.toString(val);
         list.elements.add(json);
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     private void addProperty(XML ul, Property property, Object o, Method setter) {
