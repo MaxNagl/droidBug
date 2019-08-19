@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import de.siebn.javaBug.JsonBugList;
+import de.siebn.javaBug.BugElement.BugGroup;
 import de.siebn.javaBug.util.XML;
 
 public class AnnotatedOutputCategory implements OutputCategory {
@@ -36,7 +36,7 @@ public class AnnotatedOutputCategory implements OutputCategory {
     }
 
     @Override
-    public void add(JsonBugList list, Object o) {
+    public void add(BugGroup list, Object o) {
     }
 
     @Override

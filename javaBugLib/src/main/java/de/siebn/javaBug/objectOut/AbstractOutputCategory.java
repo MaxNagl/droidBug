@@ -9,11 +9,13 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.siebn.javaBug.BugElement.BugGroup;
+import de.siebn.javaBug.BugElement.BugInlineList;
+import de.siebn.javaBug.BugElement.BugText;
+import de.siebn.javaBug.BugExpandableEntry;
+import de.siebn.javaBug.BugExpandableEntry.BugCallable;
+import de.siebn.javaBug.BugExpandableEntry.Parameter;
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.JsonBugEntry;
-import de.siebn.javaBug.JsonBugEntry.Callable;
-import de.siebn.javaBug.JsonBugEntry.Parameter;
-import de.siebn.javaBug.JsonBugList;
 import de.siebn.javaBug.objectOut.ListItemBuilder.ParameterBuilder;
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
@@ -70,7 +72,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     }
 
     @Override
-    public void add(JsonBugList list, Object o) {
+    public void add(BugGroup list, Object o) {
         for (Method m : AllClassMembers.getForClass(getClass()).methods) {
             Property getterSetter = m.getAnnotation(Property.class);
             if (getterSetter != null && showGetterSetter(o, m)) {
@@ -94,9 +96,8 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     }
 
     @SuppressWarnings("unchecked")
-    private void addProperty(JsonBugList list, Property property, Object o, Method setter) {
-        JsonBugEntry json = new JsonBugEntry();
-        json.name = property.value();
+    private void addProperty(BugGroup list, Property property, Object o, Method setter) {
+        BugExpandableEntry json = new BugExpandableEntry();
 
         Object val = null;
         try {
@@ -112,9 +113,11 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             typeAdapters.add(null);
         }
 
+        json.title = new BugText(property.value()).setClazz("title");
+
         for (TypeAdapter typeAdapter : typeAdapters) {
-            Callable callable = new Callable(Callable.ACTION_REFRESH_ELEMENTS);
-            Parameter parameter = new Parameter("p1", null, null, json.value);
+            BugCallable callable = new BugCallable(BugCallable.ACTION_REFRESH_ELEMENTS);
+            Parameter parameter = new Parameter("p1", null, null, TypeAdapters.toString(val));
             callable.parameters.add(parameter);
             InvocationLinkBuilder invocation = javaBug.getObjectBug().new InvocationLinkBuilder().setObject(this).setMethod(setter).setPredefined(0, o);
             if (typeAdapter != null) {
@@ -126,13 +129,13 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             }
             callable.url = invocation.setPredefined(2, true).build();
             parameter.refresh = invocation.setPredefined(2, false).build();
-            json.getOrCreateCallables().add(callable);
+            json.elements.add(callable);
         }
 
         list.elements.add(json);
     }
 
-    public void addMethodInformation(JsonBugList list, Object o, Method m, Object[] predifined, Object[] preset) {
+    public void addMethodInformation(BugGroup list, Object o, Method m, Object[] predifined, Object[] preset) {
         if (predifined == null) predifined = empty;
         if (preset == null) preset = empty;
         boolean canInvoke = true;
@@ -142,24 +145,26 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             if (!TypeAdapters.getTypeAdapter(c).canParse(c) && (predifined.length <= i || predifined[i] == null))
                 canInvoke = false;
         }
-        JsonBugEntry json = new JsonBugEntry();
-        json.modifiers = StringifierUtil.modifiersToString(m.getModifiers(), null, false);
-        json.clazz = m.getReturnType().getSimpleName();
-        json.name = m.getName();
+        BugExpandableEntry json = new BugExpandableEntry();
+        BugInlineList titleList = new BugInlineList();
+        titleList.elements.add(BugText.getForModifier(m.getModifiers()));
+        titleList.elements.add(BugText.getForClass(m.getReturnType()));
+        titleList.elements.add(new BugText(m.getName()).setClazz("name"));
+        json.title = titleList;
 
-        Callable callable = new Callable(Callable.ACTION_EXPAND_RESULT);
+        BugCallable callable = new BugCallable(BugCallable.ACTION_EXPAND_RESULT);
         callable.parentheses = true;
         for (int i = 0; i < parameterTypes.length; i++) {
             Parameter parameter = new Parameter("p" + i, null, parameterTypes[i].getSimpleName(), preset.length > i ? TypeAdapters.toString(preset[i]) : null);
             callable.parameters.add(parameter);
         }
         if (canInvoke) callable.url = javaBug.getObjectBug().getInvokationLink(ObjectBugPlugin.RETURN_TYPE_JSON, o, m);
-        json.getOrCreateCallables().add(callable);
+        json.elements.add(callable);
 
         list.elements.add(json);
     }
 
-    public void addFieldInformation(JsonBugList list, Object o, Field f) {
+    public void addFieldInformation(BugGroup list, Object o, Field f) {
         Object val = null;
         try {
             val = f.get(o);
@@ -168,15 +173,20 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         }
         ListItemBuilder builder = new ListItemBuilder();
 
-        JsonBugEntry json = new JsonBugEntry();
-        json.modifiers = StringifierUtil.modifiersToString(f.getModifiers(), null, false);
-        json.clazz = f.getType().getSimpleName();
-        json.name = f.getName();
-        json.value = TypeAdapters.toString(val);
+        BugExpandableEntry json = new BugExpandableEntry();
+
+        BugInlineList titleList = new BugInlineList();
+        titleList.elements.add(BugText.getForModifier(f.getModifiers()));
+        titleList.elements.add(BugText.getForClass(f.getType()));
+        titleList.elements.add(new BugText(f.getName()).setClazz("name"));
+        json.title = titleList;
+
+        json.elements.add(BugText.getValueSeparator());
+        json.elements.add(BugText.getForValue(val));
         list.elements.add(json);
     }
 
-    public void addPojo(JsonBugList list, Object o, String field) {
+    public void addPojo(BugGroup list, Object o, String field) {
         AllClassMembers.POJO pojo = AllClassMembers.getForClass(o.getClass()).pojos.get(field);
         if (pojo == null) return;
 
@@ -197,9 +207,10 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             builder.setExpandObject(javaBug.getObjectBug(), val, pojo.getter.getReturnType());
         }
 
-        JsonBugEntry json = new JsonBugEntry();
-        json.name = field;
-        json.value = TypeAdapters.toString(val);
+        BugExpandableEntry json = new BugExpandableEntry();
+        json.title = new BugText(field).setClazz("title");
+        json.elements.add(BugText.getValueSeparator());
+        json.elements.add(BugText.getForValue(val));
         list.elements.add(json);
     }
 

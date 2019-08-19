@@ -10,10 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import de.siebn.javaBug.BugElement;
+import de.siebn.javaBug.BugElement.BugList;
+import de.siebn.javaBug.BugElement.BugText;
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.JsonBugBase;
-import de.siebn.javaBug.JsonBugList;
-import de.siebn.javaBug.JsonBugEntry;
+import de.siebn.javaBug.BugExpandableEntry;
 import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.objectOut.AnnotatedOutputCategory;
 import de.siebn.javaBug.objectOut.ListItemBuilder;
@@ -87,8 +88,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @JavaBug.Serve("^/objectsJson/")
-    public JsonBugBase serveObjectsJsonRoot(String[] params) {
-        JsonBugList list = new JsonBugList();
+    public BugElement serveObjectsJsonRoot(String[] params) {
+        BugList list = new BugList();
         for (Object o : rootObjects) {
             list.elements.add(getJsonBugObjectFor(o));
         }
@@ -96,12 +97,12 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @JavaBug.Serve("^/objectsJson/([^/]*)/details/")
-    public JsonBugBase serveObjectsJsonDetails(String[] params) {
+    public BugElement serveObjectsJsonDetails(String[] params) {
         Object o = parseObjectReference(params[1]);
-        JsonBugList list = new JsonBugList();
+        BugList list = new BugList();
         for (OutputCategory cat : getOutputCategories(o.getClass())) {
-            JsonBugEntry c = new JsonBugEntry();
-            c.name = cat.getName(o);
+            BugExpandableEntry c = new BugExpandableEntry();
+            c.title = new BugText(cat.getName(o)).setClazz("title");
             c.expand = "/objectsJson/" + getObjectReference(o) + "/details/" + cat.getId();
             list.elements.add(c);
         }
@@ -109,10 +110,10 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @JavaBug.Serve("^/objectsJson/([^/]*)/details/([^/]+)")
-    public JsonBugBase serveObjectsJsonDetailsCategory(String[] params) {
+    public BugElement serveObjectsJsonDetailsCategory(String[] params) {
         Object o = parseObjectReference(params[1]);
         String category = params[2];
-        JsonBugList list = new JsonBugList();
+        BugList list = new BugList();
         for (OutputCategory cat : getOutputCategories(o.getClass())) {
             if (cat.getId().equals(category)) {
                 cat.add(list, o);
@@ -121,11 +122,12 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         return list;
     }
 
-    public JsonBugEntry getJsonBugObjectFor(Object o) {
-        JsonBugEntry e = new JsonBugEntry();
-        e.name = o.getClass().getName();
+    public BugElement getJsonBugObjectFor(Object o) {
+        BugExpandableEntry e = new BugExpandableEntry();
+        e.title = new BugText(o.getClass().getName());
         e.expand = "/objectsJson/" + getObjectReference(o) + "/details/";
-        e.value = TypeAdapters.toString(o);
+        e.elements.add(BugText.getValueSeparator());
+        e.elements.add(BugText.getForValue(o));
         return e;
     }
 

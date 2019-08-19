@@ -16,12 +16,12 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.UUID;
 
+import de.siebn.javaBug.BugElement;
+import de.siebn.javaBug.BugElement.BugLink;
+import de.siebn.javaBug.BugElement.BugList;
+import de.siebn.javaBug.BugElement.BugText;
+import de.siebn.javaBug.BugExpandableEntry;
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.JsonBugBase;
-import de.siebn.javaBug.JsonBugList;
-import de.siebn.javaBug.JsonBugEntry;
-import de.siebn.javaBug.JsonBugEntry.Action;
-import de.siebn.javaBug.JsonBugEntry.Property;
 import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.NanoHTTPD.Response;
 import de.siebn.javaBug.NanoHTTPD.Response.Status;
@@ -58,8 +58,8 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @JavaBug.Serve("^/filesJson/(.*)")
-    public JsonBugBase serverFilesJson(String[] param) throws IOException {
-        JsonBugList list = new JsonBugList();
+    public BugElement serverFilesJson(String[] param) throws IOException {
+        BugList list = new BugList();
         String path = param[1];
         File files[];
         boolean showRoots = path == null || path.length() == 0;
@@ -76,16 +76,16 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         if (files != null) {
             sortFiles(files);
             for (File file : files) {
-                JsonBugEntry f = new JsonBugEntry();
-                f.name = file.getAbsolutePath();
+                BugExpandableEntry f = new BugExpandableEntry();
+                f.title = new BugText(file.getAbsolutePath());
                 if (file.isDirectory()) {
                     f.expand = "/filesJson/" + file.getAbsolutePath();
                 } else {
-                    f.getOrCreateActions().add(new Action("view", Action.ACTION_DOWNLOAD, "/file/" + file.getAbsolutePath()));
-                    f.getOrCreateActions().add(new Action("download", Action.ACTION_DOWNLOAD, "/fileDownload/" + file.getAbsolutePath()));
+                    f.elements.add(new BugLink("[view]").setUrl("/file/" + file.getAbsolutePath()).setClazz("link"));
+                    f.elements.add(new BugLink("[download]").setUrl("/fileDownload/" + file.getAbsolutePath()).setClazz("link"));
                 }
                 long size = file.length();
-                f.getOrCreateProperties().add(new Property("size", HumanReadable.formatByteSizeBinary(size)));
+                f.elements.add(new BugText(HumanReadable.formatByteSizeBinary(size)).setTooltip("size").setClazz("size"));
                 list.elements.add(f);
             }
         }

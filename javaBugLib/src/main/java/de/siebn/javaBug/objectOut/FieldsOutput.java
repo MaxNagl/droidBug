@@ -1,12 +1,11 @@
 package de.siebn.javaBug.objectOut;
 
+import java.lang.reflect.Field;
+
+import de.siebn.javaBug.BugElement.BugGroup;
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.JsonBugList;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.XML;
-
-import java.lang.reflect.Field;
-import java.util.List;
 
 public class FieldsOutput extends AbstractOutputCategory {
 
@@ -15,7 +14,7 @@ public class FieldsOutput extends AbstractOutputCategory {
     }
 
     @Override
-    public void add(JsonBugList list, Object o) {
+    public void add(BugGroup list, Object o) {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Field f : allMembers.fields) {
             addFieldInformation(list, o, f);

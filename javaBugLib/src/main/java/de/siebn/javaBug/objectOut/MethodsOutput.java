@@ -1,11 +1,11 @@
 package de.siebn.javaBug.objectOut;
 
+import java.lang.reflect.Method;
+
+import de.siebn.javaBug.BugElement.BugGroup;
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.JsonBugList;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.XML;
-
-import java.lang.reflect.Method;
 
 /**
  * Created by Sieben on 16.03.2015.
@@ -16,7 +16,7 @@ public class MethodsOutput extends AbstractOutputCategory {
     }
 
     @Override
-    public void add(JsonBugList list, Object o) {
+    public void add(BugGroup list, Object o) {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Method m : allMembers.methods) {
             addMethodInformation(list, o, m, null, null);
