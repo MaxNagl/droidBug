@@ -8,7 +8,6 @@ function getModel(parent, data) {
     if (data.type == 'BugInput') return new BugInput(parent, data);
 }
 
-
 class BugElement {
     constructor(parent, data, view) {
         this.parent = parent;
@@ -19,6 +18,7 @@ class BugElement {
             if (data.onClick != null) {
                 this.view.click(function () {
                     if (data.onClick == "invoke") this.getParent(BugInvokable).invoke();
+                    if (data.onClick == "expand") this.getParent(BugExpandableEntry).toggleExpand();
                 }.bind(this));
                 this.view.addClass("clickable");
             }
@@ -186,13 +186,7 @@ class BugExpandableEntry extends BugGroup {
         super(parent, data, $('<div class="bugEntry">'))
         var bugEntry = this;
         this.data = data;
-        this.titleView = getModel(this, data.title).view;
-        this.titleView.addClass("title");
-        this.titleView.click(bugEntry.toggleExpand.bind(this));
-        this.view.append(this.titleView);
-        if (data.expand != null) {
-            this.view.addClass("closed")
-        }
+        if (data.expand != null) this.view.addClass("closed")
         this.extractElements(this.view, data.elements, this.elements);
     }
 
@@ -206,6 +200,7 @@ class BugExpandableEntry extends BugGroup {
 
     toggleExpand() {
         if (this.expanderContentView == null) {
+            if (this.data.expand == null) return;
             loadContent(this, this.data.expand, function (content) {
                 this.expanderContentView = content.view;
                 this.getContentView().append(this.expanderContentView);

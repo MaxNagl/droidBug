@@ -77,7 +77,7 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
             sortFiles(files);
             for (File file : files) {
                 BugExpandableEntry f = new BugExpandableEntry();
-                f.title = new BugText(file.getAbsolutePath());
+                f.elements.add(new BugText(file.getAbsolutePath()).setClazz("title").setOnClick(BugText.ON_CLICK_EXPAND));
                 if (file.isDirectory()) {
                     f.expand = "/filesJson/" + file.getAbsolutePath();
                 } else {

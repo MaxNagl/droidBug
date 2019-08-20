@@ -103,7 +103,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugList list = new BugList();
         for (OutputCategory cat : getOutputCategories(o.getClass())) {
             BugExpandableEntry c = new BugExpandableEntry();
-            c.title = new BugText(cat.getName(o)).setClazz("title");
+            c.elements.add(new BugText(cat.getName(o)).setClazz("title").setOnClick(BugText.ON_CLICK_EXPAND));
             c.expand = "/objectsJson/" + getObjectReference(o) + "/details/" + cat.getId();
             c.elements.add(BugText.NBSP);
             c.elements.add(BugInvokable.getExpandRefresh(c.expand));
@@ -127,7 +127,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     public BugElement getJsonBugObjectFor(Object o) {
         BugExpandableEntry e = new BugExpandableEntry();
-        e.title = new BugText(o.getClass().getName());
+        e.elements.add(new BugText(o.getClass().getName()).setClazz("title").setOnClick(BugText.ON_CLICK_EXPAND));
         e.expand = "/objectsJson/" + getObjectReference(o) + "/details/";
         e.elements.add(BugText.VALUE_SEPARATOR);
         e.elements.add(BugText.getForValue(o));

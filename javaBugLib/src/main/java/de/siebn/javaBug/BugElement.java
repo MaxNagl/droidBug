@@ -10,6 +10,7 @@ import de.siebn.javaBug.util.StringifierUtil;
 
 public abstract class BugElement {
     public static String ON_CLICK_INVOKE = "invoke";
+    public static String ON_CLICK_EXPAND = "expand";
 
     public final String type;
     public String clazz;
@@ -44,13 +45,13 @@ public abstract class BugElement {
     }
 
     public static class BugExpandableEntry extends BugGroup {
-        public BugElement title;
         public String expand;
     }
 
     public static class BugText extends BugElement {
         public static BugText VALUE_SEPARATOR = (BugText) new BugText(":").setClazz("separator");
         public static BugText NBSP = new BugText("&nbsp;");
+        public static BugText INVOKER = (BugText) new BugText("&#x2607;").setOnClick(BugElement.ON_CLICK_INVOKE);
 
         public String text;
         public String tooltip;
