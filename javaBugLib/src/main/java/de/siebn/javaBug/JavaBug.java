@@ -173,6 +173,7 @@ public class JavaBug extends NanoHTTPD {
                             if (r instanceof BugElement) return new Response(Response.Status.OK, "application/json", ((BugElement) r).toJson());
                             if (r instanceof byte[]) return new Response(Response.Status.OK, "application/octet-stream", new ByteArrayInputStream((byte[]) r));
                             if (r instanceof InputStream) return new Response(Response.Status.OK, "application/octet-stream", (InputStream) r);
+                            if (r == null) return new Response(Status.NO_CONTENT, "application/octet-stream", "");
                             return new Response(r.toString());
                         } catch (RuntimeException e) {
                             throw e;

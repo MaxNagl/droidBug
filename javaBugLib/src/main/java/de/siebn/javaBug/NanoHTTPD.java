@@ -97,7 +97,7 @@ public abstract class NanoHTTPD {
      */
     public static final String MIME_HTML = "text/html";
     /**
-     * Pseudo-BugInput to use to store the actual query string in the parameters map for later re-processing.
+     * Pseudo-BugInputElement to use to store the actual query string in the parameters map for later re-processing.
      */
     private static final String QUERY_STRING_PARAMETER = "NanoHttpd.QUERY_STRING";
     private final String hostname;

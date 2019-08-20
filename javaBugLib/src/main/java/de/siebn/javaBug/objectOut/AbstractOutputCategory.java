@@ -9,18 +9,22 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.siebn.javaBug.BugElement;
+import de.siebn.javaBug.BugElement.BugInputElement;
+import de.siebn.javaBug.BugElement.BugInputList;
+import de.siebn.javaBug.BugElement.BugInputText;
 import de.siebn.javaBug.BugElement.BugInvokable;
 import de.siebn.javaBug.BugElement.BugExpandableEntry;
 import de.siebn.javaBug.BugElement.BugGroup;
-import de.siebn.javaBug.BugElement.BugInlineList;
-import de.siebn.javaBug.BugElement.BugInput;
 import de.siebn.javaBug.BugElement.BugText;
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.UnicodeCharacters;
 import de.siebn.javaBug.objectOut.ListItemBuilder.ParameterBuilder;
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
+import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeSelectionAdapter;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
@@ -117,15 +121,23 @@ public abstract class AbstractOutputCategory implements OutputCategory {
 
         for (TypeAdapter typeAdapter : typeAdapters) {
             BugInvokable invokable = new BugInvokable(BugInvokable.ACTION_REFRESH_ELEMENTS);
-            BugInput input = new BugInput("p1", null);
+            String text = typeAdapter == null ? TypeAdapters.toString(val) : typeAdapter.toString(val);
+            BugInputElement input;
+            if (typeAdapter instanceof TypeSelectionAdapter) {
+                BugInputList inputList = new BugInputList("p1", null);
+                inputList.addMap(((TypeSelectionAdapter) typeAdapter).getValues());
+                inputList.text = text;
+                input = inputList;
+            } else {
+                BugInputText bugInput = new BugInputText("p1", null);
+                bugInput.text = text;
+                input = bugInput;
+            }
             invokable.elements.add(input);
             InvocationLinkBuilder invocation = javaBug.getObjectBug().new InvocationLinkBuilder().setObject(this).setMethod(setter).setPredefined(0, o);
             if (typeAdapter != null) {
                 invocation.setTypeAdapter(1, typeAdapter).setReturTypeAdapter(typeAdapter);
-                input.text = typeAdapter.toString(val);
                 invokable.elements.add(new BugText(typeAdapter.getUnit()));
-            } else {
-                input.text = TypeAdapters.toString(val);
             }
             invokable.url = invocation.setPredefined(2, true).build();
             input.setRefreshUrl(invocation.setPredefined(2, false).build());
@@ -154,7 +166,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         BugInvokable invokable = new BugInvokable(BugInvokable.ACTION_EXPAND_RESULT);
         for (int i = 0; i < parameterTypes.length; i++) {
             invokable.elements.add(BugText.getForClass(parameterTypes[i]));
-            BugInput parameter = new BugInput("p" + i, preset.length > i ? TypeAdapters.toString(preset[i]) : null);
+            BugInputElement parameter = new BugInputText("p" + i, preset.length > i ? TypeAdapters.toString(preset[i]) : null);
             invokable.elements.add(parameter);
         }
         if (canInvoke) invokable.url = javaBug.getObjectBug().getInvokationLink(ObjectBugPlugin.RETURN_TYPE_JSON, o, m);
@@ -180,7 +192,20 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         json.elements.add(new BugText(f.getName()).setClazz("name").setOnClick(BugText.ON_CLICK_EXPAND));
 
         json.elements.add(BugText.VALUE_SEPARATOR);
-        json.elements.add(BugText.getForValue(val));
+        TypeAdapters.TypeAdapter<Object> adapter = TypeAdapters.getTypeAdapter(f.getType());
+        if (adapter != null) {
+            BugInvokable invokable = new BugInvokable(BugInvokable.ACTION_SET_VALUE);
+            BugInputText inputText = new BugInputText("value", adapter.toString(val));
+            inputText.refreshUrl = javaBug.getObjectBug().getObjectGetLink(o, f);
+            if (!Modifier.isFinal(f.getModifiers()) && adapter.canParse(f.getType())) {
+                invokable.url = javaBug.getObjectBug().getObjectEditLink(o, f);
+            } else {
+                inputText.enabled = false;
+            }
+            inputText.nullable = !f.getType().isPrimitive();
+            invokable.elements.add(inputText);
+            json.elements.add(invokable);
+        }
         list.elements.add(json);
     }
 

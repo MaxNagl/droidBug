@@ -101,13 +101,22 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public BugElement serveObjectsJsonDetails(String[] params) {
         Object o = parseObjectReference(params[1]);
         BugList list = new BugList();
-        for (OutputCategory cat : getOutputCategories(o.getClass())) {
-            BugExpandableEntry c = new BugExpandableEntry();
-            c.elements.add(new BugText(cat.getName(o)).setClazz("title").setOnClick(BugText.ON_CLICK_EXPAND));
-            c.expand = "/objectsJson/" + getObjectReference(o) + "/details/" + cat.getId();
-            c.elements.add(BugText.NBSP);
-            c.elements.add(BugInvokable.getExpandRefresh(c.expand));
-            list.elements.add(c);
+        boolean alreadyOpened = false;
+        List<OutputCategory> outputCategories = getOutputCategories(o.getClass());
+        for (OutputCategory cat : outputCategories) {
+            String name = cat.getName(o);
+            if (name != null) {
+                BugExpandableEntry c = new BugExpandableEntry();
+                c.elements.add(new BugText(name).setClazz("title").setOnClick(BugText.ON_CLICK_EXPAND));
+                c.expand = "/objectsJson/" + getObjectReference(o) + "/details/" + cat.getId();
+                c.elements.add(BugText.NBSP);
+                c.elements.add(BugInvokable.getExpandRefresh(c.expand));
+                if (cat.opened(outputCategories, alreadyOpened)) {
+                    c.autoExpand = true;
+                    alreadyOpened = true;
+                }
+                list.elements.add(c);
+            }
         }
         return list;
     }
@@ -215,9 +224,27 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         return "/objectDetails/" + type + "/" + getObjectReference(o);
     }
 
+    public String getObjectGetLink(Object o, Field f) {
+        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
+        return "/objectGet?object=" + getObjectReference(o) + "&field=" + allMembers.getFieldIdentifier(f);
+    }
+
     public String getObjectEditLink(Object o, Field f) {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         return "/objectEdit?object=" + getObjectReference(o) + "&field=" + allMembers.getFieldIdentifier(f);
+    }
+
+    @JavaBug.Serve("^/objectGet")
+    public String serveObjectGet(NanoHTTPD.IHTTPSession session) throws Exception {
+        Map<String, String> parms = session.getParms();
+        Object o = parseObjectReference(parms.get("object"));
+        String fieldName = parms.get("field");
+        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
+        Field f = allMembers.getField(fieldName);
+        if (f != null) {
+            return TypeAdapters.toString(f.get(o));
+        }
+        throw new IllegalArgumentException();
     }
 
     @JavaBug.Serve("^/objectEdit")

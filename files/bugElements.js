@@ -5,7 +5,8 @@ function getModel(parent, data) {
     if (data.type == 'BugInvokable') return new BugInvokable(parent, data);
     if (data.type == 'BugText') return new BugText(parent, data);
     if (data.type == 'BugLink') return new BugLink(parent, data);
-    if (data.type == 'BugInput') return new BugInput(parent, data);
+    if (data.type == 'BugInputText') return new BugInputText(parent, data);
+    if (data.type == 'BugInputList') return new BugInputList(parent, data);
 }
 
 class BugElement {
@@ -17,7 +18,7 @@ class BugElement {
             if (data.clazz != null) this.view.addClass(data.clazz);
             if (data.onClick != null) {
                 this.view.click(function () {
-                    if (data.onClick == "invoke") this.getParent(BugInvokable).invoke();
+                    if (data.onClick == "invoke") this.getParent(BugInvokable).invoke(this);
                     if (data.onClick == "expand") this.getParent(BugExpandableEntry).toggleExpand();
                 }.bind(this));
                 this.view.addClass("clickable");
@@ -87,17 +88,23 @@ class BugText extends BugElement {
     constructor(parent, data, view) {
         if (view == null) view = $('<span>');
         super(parent, data, view)
-        if (data.text != null) this.view.append(data.text);
+        this.setValue(data.text);
         if (data.tooltip != null) this.view.attr('title', data.tooltip);
     }
 
     setValue(value) {
         if (this.view.text() != value) {
             this.view.text(value)
+            if (value == null) {
+                this.view.addClass("null");
+            } else {
+                this.view.removeClass("null");
+            }
         }
     }
 
     getValue() {
+        if (this.view.hasClass("null")) return null;
         return this.view.text()
     }
 }
@@ -110,29 +117,62 @@ class BugLink extends BugText {
     }
 }
 
-class BugInput extends BugText {
+class BugInputText extends BugText {
     constructor(parent, data) {
-        super(parent, data, $('<span>'))
-        this.view.addClass('editable');
-        this.view.attr('contentEditable', 'true');
-        this.view.on('keydown', function (e) {
-            if (e.keyCode == 13) {
-                e.preventDefault();
-                this.onEnter();
-            }
-            if (e.keyCode == 27) {
-                e.preventDefault();
-                this.onEsc();
-            }
-        }.bind(this));
+        super(parent, data, $('<span>'));
+        this.view.addClass("editable");
+        if (data.enabled == false) {
+            this.view.prop('disabled', true);
+        } else {
+            this.view.attr('contenteditable', true);
+            this.view.on('keydown', function (e) {
+                if (e.keyCode == 13) { // enter
+                    e.preventDefault();
+                    this.onEnter();
+                }
+                if (e.keyCode == 27) { // esc
+                    e.preventDefault();
+                    this.onEsc();
+                }
+                if (e.keyCode == 8 || e.keyCode == 46) { // backspace or delete
+                    if (this.data.nullable == true && this.view.text() == "") this.view.toggleClass("null");
+                }
+            }.bind(this));
+            this.view.on('keyup keypress focus blur change', function (e) {
+                this.view.prop("size", this.view.val().length);
+                if (this.view.text() != "") this.view.removeClass("null");
+            }.bind(this));
+        }
+        this.view.prop("size", 1);
     }
 
     onEnter() {
-        this.getParent(BugInvokable).invoke();
+        this.getParent(BugInvokable).invoke(this);
     }
 
     onEsc() {
         console.log("onEsc");
+    }
+}
+
+class BugInputList extends BugElement {
+    constructor(parent, data) {
+        super(parent, data, $('<select>'));
+        data.options.forEach(function (option) {
+            this.view.append($('<option value="' + option.id + '">' + option.text + '</option>'));
+        }.bind(this));
+        this.view.change(function () {
+            this.getParent(BugInvokable).invoke(this);
+        }.bind(this));
+        this.view.val(data.text);
+    }
+
+    setValue(value) {
+        this.view.val(value);
+    }
+
+    getValue() {
+        return this.view.val();
     }
 }
 
@@ -142,23 +182,21 @@ class BugInvokable extends BugGroup {
         this.extractElements(this.view, data.elements, this.elements);
     }
 
-    invoke() {
+    invoke(source) {
         var request = {};
         this.addElementsToRequest(request, this.elements);
-        this.elements.forEach(function (element) {
-            if (element.data != null) {
-                if (element.data.callId != null) {
-                    request[element.data.callId] = element.getValue();
-                }
-            }
-        });
         $.ajax({
             type: "GET",
             url: this.data.url,
             data: request,
-            success: function (result) {
+            success: function (result, status) {
+                if (status == "nocontent") result = null;
                 if (this.data.action == "expandResult") {
-                    this.getParent(BugExpandableEntry).setExpanded(getModel(this, result).view);
+                    loadContent(this, result, function (model) {
+                        this.getParent(BugExpandableEntry).setExpanded(model.view);
+                    }.bind(this))
+                } else if (this.data.action == "setValue") {
+                    source.setValue(result);
                 } else if (this.data.action == "refreshEntry") {
                     this.getParent(BugExpandableEntry).refresh();
                 }
@@ -166,7 +204,7 @@ class BugInvokable extends BugGroup {
             error: function (result) {
                 if (this.data.action == "expandResult") {
                     this.getParent(BugExpandableEntry).setExpanded($('<span class="error">' + getError(result) + '</span>'));
-                } else if (callable.data.action == "refreshEntry") {
+                } else {
                     alert(getError(result));
                 }
             }.bind(this),
@@ -175,7 +213,10 @@ class BugInvokable extends BugGroup {
 
     addElementsToRequest(request, elements) {
         elements.forEach(function (element) {
-            if (element.data != null && element.data.callId != null) request[element.data.callId] = element.getValue();
+            if (element.data != null && element.data.callId != null) {
+                var value = element.getValue();
+                if (value != null) request[element.data.callId] = value;
+            }
             if (element.elements != null) this.addElementsToRequest(request, element.elements)
         });
     }
@@ -186,8 +227,13 @@ class BugExpandableEntry extends BugGroup {
         super(parent, data, $('<div class="bugEntry">'))
         var bugEntry = this;
         this.data = data;
-        if (data.expand != null) this.view.addClass("closed")
         this.extractElements(this.view, data.elements, this.elements);
+        if (data.expand != null) {
+            this.view.addClass("closed")
+            if (data.autoExpand == true) {
+                this.toggleExpand();
+            }
+        }
     }
 
     getContentView() {

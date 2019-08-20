@@ -78,7 +78,7 @@ public class TypeAdapters {
 
     @SuppressWarnings("ConstantConditions")
     public static String toString(Object o, TypeAdapter adapter, int maxLength) {
-        if (o == null) return "null";
+        if (o == null) return null;
         if (adapter == null) adapter = TypeAdapters.getTypeAdapter(o.getClass());
         String s = adapter.toString(o);
         if (s.length() > maxLength) s = s.substring(0, maxLength - 3) + "...";
@@ -131,7 +131,7 @@ public class TypeAdapters {
 
         @Override
         public String toString(T object) {
-            return String.valueOf(object);
+            return object == null ? null : String.valueOf(object);
         }
 
         @Override
@@ -166,6 +166,7 @@ public class TypeAdapters {
 
         @Override
         public Object parse(Class<?> clazz, String string) {
+            if (string == null) return null;
             if (clazz.equals(Integer.class) || clazz.equals(int.class)) return Integer.parseInt(string);
             if (clazz.equals(Long.class) || clazz.equals(long.class)) return Long.parseLong(string);
             if (clazz.equals(Boolean.class) || clazz.equals(boolean.class)) return Boolean.parseBoolean(string);
@@ -225,7 +226,7 @@ public class TypeAdapters {
 
         @Override
         public String toString(Object object) {
-            if (object == null) return "null";
+            if (object == null) return null;
             try {
                 if (object.getClass().getMethod("toString").equals(Object.class.getMethod("toString")))
                     return object.getClass().getName();

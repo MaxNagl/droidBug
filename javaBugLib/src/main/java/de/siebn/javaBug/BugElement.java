@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.util.StringifierUtil;
@@ -46,16 +48,27 @@ public abstract class BugElement {
 
     public static class BugExpandableEntry extends BugGroup {
         public String expand;
+        public boolean autoExpand;
     }
 
-    public static class BugText extends BugElement {
+    public static class BugInputElement extends BugElement {
+        public String refreshUrl;
+        public String callId;
+        public boolean enabled = true;
+
+        public BugInputElement setRefreshUrl(String refreshUrl) {
+            this.refreshUrl = refreshUrl;
+            return this;
+        }
+    }
+
+    public static class BugText extends BugInputElement {
         public static BugText VALUE_SEPARATOR = (BugText) new BugText(":").setClazz("separator");
-        public static BugText NBSP = new BugText("&nbsp;");
-        public static BugText INVOKER = (BugText) new BugText("&#x2607;").setOnClick(BugElement.ON_CLICK_INVOKE);
+        public static BugText NBSP = new BugText(UnicodeCharacters.NBSP);
+        public static BugText INVOKER = (BugText) new BugText(UnicodeCharacters.INVOKE).setOnClick(BugElement.ON_CLICK_INVOKE);
 
         public String text;
         public String tooltip;
-        public String refreshUrl;
 
         public BugText(String text) {
             this.text = text;
@@ -63,11 +76,6 @@ public abstract class BugElement {
 
         public BugText setTooltip(String tooltip) {
             this.tooltip = tooltip;
-            return this;
-        }
-
-        public BugText setRefreshUrl(String refreshUrl) {
-            this.refreshUrl = refreshUrl;
             return this;
         }
 
@@ -93,7 +101,6 @@ public abstract class BugElement {
 
     public static class BugLink extends BugText {
         public String url;
-
         public BugLink(String text) {
             super(text);
         }
@@ -104,16 +111,43 @@ public abstract class BugElement {
         }
     }
 
-    public static class BugInput extends BugText {
-        public String callId;
+    public static class BugInputText extends BugText {
+        public boolean nullable;
 
-        public BugInput(String callId, String text) {
+        public BugInputText(String callId, String text) {
             super(text);
             this.callId = callId;
         }
     }
 
+    public static class BugInputList extends BugInputElement {
+        public String text;
+        public List<BugOption> options = new ArrayList<>();
+
+        public BugInputList(String callId, String text) {
+            this.callId = callId;
+            this.text = text;
+        }
+
+        public void addMap(Map<String, String> map) {
+            for (Entry<String, String> entry : map.entrySet()) {
+                options.add(new BugOption(entry.getKey(), entry.getValue()));
+            }
+        }
+    }
+
+    public static class BugOption {
+        public String id;
+        public String text;
+
+        public BugOption(String id, String text) {
+            this.id = id;
+            this.text = text;
+        }
+    }
+
     public static class BugInvokable extends BugGroup {
+        public static String ACTION_SET_VALUE = "setValue";
         public static String ACTION_REFRESH_ELEMENTS = "refreshEntry";
         public static String ACTION_EXPAND_RESULT = "expandResult";
 
@@ -133,7 +167,7 @@ public abstract class BugElement {
         public static BugInvokable getExpandRefresh(String url) {
             BugInvokable invokable = new BugInvokable(BugInvokable.ACTION_EXPAND_RESULT);
             invokable.url = url;
-            invokable.elements.add(new BugText("&#x27F3;").setOnClick(BugElement.ON_CLICK_INVOKE));
+            invokable.elements.add(new BugText(UnicodeCharacters.REFRESH).setOnClick(BugElement.ON_CLICK_INVOKE));
             invokable.clazz = "hideCollapsed";
             return invokable;
         }
