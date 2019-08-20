@@ -2,9 +2,10 @@ function getModel(parent, data) {
     if (data.type == 'BugExpandableEntry') return new BugExpandableEntry(parent, data);
     if (data.type == 'BugList') return new BugList(parent, data);
     if (data.type == 'BugInlineList') return new BugInlineList(parent, data);
-    if (data.type == 'BugCallable') return new BugCallable(parent, data);
+    if (data.type == 'BugInvokable') return new BugInvokable(parent, data);
     if (data.type == 'BugText') return new BugText(parent, data);
     if (data.type == 'BugLink') return new BugLink(parent, data);
+    if (data.type == 'BugInput') return new BugInput(parent, data);
 }
 
 
@@ -15,6 +16,31 @@ class BugElement {
         this.view = view;
         if (this.view != null) {
             if (data.clazz != null) this.view.addClass(data.clazz);
+            if (data.onClick != null) {
+                this.view.click(function () {
+                    if (data.onClick == "invoke") this.getParent(BugInvokable).invoke();
+                }.bind(this));
+                this.view.addClass("clickable");
+            }
+        }
+    }
+
+    getParent(clazz) {
+        return clazz == null || this.parent instanceof clazz ? this.parent : this.parent.getParent(clazz);
+    }
+
+    refresh() {
+        if (this.data.refreshUrl != null) {
+            $.ajax({
+                type: "GET",
+                url: this.data.refreshUrl,
+                success: function (result) {
+                    this.setValue(result);
+                }.bind(this),
+                error: function (result) {
+                    alert(getError(result));
+                }.bind(this),
+            });
         }
     }
 }
@@ -27,11 +53,19 @@ class BugGroup extends BugElement {
 
     extractElements(parentView, elementsData, elements) {
         for (var i = 0; i < elementsData.length; i++) {
-            loadContent(this, elementsData[i], function(model) {
+            loadContent(this, elementsData[i], function (model) {
                 parentView.append(model.view);
                 elements.push(model);
             }.bind(this))
         }
+    }
+
+    refresh() {
+        this.elements.forEach(function (element) {
+            if (element.refresh != null) {
+                element.refresh();
+            }
+        }, this);
     }
 }
 
@@ -56,6 +90,16 @@ class BugText extends BugElement {
         if (data.text != null) this.view.append(data.text);
         if (data.tooltip != null) this.view.attr('title', data.tooltip);
     }
+
+    setValue(value) {
+        if (this.view.text() != value) {
+            this.view.text(value)
+        }
+    }
+
+    getValue() {
+        return this.view.text()
+    }
 }
 
 class BugLink extends BugText {
@@ -66,73 +110,73 @@ class BugLink extends BugText {
     }
 }
 
-class BugCallable extends BugElement {
+class BugInput extends BugText {
     constructor(parent, data) {
-        super(parent, data, $('<span class="callable"></span>'))
-        var invoke = () => { this.invoke() };
-        var reset = () => { this.parent.refreshElements(); };
-        if (data.parentheses == true) this.view.append("("); else this.view.append(" ");
-        this.data.parameters.forEach(function (parameter, index) {
-            if (index != 0) this.view.append(", ");
-            var val = parameter.value == undefined ? "" : parameter.value
-            parameter.view = $('<span class="parameter"></span>');
-            if (parameter.clazz != null) parameter.view.append($('<span class="clazz">' + parameter.clazz + '</span>'));
-            if (parameter.name != null) parameter.view.append($('<span class="name">' + parameter.name + '</span>'));
-            parameter.editView = $('<span class="editable">' + val + '</span>');
-            makeEditable(parameter.editView, invoke, reset);
-            parameter.view.append(parameter.editView);
-            if (parameter.unit != null) parameter.view.append(parameter.unit);
-            this.view.append(parameter.view);
-        }, this);
-        if (data.parentheses == true) {
-            this.view.append(")");
-            this.invokeView = $('<span class="invoke">\u2607</span>');
-            this.invokeView.click(invoke);
-            this.view.append(this.invokeView);
-        }
+        super(parent, data, $('<span>'))
+        this.view.addClass('editable');
+        this.view.attr('contentEditable', 'true');
+        this.view.on('keydown', function (e) {
+            if (e.keyCode == 13) {
+                e.preventDefault();
+                this.onEnter();
+            }
+            if (e.keyCode == 27) {
+                e.preventDefault();
+                this.onEsc();
+            }
+        }.bind(this));
+    }
+
+    onEnter() {
+        this.getParent(BugInvokable).invoke();
+    }
+
+    onEsc() {
+        console.log("onEsc");
+    }
+}
+
+class BugInvokable extends BugGroup {
+    constructor(parent, data) {
+        super(parent, data, $('<span class="callable">'))
+        this.extractElements(this.view, data.elements, this.elements);
     }
 
     invoke() {
-        var callable = this;
         var request = {};
-        this.data.parameters.forEach(function (parameter, index) {
-            request[parameter.id] = parameter.editView.text();
+        this.addElementsToRequest(request, this.elements);
+        this.elements.forEach(function (element) {
+            if (element.data != null) {
+                if (element.data.callId != null) {
+                    request[element.data.callId] = element.getValue();
+                }
+            }
         });
         $.ajax({
             type: "GET",
             url: this.data.url,
             data: request,
-            success: function(result) {
-                if (callable.data.action == "expandResult") {
-                    callable.parent.setExpanded(getModel(callable, result).view);
-                } else if (callable.data.action == "refreshElements") {
-                    callable.parent.refreshElements();
+            success: function (result) {
+                if (this.data.action == "expandResult") {
+                    this.getParent(BugExpandableEntry).setExpanded(getModel(this, result).view);
+                } else if (this.data.action == "refreshEntry") {
+                    this.getParent(BugExpandableEntry).refresh();
                 }
-            },
-            error: function(result) {
-                if (callable.data.action == "expandResult") {
-                    callable.parent.setExpanded($('<span class="error">' + getError(result) + '</span>'));
-                } else if (callable.data.action == "refreshCallables") {
-                        alert(getError(result));
+            }.bind(this),
+            error: function (result) {
+                if (this.data.action == "expandResult") {
+                    this.getParent(BugExpandableEntry).setExpanded($('<span class="error">' + getError(result) + '</span>'));
+                } else if (callable.data.action == "refreshEntry") {
+                    alert(getError(result));
                 }
-             },
+            }.bind(this),
         });
     }
 
-    refresh() {
-        this.data.parameters.forEach(function (parameter, index) {
-            if (parameter.refresh != null) {
-                $.ajax({
-                    type: "GET",
-                    url: parameter.refresh,
-                    success: function(result) {
-                        parameter.editView.text(result);
-                    },
-                    error: function(result) {
-                        alert(getError(result));
-                     },
-                });
-            }
+    addElementsToRequest(request, elements) {
+        elements.forEach(function (element) {
+            if (element.data != null && element.data.callId != null) request[element.data.callId] = element.getValue();
+            if (element.elements != null) this.addElementsToRequest(request, element.elements)
         });
     }
 }
@@ -146,7 +190,9 @@ class BugExpandableEntry extends BugGroup {
         this.titleView.addClass("title");
         this.titleView.click(bugEntry.toggleExpand.bind(this));
         this.view.append(this.titleView);
-        if (data.expand != null) { this.titleView.addClass("closed") }
+        if (data.expand != null) {
+            this.view.addClass("closed")
+        }
         this.extractElements(this.view, data.elements, this.elements);
     }
 
@@ -160,16 +206,16 @@ class BugExpandableEntry extends BugGroup {
 
     toggleExpand() {
         if (this.expanderContentView == null) {
-            loadContent(this, this.data.expand, function(content) {
+            loadContent(this, this.data.expand, function (content) {
                 this.expanderContentView = content.view;
                 this.getContentView().append(this.expanderContentView);
-                this.titleView.toggleClass("opened")
-                this.titleView.toggleClass("closed")
+                this.view.toggleClass("opened")
+                this.view.toggleClass("closed")
             }.bind(this))
         } else {
             this.expanderContentView.toggle()
-            this.titleView.toggleClass("opened")
-            this.titleView.toggleClass("closed")
+            this.view.toggleClass("opened")
+            this.view.toggleClass("closed")
         }
     }
 
@@ -177,15 +223,7 @@ class BugExpandableEntry extends BugGroup {
         this.getContentView().empty();
         this.expanderContentView = view;
         this.getContentView().append(this.expanderContentView);
-        this.titleView.addClass("opened")
-        this.titleView.removeClass("closed")
-    }
-
-    refreshElements() {
-        this.elements.forEach(function (element) {
-            if (element.refresh != null) {
-                element.refresh();
-            }
-        }, this);
+        this.view.addClass("opened")
+        this.view.removeClass("closed")
     }
 }

@@ -52,21 +52,21 @@ body {
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
+    &:before {
+        display: inline-block;
+        width: 16px;
+        color:@colorLightGrey;
+        content: " ";
+    }
+    &.closed:before {
+        content: "\25BA";
+    }
+    &.opened:before {
+        content: "\25BC";
+    }
     .title {
         color:@colorOrange;
         cursor:pointer;
-        &:before {
-            display: inline-block;
-            width: 16px;
-            color:@colorLightGrey;
-            content: " ";
-        }
-        &.closed:before {
-            content: "\25BA";
-        }
-        &.opened:before {
-            content: "\25BC";
-        }
     }
     .modifier {
         color:@colorOrange;
@@ -101,9 +101,19 @@ body {
     }
 }
 
+.closed {
+    .hideCollapsed {
+        display: none;
+    }
+}
+
 .link {
     color: @colorOrange;
     padding-right: 8px;
+}
+
+.clickable {
+    cursor:pointer;
 }
 
 .separator {

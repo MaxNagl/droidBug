@@ -9,12 +9,12 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.siebn.javaBug.BugElement.BugInvokable;
+import de.siebn.javaBug.BugElement.BugExpandableEntry;
 import de.siebn.javaBug.BugElement.BugGroup;
 import de.siebn.javaBug.BugElement.BugInlineList;
+import de.siebn.javaBug.BugElement.BugInput;
 import de.siebn.javaBug.BugElement.BugText;
-import de.siebn.javaBug.BugExpandableEntry;
-import de.siebn.javaBug.BugExpandableEntry.BugCallable;
-import de.siebn.javaBug.BugExpandableEntry.Parameter;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.objectOut.ListItemBuilder.ParameterBuilder;
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
@@ -116,20 +116,21 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         json.title = new BugText(property.value()).setClazz("title");
 
         for (TypeAdapter typeAdapter : typeAdapters) {
-            BugCallable callable = new BugCallable(BugCallable.ACTION_REFRESH_ELEMENTS);
-            Parameter parameter = new Parameter("p1", null, null, TypeAdapters.toString(val));
-            callable.parameters.add(parameter);
+            BugInvokable invokable = new BugInvokable(BugInvokable.ACTION_REFRESH_ELEMENTS);
+            BugInput input = new BugInput("p1", null);
+            invokable.elements.add(input);
             InvocationLinkBuilder invocation = javaBug.getObjectBug().new InvocationLinkBuilder().setObject(this).setMethod(setter).setPredefined(0, o);
             if (typeAdapter != null) {
                 invocation.setTypeAdapter(1, typeAdapter).setReturTypeAdapter(typeAdapter);
-                parameter.unit = typeAdapter.getUnit();
-                parameter.value = typeAdapter.toString(val);
+                input.text = typeAdapter.toString(val);
+                invokable.elements.add(new BugText(typeAdapter.getUnit()));
             } else {
-                parameter.value = TypeAdapters.toString(val);
+                input.text = TypeAdapters.toString(val);
             }
-            callable.url = invocation.setPredefined(2, true).build();
-            parameter.refresh = invocation.setPredefined(2, false).build();
-            json.elements.add(callable);
+            invokable.url = invocation.setPredefined(2, true).build();
+            input.setRefreshUrl(invocation.setPredefined(2, false).build());
+            json.elements.add(BugText.NBSP);
+            json.elements.add(invokable);
         }
 
         list.elements.add(json);
@@ -152,13 +153,14 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         titleList.elements.add(new BugText(m.getName()).setClazz("name"));
         json.title = titleList;
 
-        BugCallable callable = new BugCallable(BugCallable.ACTION_EXPAND_RESULT);
-        callable.parentheses = true;
+        BugInvokable callable = new BugInvokable(BugInvokable.ACTION_EXPAND_RESULT);
         for (int i = 0; i < parameterTypes.length; i++) {
-            Parameter parameter = new Parameter("p" + i, null, parameterTypes[i].getSimpleName(), preset.length > i ? TypeAdapters.toString(preset[i]) : null);
-            callable.parameters.add(parameter);
+            callable.elements.add(BugText.getForClass(parameterTypes[i]));
+            BugInput parameter = new BugInput("p" + i, preset.length > i ? TypeAdapters.toString(preset[i]) : null);
+            callable.elements.add(parameter);
         }
         if (canInvoke) callable.url = javaBug.getObjectBug().getInvokationLink(ObjectBugPlugin.RETURN_TYPE_JSON, o, m);
+        callable.addBraces();
         json.elements.add(callable);
 
         list.elements.add(json);
@@ -181,7 +183,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         titleList.elements.add(new BugText(f.getName()).setClazz("name"));
         json.title = titleList;
 
-        json.elements.add(BugText.getValueSeparator());
+        json.elements.add(BugText.VALUE_SEPARATOR);
         json.elements.add(BugText.getForValue(val));
         list.elements.add(json);
     }
@@ -209,7 +211,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
 
         BugExpandableEntry json = new BugExpandableEntry();
         json.title = new BugText(field).setClazz("title");
-        json.elements.add(BugText.getValueSeparator());
+        json.elements.add(BugText.VALUE_SEPARATOR);
         json.elements.add(BugText.getForValue(val));
         list.elements.add(json);
     }

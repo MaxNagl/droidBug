@@ -17,10 +17,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import de.siebn.javaBug.BugElement;
+import de.siebn.javaBug.BugElement.BugExpandableEntry;
 import de.siebn.javaBug.BugElement.BugLink;
 import de.siebn.javaBug.BugElement.BugList;
 import de.siebn.javaBug.BugElement.BugText;
-import de.siebn.javaBug.BugExpandableEntry;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.NanoHTTPD.Response;

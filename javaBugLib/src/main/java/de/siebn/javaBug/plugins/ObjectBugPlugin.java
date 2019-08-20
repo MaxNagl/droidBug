@@ -11,10 +11,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import de.siebn.javaBug.BugElement;
+import de.siebn.javaBug.BugElement.BugExpandableEntry;
+import de.siebn.javaBug.BugElement.BugInvokable;
 import de.siebn.javaBug.BugElement.BugList;
 import de.siebn.javaBug.BugElement.BugText;
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.BugExpandableEntry;
 import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.objectOut.AnnotatedOutputCategory;
 import de.siebn.javaBug.objectOut.ListItemBuilder;
@@ -104,6 +105,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             BugExpandableEntry c = new BugExpandableEntry();
             c.title = new BugText(cat.getName(o)).setClazz("title");
             c.expand = "/objectsJson/" + getObjectReference(o) + "/details/" + cat.getId();
+            c.elements.add(BugText.NBSP);
+            c.elements.add(BugInvokable.getExpandRefresh(c.expand));
             list.elements.add(c);
         }
         return list;
@@ -126,7 +129,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugExpandableEntry e = new BugExpandableEntry();
         e.title = new BugText(o.getClass().getName());
         e.expand = "/objectsJson/" + getObjectReference(o) + "/details/";
-        e.elements.add(BugText.getValueSeparator());
+        e.elements.add(BugText.VALUE_SEPARATOR);
         e.elements.add(BugText.getForValue(o));
         return e;
     }

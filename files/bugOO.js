@@ -74,20 +74,6 @@ function getError(result) {
     }
 }
 
-function makeEditable(view, invoke, reset) {
-    view.attr('contentEditable', 'true');
-    view.on('keydown', function(e) {
-        if(e.keyCode == 13 && invoke != null) {
-            e.preventDefault();
-            invoke();
-        }
-        if(e.keyCode == 27 && reset != null) {
-            e.preventDefault();
-            reset();
-        }
-   });
-}
-
 $(function () {
     $.getJSON('tabs.json', function(tabsJson) {
         new Tabs(tabsJson);
