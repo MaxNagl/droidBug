@@ -32,6 +32,15 @@ public abstract class BugElement {
         return this;
     }
 
+    public BugElement addClazz(String clazz) {
+        if (this.clazz == null) {
+            this.clazz = clazz;
+        } else {
+            this.clazz += " " + clazz;
+        }
+        return this;
+    }
+
     public BugElement setOnClick(String onClick) {
         this.onClick = onClick;
         return this;
@@ -105,6 +114,42 @@ public abstract class BugElement {
         public BugText setTooltip(String tooltip) {
             this.tooltip = tooltip;
             return this;
+        }
+
+        public BugText colorNeutral() {
+            return (BugText) addClazz("colorNeutral");
+        }
+
+        public BugText colorNeutralLight() {
+            return (BugText) addClazz("colorNeutralLight");
+        }
+
+        public BugText colorPrimary() {
+            return (BugText) addClazz("colorPrimary");
+        }
+
+        public BugText colorPrimaryLight() {
+            return (BugText) addClazz("colorPrimaryLight");
+        }
+
+        public BugText colorSecondary() {
+            return (BugText) addClazz("colorSecondary");
+        }
+
+        public BugText colorSecondaryLight() {
+            return (BugText) addClazz("colorSecondaryLight");
+        }
+
+        public BugText colorTernary() {
+            return (BugText) addClazz("colorTernary");
+        }
+
+        public BugText colorTernaryLight() {
+            return (BugText) addClazz("colorTernaryLight");
+        }
+
+        public BugText colorError() {
+            return (BugText) addClazz("colorError");
         }
 
         public static BugText getForClass(Class<?> clazz) {
