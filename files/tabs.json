@@ -1,17 +1,39 @@
-[
-  {
-    "id": "tabObjects",
-    "title": "Objects",
-    "content": "/objectsJson/"
-  },
-  {
-    "id": "tabFiles",
-    "title": "Files",
-    "content": "/filesJson/"
-  },
-  {
-    "id": "tab2",
-    "title": "Tab 2",
-    "content": "/file/content2.json"
-  }
-]
+{
+  "type": "BugTabs",
+  "tabs": [
+    {
+      "id": "tabObjects",
+      "title": "Objects",
+      "content": "/objectsJson/"
+    },
+    {
+      "id": "tabFiles",
+      "title": "Files",
+      "content": "/filesJson/"
+    },
+    {
+      "id": "tab2",
+      "title": "Tab 2",
+      "content": {
+        "type": "BugTabs",
+        "tabs": [
+          {
+            "id": "tabObjects",
+            "title": "Objects",
+            "content": "/objectsJson/"
+          },
+          {
+            "id": "tabFiles",
+            "title": "Files",
+            "content": "/filesJson/"
+          },
+          {
+            "id": "tab2",
+            "title": "Tab 2",
+            "content": "/filesJson/"
+          }
+        ]
+      }
+    }
+  ]
+}

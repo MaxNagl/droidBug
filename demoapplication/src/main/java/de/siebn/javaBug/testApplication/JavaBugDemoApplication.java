@@ -16,6 +16,8 @@ public class JavaBugDemoApplication {
         TestClass test = new TestClass();
         jb.getObjectBug().addRootObject(test);
         jb.getObjectBug().addRootObject(jb);
+        for (int i = 0; i < 100; i++)
+            jb.getObjectBug().addRootObject(i);
 
         jb.tryToStart();
 

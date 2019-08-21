@@ -1,3 +1,13 @@
+function loadModel(parent, content, callback) {
+    if (typeof content === 'string' || content instanceof String) {
+        $.getJSON(content, function(data) {
+            callback(getModel(parent, data))
+        });
+    } else {
+        callback(getModel(parent, content))
+    }
+}
+
 function getModel(parent, data) {
     if (data.type == 'BugExpandableEntry') return new BugExpandableEntry(parent, data);
     if (data.type == 'BugList') return new BugList(parent, data);
@@ -7,6 +17,7 @@ function getModel(parent, data) {
     if (data.type == 'BugLink') return new BugLink(parent, data);
     if (data.type == 'BugInputText') return new BugInputText(parent, data);
     if (data.type == 'BugInputList') return new BugInputList(parent, data);
+    if (data.type == 'BugTabs') return new BugTabs(parent, data);
 }
 
 class BugElement {
@@ -54,7 +65,7 @@ class BugGroup extends BugElement {
 
     extractElements(parentView, elementsData, elements) {
         for (var i = 0; i < elementsData.length; i++) {
-            loadContent(this, elementsData[i], function (model) {
+            loadModel(this, elementsData[i], function (model) {
                 parentView.append(model.view);
                 elements.push(model);
             }.bind(this))
@@ -192,7 +203,7 @@ class BugInvokable extends BugGroup {
             success: function (result, status) {
                 if (status == "nocontent") result = null;
                 if (this.data.action == "expandResult") {
-                    loadContent(this, result, function (model) {
+                    loadModel(this, result, function (model) {
                         this.getParent(BugExpandableEntry).setExpanded(model.view);
                     }.bind(this))
                 } else if (this.data.action == "setValue") {
@@ -247,7 +258,7 @@ class BugExpandableEntry extends BugGroup {
     toggleExpand() {
         if (this.expanderContentView == null) {
             if (this.data.expand == null) return;
-            loadContent(this, this.data.expand, function (content) {
+            loadModel(this, this.data.expand, function (content) {
                 this.expanderContentView = content.view;
                 this.getContentView().append(this.expanderContentView);
                 this.view.toggleClass("opened")
@@ -266,5 +277,54 @@ class BugExpandableEntry extends BugGroup {
         this.getContentView().append(this.expanderContentView);
         this.view.addClass("opened")
         this.view.removeClass("closed")
+    }
+}
+
+class BugTabs extends BugElement {
+    constructor(parent, data) {
+        super(parent, data, $('<div class="tabs">'))
+        this.tabsView = $('<div class="tabBar">');
+        this.contentsView = $('<div class="tabsContents">');
+        this.view.append(this.tabsView);
+        this.view.append(this.contentsView);
+
+        var select = null;
+        this.tabs = [];
+        data.tabs.forEach(function (tab) {
+            tab.tabView = $('<span class="tab">' + tab.title + '</span>');
+            tab.contentView = $('<div class="tabsContentHolder">');
+            var t = tab;
+            tab.tabView.click(function () {
+                this.showTab(t)
+            }.bind(this));
+            this.tabsView.append(tab.tabView);
+            this.contentsView.append(tab.contentView);
+            this.tabs.push(tab);
+            if (select == null || tab.default == true) select = tab;
+        }, this);
+
+        if (select != null) this.showTab(select);
+    }
+
+    showTab(tab) {
+        this.load(tab);
+        this.tabs.forEach(function (t) {
+            if (t === tab) {
+                t.contentView.css('display', '');
+                t.tabView.addClass('active');
+            } else {
+                t.contentView.css('display', 'none');
+                t.tabView.removeClass('active');
+            }
+        }.bind(this));
+    }
+
+    load(tab) {
+        if (tab.model == null) {
+            loadModel(this, tab.content, function(model) {
+                tab.model = model;
+                tab.contentView.append(model.view);
+            }.bind(this))
+        }
     }
 }

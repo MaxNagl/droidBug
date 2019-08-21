@@ -8,140 +8,154 @@
 @colorYellow: #FFC66D;
 
 * {
-    padding: 0px;
-    margin: 0px;
-    list-style-type: none;
-    text-decoration: none;
+  padding: 0px;
+  margin: 0px;
+  list-style-type: none;
+  text-decoration: none;
+}
+
+.flexMaxHeight {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-basis: 0;
 }
 
 body {
-    background-color: @colorBg;
-    color: white;
+  .flexMaxHeight;
+  background-color: @colorBg;
+  color: white;
 }
 
 #loading {
-    font-size: 500%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+  font-size: 500%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
-#tabs {
+.tabs {
+  .flexMaxHeight;
+  .tabBar {
     background-color: @colorBgLight;
     .tab {
-        cursor: pointer;
-        display: inline-block;
-        padding: 5px 10px;
-        border-bottom: 4px solid #444;
-        color: #AAA;
-        &.active {
-            border-color: #777;
-            color: #FFF;
-        }
+      cursor: pointer;
+      display: inline-block;
+      padding: 5px 10px;
+      border-bottom: 4px solid #444;
+      color: #AAA;
+      &.active {
+        border-color: #777;
+        color: #FFF;
+      }
     }
-}
-
-#tabsContents {
-    padding: 10px;
+  }
+  .tabsContents {
+    .flexMaxHeight;
+    .tabsContentHolder {
+      .flexMaxHeight;
+      overflow: auto;
+    }
+  }
 }
 
 .bugEntry {
-    display:block;
-    font-family:monospace;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    &:before {
-        display: inline-block;
-        width: 16px;
-        color:@colorLightGrey;
-        content: " ";
+  display: block;
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  &:before {
+    display: inline-block;
+    width: 16px;
+    color: @colorLightGrey;
+    content: " ";
+  }
+  &.closed:before {
+    content: "\25BA";
+  }
+  &.opened:before {
+    content: "\25BC";
+  }
+  .modifier {
+    color: @colorOrange;
+    padding-right: 8px;
+  }
+  .clazz {
+    color: @colorOrange;
+    padding-right: 8px;
+  }
+  .name {
+    color: @colorYellow;
+    padding-right: 8px;
+  }
+  .property {
+    color: @colorGrey;
+    padding-left: 16px;
+  }
+  .action {
+    cursor: pointer;
+    color: @colorGrey;
+    padding-left: 16px;
+  }
+  .callable {
+    .invoke {
+      cursor: pointer;
     }
-    &.closed:before {
-        content: "\25BA";
-    }
-    &.opened:before {
-        content: "\25BC";
-    }
-    .modifier {
-        color:@colorOrange;
-        padding-right: 8px;
-    }
-    .clazz {
-        color:@colorOrange;
-        padding-right: 8px;
-    }
+  }
+  .parameter {
     .name {
-        color:@colorYellow;
-        padding-right: 8px;
+      padding-right: 8px;
     }
-    .property {
-        color:@colorGrey;
-        padding-left: 16px;
-    }
-    .action {
-        cursor:pointer;
-        color:@colorGrey;
-        padding-left: 16px;
-    }
-    .callable {
-        .invoke {
-            cursor:pointer;
-        }
-    }
-    .parameter {
-        .name {
-            padding-right: 8px;
-        }
-    }
+  }
 }
 
 .closed {
-    .hideCollapsed {
-        display: none;
-    }
+  .hideCollapsed {
+    display: none;
+  }
 }
 
 .title {
-    color:@colorOrange;
+  color: @colorOrange;
 }
 
 .link {
-    color: @colorOrange;
-    padding-right: 8px;
+  color: @colorOrange;
+  padding-right: 8px;
 }
 
 .clickable {
-    cursor:pointer;
+  cursor: pointer;
 }
 
 .separator {
-    padding-right: 8px;
+  padding-right: 8px;
 }
 
 .error {
-    color: @colorRed;
-    padding-left: 16px;
+  color: @colorRed;
+  padding-left: 16px;
 }
 
 .editable {
-    border: 1px solid #444;
-    padding: 0px 5px;
-    display: inline-block;
-    cursor: default;
-    &[contenteditable=true] {
-        cursor: text;
-        background-color: #111;
-    }
-    &.null {
-        color: @colorOrange;
-    }
-    &.null:before {
-        content: "null";
-    }
+  border: 1px solid #444;
+  padding: 0px 5px;
+  display: inline-block;
+  cursor: default;
+  &[contenteditable=true] {
+    cursor: text;
+    background-color: #111;
+  }
+  &.null {
+    color: @colorOrange;
+  }
+  &.null:before {
+    content: "null";
+  }
 }
 
 .entryContent {
-    padding-left: 16px;
+  padding-left: 16px;
 }
