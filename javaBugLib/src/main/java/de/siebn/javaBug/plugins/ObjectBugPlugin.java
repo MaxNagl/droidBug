@@ -115,7 +115,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
                 c.elements.add(new BugText(name).setClazz("title").setOnClick(BugText.ON_CLICK_EXPAND));
                 c.expand = "/objectsJson/" + getObjectReference(o) + "/details/" + cat.getId();
                 c.elements.add(BugText.NBSP);
-                c.elements.add(BugInvokable.getExpandRefresh(c.expand));
+                c.elements.add(BugInvokable.getExpandRefresh((String) c.expand));
                 if (cat.opened(outputCategories, alreadyOpened)) {
                     c.autoExpand = true;
                     alreadyOpened = true;

@@ -11,11 +11,13 @@ function loadModel(parent, content, callback) {
 function getModel(parent, data) {
     if (data.type == 'BugExpandableEntry') return new BugExpandableEntry(parent, data);
     if (data.type == 'BugList') return new BugList(parent, data);
+    if (data.type == 'BugDiv') return new BugDiv(parent, data);
     if (data.type == 'BugInlineList') return new BugInlineList(parent, data);
     if (data.type == 'BugInvokable') return new BugInvokable(parent, data);
     if (data.type == 'BugText') return new BugText(parent, data);
     if (data.type == 'BugLink') return new BugLink(parent, data);
     if (data.type == 'BugPre') return new BugPre(parent, data);
+    if (data.type == 'BugImg') return new BugImg(parent, data);
     if (data.type == 'BugInputText') return new BugInputText(parent, data);
     if (data.type == 'BugInputList') return new BugInputList(parent, data);
     if (data.type == 'BugTabs') return new BugTabs(parent, data);
@@ -35,6 +37,19 @@ class BugElement {
                     if (data.onClick == "expand") this.getParent(BugExpandableEntry).toggleExpand();
                 }.bind(this));
                 this.view.addClass("clickable");
+            }
+            if (data.styles != null) {
+                Object.keys(data.styles).forEach(function(style){
+                    this.view.css(style, data.styles[style]);
+                }.bind(this));
+            }
+            if (this.data.hoverGroup != null) {
+                this.view.attr("hoverGroup", this.data.hoverGroup);
+                this.view.mouseover(function () {
+                    $('.groupHover').removeClass("groupHover");
+                    $('[hoverGroup="' + this.data.hoverGroup + '"]').addClass("groupHover");
+                    event.stopPropagation();
+                }.bind(this));
             }
         }
     }
@@ -87,6 +102,20 @@ class BugList extends BugGroup {
     constructor(parent, data) {
         super(parent, data, $('<div class="bugList">'))
         this.extractElements(this.view, data.elements, this.elements);
+    }
+}
+
+class BugDiv extends BugGroup {
+    constructor(parent, data) {
+        super(parent, data, $('<div class="bugDiv">'))
+        this.extractElements(this.view, data.elements, this.elements);
+    }
+}
+
+class BugImg extends BugElement {
+    constructor(parent, data) {
+        super(parent, data, $('<img>'))
+        if (data.src != null) this.view.attr("src", data.src);
     }
 }
 

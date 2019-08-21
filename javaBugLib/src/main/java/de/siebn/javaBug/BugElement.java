@@ -3,6 +3,7 @@ package de.siebn.javaBug;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -19,6 +20,8 @@ public abstract class BugElement {
     public final String type;
     public String clazz;
     public String onClick;
+    public String hoverGroup;
+    public Map<String, String> styles;
 
     public BugElement() {
         this.type = getClass().getSimpleName();
@@ -31,6 +34,12 @@ public abstract class BugElement {
 
     public BugElement setOnClick(String onClick) {
         this.onClick = onClick;
+        return this;
+    }
+
+    public BugElement setStyle(String name, String value) {
+        if (styles == null) styles = new LinkedHashMap<String, String>();
+        styles.put(name, value);
         return this;
     }
 
@@ -57,9 +66,12 @@ public abstract class BugElement {
     public static class BugInlineList extends BugGroup {
     }
 
+    public static class BugDiv extends BugGroup {
+    }
+
     public static class BugExpandableEntry extends BugGroup {
-        public String expand;
-        public boolean autoExpand;
+        public Object expand;
+        public Boolean autoExpand;
 
         public BugExpandableEntry setExpand(String expand) {
             this.expand = expand;
@@ -149,6 +161,15 @@ public abstract class BugElement {
         }
     }
 
+    public static class BugImg extends BugGroup {
+        public String src;
+
+        public BugImg setSrc(String src) {
+            this.src = src;
+            return this;
+        }
+    }
+
     public static class BugInputList extends BugInputElement {
         public String text;
         public List<Option> options = new ArrayList<>();
@@ -218,9 +239,17 @@ public abstract class BugElement {
         public List<BugSplitElement> elements = new ArrayList<>();
         public String orientation;
 
+        public BugSplit(String orientation) {
+            this.orientation = orientation;
+        }
+
         public static class BugSplitElement {
             public String weight;
             public Object content;
+
+            public BugSplitElement(Object content) {
+                this.content = content;
+            }
         }
     }
 
