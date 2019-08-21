@@ -8,7 +8,7 @@ function getError(result) {
 }
 
 $(function () {
-    loadModel(null, 'tabs.json', function(model) {
+    loadModel(null, '/root/', function(model) {
         $("#loading").replaceWith(model.view);
     });
 });

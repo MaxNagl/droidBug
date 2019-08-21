@@ -2,14 +2,18 @@ package de.siebn.javaBug.plugins;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FilterInputStream;
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 
+import de.siebn.javaBug.BugElement;
+import de.siebn.javaBug.BugElement.BugExpandableEntry;
+import de.siebn.javaBug.BugElement.BugGroup;
+import de.siebn.javaBug.BugElement.BugList;
+import de.siebn.javaBug.BugElement.BugPre;
+import de.siebn.javaBug.BugElement.BugText;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.objectOut.ListItemBuilder;
 import de.siebn.javaBug.objectOut.OutputMethod;
@@ -30,14 +34,28 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         this.javaBug = javaBug;
     }
 
+    @JavaBug.Serve("^/ioJson/")
+    public synchronized BugElement serveIosJson() {
+        BugList list = new BugList();
+        for (MonitoredIo mio : monitoredIos) {
+            BugExpandableEntry entry = new BugExpandableEntry();
+            entry.add(new BugText(mio.title).setOnClick(BugElement.ON_CLICK_EXPAND).setClazz("title"));
+            entry.addText(" In: ");
+            entry.add(BugText.getForByteSize(mio.in.bout.size()));
+            entry.addText(" Out: ");
+            entry.add(BugText.getForByteSize(mio.out.bout.size()));
+            entry.setExpand(javaBug.getObjectBug().getObjectDetailsLinkJson(mio));
+            list.add(entry);
+        }
+        return list;
+    }
+
     @JavaBug.Serve("^/io/")
     public synchronized String serveIos() {
         XML xhtml = new XML();
         XML ul = xhtml.add("ul");
-        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
         for (MonitoredIo mio : monitoredIos) {
             ListItemBuilder builder = new ListItemBuilder();
-            //builder.addValue().setValue(mio);
             builder.setName(mio.title);
             builder.addColumn().setText("In: " + HumanReadable.formatByteSizeBinary(mio.in.bout.size()));
             builder.addColumn().setText("Out: " + HumanReadable.formatByteSizeBinary(mio.out.bout.size()));
@@ -55,6 +73,11 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
     @Override
     public String getUrl() {
         return "/io/";
+    }
+
+    @Override
+    public String getContentUrl() {
+        return "/ioJson/";
     }
 
     @Override
@@ -99,26 +122,21 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         private String title;
 
         @OutputMethod("Overview")
-        public void overview(XML xml) {
-            ListItemBuilder builder = new ListItemBuilder();
-            builder.setName("Input");
-            builder.addValue().setValue(HumanReadable.formatByteSizeBinary(in.bout.size()));
-            builder.build(xml);
-
-            builder = new ListItemBuilder();
-            builder.setName("Output");
-            builder.addValue().setValue(HumanReadable.formatByteSizeBinary(out.bout.size()));
-            builder.build(xml);
+        public void overview(BugGroup parent) {
+            BugList list = new BugList();
+            list.add(new BugExpandableEntry().add(new BugText("Input: ")).add(BugText.getForByteSize(in.bout.size())));
+            list.add(new BugExpandableEntry().add(new BugText("Output: ")).add(BugText.getForByteSize(out.bout.size())));
+            parent.add(list);
         }
 
         @OutputMethod(value = "Input", order = 100)
-        public void input(XML xml) {
-            xml.add("li").add("pre").appendText(new String(in.bout.toByteArray()));
+        public void input(BugGroup parent) {
+            parent.add(new BugPre(new String(in.bout.toByteArray())));
         }
 
         @OutputMethod(value = "Output", order = 200)
-        public void output(XML xml) {
-            xml.add("li").add("pre").appendText(new String(out.bout.toByteArray()));
+        public void output(BugGroup parent) {
+            parent.add(new BugPre(new String(out.bout.toByteArray())));
         }
     }
 

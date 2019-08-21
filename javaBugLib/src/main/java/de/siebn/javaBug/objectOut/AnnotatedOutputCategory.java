@@ -20,7 +20,7 @@ public class AnnotatedOutputCategory implements OutputCategory {
 
     @Override
     public String getId() {
-        return getClass().getSimpleName();
+        return method.getName();
     }
 
     @Override
@@ -37,6 +37,13 @@ public class AnnotatedOutputCategory implements OutputCategory {
 
     @Override
     public void add(BugGroup list, Object o) {
+        try {
+            method.invoke(o, list);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

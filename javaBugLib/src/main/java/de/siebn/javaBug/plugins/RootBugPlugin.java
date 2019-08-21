@@ -1,5 +1,9 @@
 package de.siebn.javaBug.plugins;
 
+import de.siebn.javaBug.BugElement;
+import de.siebn.javaBug.BugElement.BugTabs;
+import de.siebn.javaBug.BugElement.BugTabs.BugTab;
+import de.siebn.javaBug.BugElement.BugText;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.util.HtmlPage;
 import de.siebn.javaBug.util.StringifierUtil;
@@ -25,6 +29,7 @@ public class RootBugPlugin implements BugPlugin {
     public interface MainBugPlugin extends BugPlugin {
         public String getTabName();
         public String getUrl();
+        public String getContentUrl();
         public String getTagClass();
     }
 
@@ -50,5 +55,17 @@ public class RootBugPlugin implements BugPlugin {
         }
 
         return page.getHtml();
+    }
+
+    @JavaBug.Serve("/root/")
+    public BugElement serveRootJson() {
+        BugTabs tabs = new BugTabs();
+        for (MainBugPlugin plugin : jb.getPlugins(MainBugPlugin.class)) {
+            BugTab tab = new BugTab();
+            tab.title = plugin.getTabName();
+            tab.content = plugin.getContentUrl();
+            tabs.tabs.add(tab);
+        }
+        return tabs;
     }
 }

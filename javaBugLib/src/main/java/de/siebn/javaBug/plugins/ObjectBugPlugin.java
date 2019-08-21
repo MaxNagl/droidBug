@@ -79,6 +79,11 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
+    public String getContentUrl() {
+        return "/objectsJson/";
+    }
+
+    @Override
     public String getTagClass() {
         return "objects";
     }
@@ -222,6 +227,14 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     public String getObjectDetailsLink(Object o, String type) {
         return "/objectDetails/" + type + "/" + getObjectReference(o);
+    }
+
+    public String getObjectDetailsLinkJson(Object o) {
+        return "/objectsJson/" + getObjectReference(o) + "/details/";
+    }
+
+    public String getObjectDetailsLinkJson(Object o, String type) {
+        return "/objectsJson/" + type + "/details/" + getObjectReference(o);
     }
 
     public String getObjectGetLink(Object o, Field f) {

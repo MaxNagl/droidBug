@@ -1,5 +1,10 @@
 package de.siebn.javaBug.plugins;
 
+import de.siebn.javaBug.BugElement;
+import de.siebn.javaBug.BugElement.BugExpandableEntry;
+import de.siebn.javaBug.BugElement.BugLink;
+import de.siebn.javaBug.BugElement.BugList;
+import de.siebn.javaBug.BugElement.BugText;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.util.XML;
@@ -14,6 +19,19 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     public ThreadsBugPlugin(JavaBug javaBug) {
         this.javaBug = javaBug;
+    }
+
+    @JavaBug.Serve("^/threadsJson/")
+    public BugElement serveThreadsJson() {
+        BugList list = new BugList();
+        Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+        for (Thread thread : threadSet) {
+            BugExpandableEntry entry = new BugExpandableEntry();
+            entry.add(new BugText(thread.getName()).setClazz("title").setOnClick(BugElement.ON_CLICK_EXPAND));
+            entry.setExpand(javaBug.getObjectBug().getObjectDetailsLinkJson(thread));
+            list.add(entry);
+        }
+        return list;
     }
 
     @JavaBug.Serve("^/threads/")
@@ -65,6 +83,11 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
     @Override
     public String getUrl() {
         return "/threads/";
+    }
+
+    @Override
+    public String getContentUrl() {
+        return "/threadsJson/";
     }
 
     @Override

@@ -48,6 +48,11 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
+    public String getContentUrl() {
+        return "/filesJson/";
+    }
+
+    @Override
     public String getTagClass() {
         return "files";
     }

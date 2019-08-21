@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
+import de.siebn.javaBug.util.HumanReadable;
 import de.siebn.javaBug.util.StringifierUtil;
 
 public abstract class BugElement {
@@ -38,6 +40,15 @@ public abstract class BugElement {
 
     public static abstract class BugGroup extends BugElement {
         public final List<BugElement> elements = new ArrayList<>();
+
+        public BugGroup add(BugElement element) {
+            elements.add(element);
+            return this;
+        }
+
+        public BugGroup addText(String text) {
+            return add(new BugText(text));
+        }
     }
 
     public static class BugList extends BugGroup {
@@ -49,6 +60,11 @@ public abstract class BugElement {
     public static class BugExpandableEntry extends BugGroup {
         public String expand;
         public boolean autoExpand;
+
+        public BugExpandableEntry setExpand(String expand) {
+            this.expand = expand;
+            return this;
+        }
     }
 
     public static class BugInputElement extends BugElement {
@@ -97,6 +113,19 @@ public abstract class BugElement {
             text.setClazz("value");
             return text;
         }
+
+        public static BugText getForByteSize(long size) {
+            BugText text = new BugText(HumanReadable.formatByteSizeBinary(size));
+            text.setClazz("value");
+            text.setTooltip(String.format(Locale.getDefault(), "%,d B", size));
+            return text;
+        }
+    }
+
+    public static class BugPre extends BugText {
+        public BugPre(String text) {
+            super(text);
+        }
     }
 
     public static class BugLink extends BugText {
@@ -122,7 +151,7 @@ public abstract class BugElement {
 
     public static class BugInputList extends BugInputElement {
         public String text;
-        public List<BugOption> options = new ArrayList<>();
+        public List<Option> options = new ArrayList<>();
 
         public BugInputList(String callId, String text) {
             this.callId = callId;
@@ -131,18 +160,18 @@ public abstract class BugElement {
 
         public void addMap(Map<String, String> map) {
             for (Entry<String, String> entry : map.entrySet()) {
-                options.add(new BugOption(entry.getKey(), entry.getValue()));
+                options.add(new Option(entry.getKey(), entry.getValue()));
             }
         }
-    }
 
-    public static class BugOption {
-        public String id;
-        public String text;
+        public static class Option {
+            public String id;
+            public String text;
 
-        public BugOption(String id, String text) {
-            this.id = id;
-            this.text = text;
+            public Option(String id, String text) {
+                this.id = id;
+                this.text = text;
+            }
         }
     }
 
@@ -172,4 +201,27 @@ public abstract class BugElement {
             return invokable;
         }
     }
+
+    public static class BugTabs extends BugElement {
+        public List<BugTab> tabs = new ArrayList<>();
+
+        public static class BugTab {
+            public String title;
+            public Object content;
+        }
+    }
+
+    public static class BugSplit extends BugElement {
+        public static final String ORIENTATION_VERTICAL = "vertical";
+        public static final String ORIENTATION_HORIZONTAL = "horizontal";
+
+        public List<BugSplitElement> elements = new ArrayList<>();
+        public String orientation;
+
+        public static class BugSplitElement {
+            public String weight;
+            public Object content;
+        }
+    }
+
 }

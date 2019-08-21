@@ -18,7 +18,7 @@ public class HumanReadable {
     }
 
     public static String formatByteSizeBinary(long size) {
-        if (size < 1024) return size + byteUnitsBinary[0];
+        if (size < 1024) return size + " " + byteUnitsBinary[0];
         double f = size;
         int i = 0;
         while (f > 1024 && i < byteUnitsBinary.length - 1) {
