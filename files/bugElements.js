@@ -189,11 +189,9 @@ class BugInputText extends BugText {
                 }
             }.bind(this));
             this.view.on('keyup keypress focus blur change', function (e) {
-                this.view.prop("size", this.view.val().length);
                 if (this.view.text() != "") this.view.removeClass("null");
             }.bind(this));
         }
-        this.view.prop("size", 1);
     }
 
     onEnter() {

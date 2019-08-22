@@ -131,6 +131,9 @@ a {
     cursor: text;
     background-color: #111;
   }
+  &:empty:before {
+    content: "\00a0";
+  }
   &.null {
     .colorSecondary;
   }
