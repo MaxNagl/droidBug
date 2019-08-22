@@ -22,11 +22,11 @@ public class TestOutputCatergory extends AbstractOutputCategory {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Method m : allMembers.methods) {
             if (m.getName().equals("multiply")) {
-                addMethodInformation(list, o, m, null, null);
-                addMethodInformation(list, o, m, null, new Object[]{2});
-                addMethodInformation(list, o, m, null, new Object[]{1, 2});
-                addMethodInformation(list, o, m, new Object[]{2}, null);
-                addMethodInformation(list, o, m, new Object[]{2}, new Object[]{1, 2});
+                list.add(getMethodInformation(o, m, null, null));
+                list.add(getMethodInformation(o, m, null, new Object[]{2}));
+                list.add(getMethodInformation(o, m, null, new Object[]{1, 2}));
+                list.add(getMethodInformation(o, m, new Object[]{2}, null));
+                list.add(getMethodInformation(o, m, new Object[]{2}, new Object[]{1, 2}));
             }
         }
     }

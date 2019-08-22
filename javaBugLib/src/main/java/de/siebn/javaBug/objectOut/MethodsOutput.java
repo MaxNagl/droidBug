@@ -19,7 +19,7 @@ public class MethodsOutput extends AbstractOutputCategory {
     public void add(BugGroup list, Object o) {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Method m : allMembers.methods) {
-            addMethodInformation(list, o, m, null, null);
+            list.add(getMethodInformation( o, m, null, null));
         }
     }
 

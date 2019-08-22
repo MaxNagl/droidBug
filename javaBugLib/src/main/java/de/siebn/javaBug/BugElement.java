@@ -64,7 +64,7 @@ public abstract class BugElement {
         public final List<BugElement> elements = new ArrayList<>();
 
         public BugGroup add(BugElement element) {
-            elements.add(element);
+            if (element != null) elements.add(element);
             return this;
         }
 

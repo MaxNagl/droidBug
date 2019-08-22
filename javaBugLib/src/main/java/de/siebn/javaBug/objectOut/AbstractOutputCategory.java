@@ -80,7 +80,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         for (Method m : AllClassMembers.getForClass(getClass()).methods) {
             Property getterSetter = m.getAnnotation(Property.class);
             if (getterSetter != null && showGetterSetter(o, m)) {
-                addProperty(list, getterSetter, o, m);
+                list.add(getProperty(getterSetter, o, m));
             }
         }
     }
@@ -100,7 +100,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     }
 
     @SuppressWarnings("unchecked")
-    private void addProperty(BugGroup list, Property property, Object o, Method setter) {
+    private BugElement getProperty(Property property, Object o, Method setter) {
         BugEntry json = new BugEntry();
 
         Object val = null;
@@ -146,10 +146,10 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             json.add(invokable);
         }
 
-        list.add(json);
+        return json;
     }
 
-    public void addMethodInformation(BugGroup list, Object o, Method m, Object[] predifined, Object[] preset) {
+    public BugElement getMethodInformation(Object o, Method m, Object[] predifined, Object[] preset) {
         if (predifined == null) predifined = empty;
         if (preset == null) preset = empty;
         boolean canInvoke = true;
@@ -174,11 +174,10 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         invokable.addBraces();
         invokable.add(BugText.INVOKER);
         json.add(invokable);
-
-        list.add(json);
+        return json;
     }
 
-    public void addFieldInformation(BugGroup list, Object o, Field f) {
+    public BugElement getFieldInformation(Object o, Field f) {
         Object val = null;
         try {
             val = f.get(o);
@@ -207,15 +206,15 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             invokable.add(inputText);
             json.add(invokable);
         }
-        list.add(json);
+        return json;
     }
 
-    public void addPojo(BugGroup list, Object o, String field) {
+    public BugElement getPojo(Object o, String field) {
         AllClassMembers.POJO pojo = AllClassMembers.getForClass(o.getClass()).pojos.get(field);
-        if (pojo == null) return;
+        if (pojo == null) return null;
 
         boolean setAble = pojo.setter != null && TypeAdapters.canParse(pojo.setter.getParameterTypes()[0]);
-        if (!setAble && pojo.getter == null) return;
+        if (!setAble && pojo.getter == null) return null;
 
         Object val = null;
         if (pojo.getter != null) {
@@ -230,7 +229,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         json.add(new BugText(field).setOnClick(BugText.ON_CLICK_EXPAND).format(BugFormat.field));
         json.add(BugText.VALUE_SEPARATOR);
         json.add(BugText.getForValue(val));
-        list.add(json);
+        return json;
     }
 
 

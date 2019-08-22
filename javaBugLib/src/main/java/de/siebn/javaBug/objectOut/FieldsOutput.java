@@ -17,7 +17,7 @@ public class FieldsOutput extends AbstractOutputCategory {
     public void add(BugGroup list, Object o) {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Field f : allMembers.fields) {
-            addFieldInformation(list, o, f);
+            list.add(getFieldInformation(o, f));
         }
     }
 

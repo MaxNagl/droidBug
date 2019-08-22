@@ -19,7 +19,7 @@ public class PojoOutput extends AbstractOutputCategory {
     public void add(BugGroup list, Object o) {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Map.Entry<String, AllClassMembers.POJO> pojo : allMembers.pojos.entrySet()) {
-            addPojo(list, o, pojo.getKey());
+            list.add(getPojo(o, pojo.getKey()));
         }
     }
 
