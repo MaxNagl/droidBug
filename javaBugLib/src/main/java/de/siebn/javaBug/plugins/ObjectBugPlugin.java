@@ -10,13 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import de.siebn.javaBug.BugElement;
-import de.siebn.javaBug.BugElement.BugExpandableEntry;
+import de.siebn.javaBug.*;
+import de.siebn.javaBug.BugElement.BugEntry;
 import de.siebn.javaBug.BugElement.BugInvokable;
 import de.siebn.javaBug.BugElement.BugList;
 import de.siebn.javaBug.BugElement.BugText;
-import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.objectOut.AnnotatedOutputCategory;
 import de.siebn.javaBug.objectOut.ListItemBuilder;
 import de.siebn.javaBug.objectOut.OutputCategory;
@@ -111,8 +109,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         for (OutputCategory cat : outputCategories) {
             String name = cat.getName(o);
             if (name != null) {
-                BugExpandableEntry c = new BugExpandableEntry();
-                c.elements.add(new BugText(name).setClazz("title").setOnClick(BugText.ON_CLICK_EXPAND));
+                BugEntry c = new BugEntry();
+                c.elements.add(new BugText(name).setOnClick(BugText.ON_CLICK_EXPAND).format(BugFormat.category));
                 c.expand = "/objectsJson/" + getObjectReference(o) + "/details/" + cat.getId();
                 c.elements.add(BugText.NBSP);
                 c.elements.add(BugInvokable.getExpandRefresh((String) c.expand));
@@ -140,11 +138,11 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     public BugElement getJsonBugObjectFor(Object o) {
-        BugExpandableEntry e = new BugExpandableEntry();
-        e.elements.add(new BugText(o.getClass().getName()).setClazz("title").setOnClick(BugText.ON_CLICK_EXPAND));
-        e.expand = "/objectsJson/" + getObjectReference(o) + "/details/";
+        BugEntry e = new BugEntry();
+        e.elements.add(new BugText(o.getClass().getName()).format(BugFormat.clazz).setOnClick(BugText.ON_CLICK_EXPAND));
         e.elements.add(BugText.VALUE_SEPARATOR);
-        e.elements.add(BugText.getForValue(o));
+        e.elements.add(BugText.getForValue(o).format(BugFormat.value));
+        e.expand = "/objectsJson/" + getObjectReference(o) + "/details/";
         return e;
     }
 

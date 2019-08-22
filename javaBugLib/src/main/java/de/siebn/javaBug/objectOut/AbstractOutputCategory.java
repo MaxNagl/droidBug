@@ -9,16 +9,14 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.siebn.javaBug.BugElement;
+import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.BugInputElement;
 import de.siebn.javaBug.BugElement.BugInputList;
 import de.siebn.javaBug.BugElement.BugInputText;
 import de.siebn.javaBug.BugElement.BugInvokable;
-import de.siebn.javaBug.BugElement.BugExpandableEntry;
+import de.siebn.javaBug.BugElement.BugEntry;
 import de.siebn.javaBug.BugElement.BugGroup;
 import de.siebn.javaBug.BugElement.BugText;
-import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.UnicodeCharacters;
 import de.siebn.javaBug.objectOut.ListItemBuilder.ParameterBuilder;
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
@@ -28,6 +26,8 @@ import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeSelectionAdapter;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
+
+import static de.siebn.javaBug.BugFormat.*;
 
 public abstract class AbstractOutputCategory implements OutputCategory {
     private final static Object[] empty = new Object[0];
@@ -101,7 +101,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
 
     @SuppressWarnings("unchecked")
     private void addProperty(BugGroup list, Property property, Object o, Method setter) {
-        BugExpandableEntry json = new BugExpandableEntry();
+        BugEntry json = new BugEntry();
 
         Object val = null;
         try {
@@ -117,7 +117,8 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             typeAdapters.add(null);
         }
 
-        json.elements.add(new BugText(property.value()).setClazz("title").setClazz("title").setOnClick(BugText.ON_CLICK_EXPAND));
+        json.add(new BugText(property.value()).format(field).setOnClick(BugText.ON_CLICK_EXPAND));
+        json.add(BugText.VALUE_SEPARATOR);
 
         for (TypeAdapter typeAdapter : typeAdapters) {
             BugInvokable invokable = new BugInvokable(BugInvokable.ACTION_REFRESH_ELEMENTS);
@@ -133,19 +134,19 @@ public abstract class AbstractOutputCategory implements OutputCategory {
                 bugInput.text = text;
                 input = bugInput;
             }
-            invokable.elements.add(input);
+            invokable.add(input);
             InvocationLinkBuilder invocation = javaBug.getObjectBug().new InvocationLinkBuilder().setObject(this).setMethod(setter).setPredefined(0, o);
             if (typeAdapter != null) {
                 invocation.setTypeAdapter(1, typeAdapter).setReturTypeAdapter(typeAdapter);
-                invokable.elements.add(new BugText(typeAdapter.getUnit()));
+                invokable.add(new BugText(typeAdapter.getUnit()));
             }
             invokable.url = invocation.setPredefined(2, true).build();
             input.setRefreshUrl(invocation.setPredefined(2, false).build());
-            json.elements.add(BugText.NBSP);
-            json.elements.add(invokable);
+            json.add(BugText.NBSP);
+            json.add(invokable);
         }
 
-        list.elements.add(json);
+        list.add(json);
     }
 
     public void addMethodInformation(BugGroup list, Object o, Method m, Object[] predifined, Object[] preset) {
@@ -158,23 +159,23 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             if (!TypeAdapters.getTypeAdapter(c).canParse(c) && (predifined.length <= i || predifined[i] == null))
                 canInvoke = false;
         }
-        BugExpandableEntry json = new BugExpandableEntry();
-        json.elements.add(BugText.getForModifier(m.getModifiers()));
-        json.elements.add(BugText.getForClass(m.getReturnType()));
-        json.elements.add(new BugText(m.getName()).setClazz("name").setOnClick(BugText.ON_CLICK_EXPAND));
+        BugEntry json = new BugEntry();
+        json.add(BugText.getForModifier(m.getModifiers())).addSpace();
+        json.add(BugText.getForClass(m.getReturnType())).addSpace();
+        json.add(new BugText(m.getName()).format(method).setOnClick(BugText.ON_CLICK_EXPAND));
 
         BugInvokable invokable = new BugInvokable(BugInvokable.ACTION_EXPAND_RESULT);
         for (int i = 0; i < parameterTypes.length; i++) {
-            invokable.elements.add(BugText.getForClass(parameterTypes[i]));
-            BugInputElement parameter = new BugInputText("p" + i, preset.length > i ? TypeAdapters.toString(preset[i]) : null);
-            invokable.elements.add(parameter);
+            if (i != 0) invokable.add(new BugText(", "));
+            invokable.add(BugText.getForClass(parameterTypes[i])).addSpace();
+            invokable.add(new BugInputText("p" + i, preset.length > i ? TypeAdapters.toString(preset[i]) : null));
         }
         if (canInvoke) invokable.url = javaBug.getObjectBug().getInvokationLink(ObjectBugPlugin.RETURN_TYPE_JSON, o, m);
         invokable.addBraces();
-        invokable.elements.add(BugText.INVOKER);
-        json.elements.add(invokable);
+        invokable.add(BugText.INVOKER);
+        json.add(invokable);
 
-        list.elements.add(json);
+        list.add(json);
     }
 
     public void addFieldInformation(BugGroup list, Object o, Field f) {
@@ -185,13 +186,13 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             e.printStackTrace();
         }
 
-        BugExpandableEntry json = new BugExpandableEntry();
+        BugEntry json = new BugEntry();
 
-        json.elements.add(BugText.getForModifier(f.getModifiers()));
-        json.elements.add(BugText.getForClass(f.getType()));
-        json.elements.add(new BugText(f.getName()).setClazz("name").setOnClick(BugText.ON_CLICK_EXPAND));
+        json.add(BugText.getForModifier(f.getModifiers())).addSpace();
+        json.add(BugText.getForClass(f.getType())).addSpace();
+        json.add(new BugText(f.getName()).format(field).setOnClick(BugText.ON_CLICK_EXPAND));
 
-        json.elements.add(BugText.VALUE_SEPARATOR);
+        json.add(BugText.VALUE_SEPARATOR);
         TypeAdapters.TypeAdapter<Object> adapter = TypeAdapters.getTypeAdapter(f.getType());
         if (adapter != null) {
             BugInvokable invokable = new BugInvokable(BugInvokable.ACTION_SET_VALUE);
@@ -203,10 +204,10 @@ public abstract class AbstractOutputCategory implements OutputCategory {
                 inputText.enabled = false;
             }
             inputText.nullable = !f.getType().isPrimitive();
-            invokable.elements.add(inputText);
-            json.elements.add(invokable);
+            invokable.add(inputText);
+            json.add(invokable);
         }
-        list.elements.add(json);
+        list.add(json);
     }
 
     public void addPojo(BugGroup list, Object o, String field) {
@@ -216,25 +217,20 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         boolean setAble = pojo.setter != null && TypeAdapters.canParse(pojo.setter.getParameterTypes()[0]);
         if (!setAble && pojo.getter == null) return;
 
-        ListItemBuilder builder = new ListItemBuilder();
-
         Object val = null;
         if (pojo.getter != null) {
             try {
                 val = pojo.getter.invoke(o);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-            builder.setExpandObject(javaBug.getObjectBug(), val, pojo.getter.getReturnType());
         }
 
-        BugExpandableEntry json = new BugExpandableEntry();
-        json.elements.add(new BugText(field).setClazz("title").setOnClick(BugText.ON_CLICK_EXPAND));
-        json.elements.add(BugText.VALUE_SEPARATOR);
-        json.elements.add(BugText.getForValue(val));
-        list.elements.add(json);
+        BugEntry json = new BugEntry();
+        json.add(new BugText(field).setOnClick(BugText.ON_CLICK_EXPAND).format(BugFormat.field));
+        json.add(BugText.VALUE_SEPARATOR);
+        json.add(BugText.getForValue(val));
+        list.add(json);
     }
 
 

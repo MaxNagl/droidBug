@@ -1,15 +1,10 @@
 package de.siebn.javaBug.plugins;
 
-import de.siebn.javaBug.BugElement;
-import de.siebn.javaBug.BugElement.BugExpandableEntry;
-import de.siebn.javaBug.BugElement.BugLink;
-import de.siebn.javaBug.BugElement.BugList;
-import de.siebn.javaBug.BugElement.BugText;
-import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.NanoHTTPD;
-import de.siebn.javaBug.util.XML;
-
 import java.util.Set;
+
+import de.siebn.javaBug.*;
+import de.siebn.javaBug.BugElement.*;
+import de.siebn.javaBug.util.XML;
 
 /**
  * Created by Sieben on 05.03.2015.
@@ -26,8 +21,8 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugList list = new BugList();
         Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
         for (Thread thread : threadSet) {
-            BugExpandableEntry entry = new BugExpandableEntry();
-            entry.add(new BugText(thread.getName()).setClazz("title").setOnClick(BugElement.ON_CLICK_EXPAND));
+            BugEntry entry = new BugEntry();
+            entry.add(new BugText(thread.getName()).format(BugFormat.title).setOnClick(BugElement.ON_CLICK_EXPAND).format(BugFormat.title));
             entry.setExpand(javaBug.getObjectBug().getObjectDetailsLinkJson(thread));
             list.add(entry);
         }
@@ -57,7 +52,7 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
                 return ul.getXml();
             }
         }
-        throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Thread + \"" + id +"\" not found.");
+        throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Thread + \"" + id + "\" not found.");
     }
 
     @JavaBug.Serve("^/stacktrace/([^/]*)")
@@ -72,7 +67,7 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
                 return ul.getXml();
             }
         }
-        throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Thread + \"" + id +"\" not found.");
+        throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Thread + \"" + id + "\" not found.");
     }
 
     @Override

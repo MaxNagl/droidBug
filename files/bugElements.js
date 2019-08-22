@@ -9,7 +9,7 @@ function loadModel(parent, content, callback) {
 }
 
 function getModel(parent, data) {
-    if (data.type == 'BugExpandableEntry') return new BugExpandableEntry(parent, data);
+    if (data.type == 'BugEntry') return new BugEntry(parent, data);
     if (data.type == 'BugList') return new BugList(parent, data);
     if (data.type == 'BugDiv') return new BugDiv(parent, data);
     if (data.type == 'BugInlineList') return new BugInlineList(parent, data);
@@ -30,11 +30,12 @@ class BugElement {
         this.data = data;
         this.view = view;
         if (this.view != null) {
+            this.view.addClass(this.constructor.name);
             if (data.clazz != null) this.view.addClass(data.clazz);
             if (data.onClick != null) {
                 this.view.click(function () {
                     if (data.onClick == "invoke") this.getParent(BugInvokable).invoke(this);
-                    if (data.onClick == "expand") this.getParent(BugExpandableEntry).toggleExpand();
+                    if (data.onClick == "expand") this.getParent(BugEntry).toggleExpand();
                 }.bind(this));
                 this.view.addClass("clickable");
             }
@@ -168,7 +169,6 @@ class BugLink extends BugText {
 class BugInputText extends BugText {
     constructor(parent, data) {
         super(parent, data, $('<span>'));
-        this.view.addClass("editable");
         if (data.enabled == false) {
             this.view.prop('disabled', true);
         } else {
@@ -226,7 +226,7 @@ class BugInputList extends BugElement {
 
 class BugInvokable extends BugGroup {
     constructor(parent, data) {
-        super(parent, data, $('<span class="callable">'))
+        super(parent, data, $('<span>'))
         this.extractElements(this.view, data.elements, this.elements);
     }
 
@@ -241,17 +241,17 @@ class BugInvokable extends BugGroup {
                 if (status == "nocontent") result = null;
                 if (this.data.action == "expandResult") {
                     loadModel(this, result, function (model) {
-                        this.getParent(BugExpandableEntry).setExpanded(model.view);
+                        this.getParent(BugEntry).setExpanded(model.view);
                     }.bind(this))
                 } else if (this.data.action == "setValue") {
                     source.setValue(result);
                 } else if (this.data.action == "refreshEntry") {
-                    this.getParent(BugExpandableEntry).refresh();
+                    this.getParent(BugEntry).refresh();
                 }
             }.bind(this),
             error: function (result) {
                 if (this.data.action == "expandResult") {
-                    this.getParent(BugExpandableEntry).setExpanded($('<span class="error">' + getError(result) + '</span>'));
+                    this.getParent(BugEntry).setExpanded($('<span class="error">' + getError(result) + '</span>'));
                 } else {
                     alert(getError(result));
                 }
@@ -270,9 +270,9 @@ class BugInvokable extends BugGroup {
     }
 }
 
-class BugExpandableEntry extends BugGroup {
+class BugEntry extends BugGroup {
     constructor(parent, data) {
-        super(parent, data, $('<div class="bugEntry">'));
+        super(parent, data, $('<div>'));
         var bugEntry = this;
         this.data = data;
         this.extractElements(this.view, data.elements, this.elements);
@@ -319,7 +319,7 @@ class BugExpandableEntry extends BugGroup {
 
 class BugTabs extends BugElement {
     constructor(parent, data) {
-        super(parent, data, $('<div class="tabs">'));
+        super(parent, data, $('<div>'));
         this.tabsView = $('<div class="tabBar">');
         this.contentsView = $('<div class="tabsContents">');
         this.view.append(this.tabsView);
@@ -368,7 +368,7 @@ class BugTabs extends BugElement {
 
 class BugSplit extends BugElement {
     constructor(parent, data) {
-        super(parent, data, $('<div class="split">'));
+        super(parent, data, $('<div>'));
         if (data.orientation == 'vertical') this.view.css('flex-direction', 'column');
         if (data.orientation == 'horizontal') this.view.css('flex-direction', 'row');
         data.elements.forEach(function(element) {

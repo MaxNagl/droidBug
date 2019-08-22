@@ -19,7 +19,7 @@
           "clazz": "size"
         }
       ],
-      "type": "BugExpandableEntry"
+      "type": "BugEntry"
     }
   ],
   "type": "BugList"

@@ -8,13 +8,12 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import de.siebn.javaBug.BugElement;
-import de.siebn.javaBug.BugElement.BugExpandableEntry;
+import de.siebn.javaBug.*;
+import de.siebn.javaBug.BugElement.BugEntry;
 import de.siebn.javaBug.BugElement.BugGroup;
 import de.siebn.javaBug.BugElement.BugList;
 import de.siebn.javaBug.BugElement.BugPre;
 import de.siebn.javaBug.BugElement.BugText;
-import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.objectOut.ListItemBuilder;
 import de.siebn.javaBug.objectOut.OutputMethod;
 import de.siebn.javaBug.util.HumanReadable;
@@ -38,8 +37,8 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
     public synchronized BugElement serveIosJson() {
         BugList list = new BugList();
         for (MonitoredIo mio : monitoredIos) {
-            BugExpandableEntry entry = new BugExpandableEntry();
-            entry.add(new BugText(mio.title).setOnClick(BugElement.ON_CLICK_EXPAND).setClazz("title"));
+            BugEntry entry = new BugEntry();
+            entry.add(new BugText(mio.title).setOnClick(BugElement.ON_CLICK_EXPAND).format(BugFormat.title));
             entry.addText(" In: ");
             entry.add(BugText.getForByteSize(mio.in.bout.size()));
             entry.addText(" Out: ");
@@ -124,8 +123,8 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         @OutputMethod("Overview")
         public void overview(BugGroup parent) {
             BugList list = new BugList();
-            list.add(new BugExpandableEntry().add(new BugText("Input: ")).add(BugText.getForByteSize(in.bout.size())));
-            list.add(new BugExpandableEntry().add(new BugText("Output: ")).add(BugText.getForByteSize(out.bout.size())));
+            list.add(new BugEntry().add(new BugText("Input: ")).add(BugText.getForByteSize(in.bout.size())));
+            list.add(new BugEntry().add(new BugText("Output: ")).add(BugText.getForByteSize(out.bout.size())));
             parent.add(list);
         }
 

@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream;
 
 import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.BugDiv;
-import de.siebn.javaBug.BugElement.BugExpandableEntry;
+import de.siebn.javaBug.BugElement.BugEntry;
 import de.siebn.javaBug.BugElement.BugGroup;
 import de.siebn.javaBug.BugElement.BugImg;
 import de.siebn.javaBug.BugElement.BugList;
@@ -95,7 +95,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     private void addViewTree(BugGroup parent, View view) {
-        BugExpandableEntry entry = new BugExpandableEntry();
+        BugEntry entry = new BugEntry();
         entry.hoverGroup = javaBug.getObjectBug().getObjectReference(view);
         entry.autoExpand = true;
         entry.add(new BugText(view.toString()).setClazz("title").setOnClick(BugElement.ON_CLICK_EXPAND));

@@ -1,34 +1,16 @@
 package de.siebn.javaBug.plugins;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
-import de.siebn.javaBug.BugElement;
-import de.siebn.javaBug.BugElement.BugExpandableEntry;
-import de.siebn.javaBug.BugElement.BugLink;
-import de.siebn.javaBug.BugElement.BugList;
-import de.siebn.javaBug.BugElement.BugText;
-import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.NanoHTTPD;
+import de.siebn.javaBug.*;
+import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.NanoHTTPD.Response;
 import de.siebn.javaBug.NanoHTTPD.Response.Status;
 import de.siebn.javaBug.objectOut.ListItemBuilder;
-import de.siebn.javaBug.util.HumanReadable;
-import de.siebn.javaBug.util.JsUtil;
-import de.siebn.javaBug.util.XML;
+import de.siebn.javaBug.util.*;
 
 public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
     private Map<File, String> roots = new LinkedHashMap<>();
@@ -73,7 +55,6 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         } else {
             File file = new File(param[1]);
             if (!file.exists()) {
-//                xml.appendText("Not Found.");
                 return list;
             }
             files = file.listFiles();
@@ -81,17 +62,17 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         if (files != null) {
             sortFiles(files);
             for (File file : files) {
-                BugExpandableEntry f = new BugExpandableEntry();
-                f.elements.add(new BugText(file.getAbsolutePath()).setClazz("title").setOnClick(BugText.ON_CLICK_EXPAND));
+                BugEntry f = new BugEntry();
+                f.add(new BugText(file.getAbsolutePath()).format(BugFormat.file).setOnClick(BugText.ON_CLICK_EXPAND));
                 if (file.isDirectory()) {
                     f.expand = "/filesJson/" + file.getAbsolutePath();
                 } else {
-                    f.elements.add(new BugLink("[view]").setUrl("/file/" + file.getAbsolutePath()).setClazz("link"));
-                    f.elements.add(new BugLink("[download]").setUrl("/fileDownload/" + file.getAbsolutePath()).setClazz("link"));
+                    f.addSpace().add(new BugLink("[view]").setUrl("/file/" + file.getAbsolutePath()));
+                    f.addSpace().add(new BugLink("[download]").setUrl("/fileDownload/" + file.getAbsolutePath()));
                 }
                 long size = file.length();
-                f.elements.add(new BugText(HumanReadable.formatByteSizeBinary(size)).setTooltip("size").setClazz("size"));
-                list.elements.add(f);
+                f.addSpace().add(BugText.getForByteSize(size));
+                list.add(f);
             }
         }
         return list;

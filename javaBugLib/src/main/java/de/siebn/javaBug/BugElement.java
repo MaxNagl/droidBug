@@ -41,13 +41,17 @@ public abstract class BugElement {
         return this;
     }
 
+    public BugElement format(BugFormat format) {
+        return addClazz(format.clazzes);
+    }
+
     public BugElement setOnClick(String onClick) {
         this.onClick = onClick;
         return this;
     }
 
     public BugElement setStyle(String name, String value) {
-        if (styles == null) styles = new LinkedHashMap<String, String>();
+        if (styles == null) styles = new LinkedHashMap<>();
         styles.put(name, value);
         return this;
     }
@@ -67,6 +71,10 @@ public abstract class BugElement {
         public BugGroup addText(String text) {
             return add(new BugText(text));
         }
+
+        public BugGroup addSpace() {
+            return add(BugText.SPACE);
+        }
     }
 
     public static class BugList extends BugGroup {
@@ -78,11 +86,11 @@ public abstract class BugElement {
     public static class BugDiv extends BugGroup {
     }
 
-    public static class BugExpandableEntry extends BugGroup {
+    public static class BugEntry extends BugGroup {
         public Object expand;
         public Boolean autoExpand;
 
-        public BugExpandableEntry setExpand(String expand) {
+        public BugEntry setExpand(String expand) {
             this.expand = expand;
             return this;
         }
@@ -100,7 +108,8 @@ public abstract class BugElement {
     }
 
     public static class BugText extends BugInputElement {
-        public static BugText VALUE_SEPARATOR = (BugText) new BugText(":").setClazz("separator");
+        public static BugText VALUE_SEPARATOR = new BugText(": ");
+        public static BugText SPACE = new BugText(" ");
         public static BugText NBSP = new BugText(UnicodeCharacters.NBSP);
         public static BugText INVOKER = (BugText) new BugText(UnicodeCharacters.INVOKE).setOnClick(BugElement.ON_CLICK_INVOKE);
 
@@ -116,64 +125,28 @@ public abstract class BugElement {
             return this;
         }
 
-        public BugText colorNeutral() {
-            return (BugText) addClazz("colorNeutral");
-        }
-
-        public BugText colorNeutralLight() {
-            return (BugText) addClazz("colorNeutralLight");
-        }
-
-        public BugText colorPrimary() {
-            return (BugText) addClazz("colorPrimary");
-        }
-
-        public BugText colorPrimaryLight() {
-            return (BugText) addClazz("colorPrimaryLight");
-        }
-
-        public BugText colorSecondary() {
-            return (BugText) addClazz("colorSecondary");
-        }
-
-        public BugText colorSecondaryLight() {
-            return (BugText) addClazz("colorSecondaryLight");
-        }
-
-        public BugText colorTernary() {
-            return (BugText) addClazz("colorTernary");
-        }
-
-        public BugText colorTernaryLight() {
-            return (BugText) addClazz("colorTernaryLight");
-        }
-
-        public BugText colorError() {
-            return (BugText) addClazz("colorError");
-        }
-
         public static BugText getForClass(Class<?> clazz) {
             BugText text = new BugText(clazz.getSimpleName());
             text.setTooltip(clazz.getName());
-            text.setClazz("clazz");
+            text.format(BugFormat.clazz);
             return text;
         }
 
         public static BugText getForModifier(int modifier) {
             BugText text = new BugText(StringifierUtil.modifiersToString(modifier, null, false));
-            text.setClazz("modifier");
+            text.format(BugFormat.modifier);
             return text;
         }
 
         public static BugText getForValue(Object val) {
             BugText text = new BugText(TypeAdapters.toString(val));
-            text.setClazz("value");
+            text.format(val == null ? BugFormat.nul : BugFormat.value);
             return text;
         }
 
         public static BugText getForByteSize(long size) {
             BugText text = new BugText(HumanReadable.formatByteSizeBinary(size));
-            text.setClazz("value");
+            text.format(BugFormat.value);
             text.setTooltip(String.format(Locale.getDefault(), "%,d B", size));
             return text;
         }
@@ -187,6 +160,7 @@ public abstract class BugElement {
 
     public static class BugLink extends BugText {
         public String url;
+
         public BugLink(String text) {
             super(text);
         }

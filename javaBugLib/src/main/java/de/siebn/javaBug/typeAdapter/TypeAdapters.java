@@ -227,12 +227,12 @@ public class TypeAdapters {
         @Override
         public String toString(Object object) {
             if (object == null) return null;
-            try {
-                if (object.getClass().getMethod("toString").equals(Object.class.getMethod("toString")))
-                    return object.getClass().getName();
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                if (object.getClass().getMethod("toString").equals(Object.class.getMethod("toString")))
+//                    return object.getClass().getName();
+//            } catch (NoSuchMethodException e) {
+//                e.printStackTrace();
+//            }
             return super.toString(object);
         }
     }
