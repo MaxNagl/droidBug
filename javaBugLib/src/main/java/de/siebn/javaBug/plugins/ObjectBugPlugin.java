@@ -128,13 +128,12 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public BugElement serveObjectsJsonDetailsCategory(String[] params) {
         Object o = parseObjectReference(params[1]);
         String category = params[2];
-        BugList list = new BugList();
         for (OutputCategory cat : getOutputCategories(o.getClass())) {
             if (cat.getId().equals(category)) {
-                cat.add(list, o);
+                return cat.get(o);
             }
         }
-        return list;
+        throw new IllegalArgumentException();
     }
 
     public BugElement getJsonBugObjectFor(Object o) {

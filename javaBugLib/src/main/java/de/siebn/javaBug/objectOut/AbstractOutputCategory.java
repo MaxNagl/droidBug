@@ -10,13 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.siebn.javaBug.*;
-import de.siebn.javaBug.BugElement.BugInputElement;
-import de.siebn.javaBug.BugElement.BugInputList;
-import de.siebn.javaBug.BugElement.BugInputText;
-import de.siebn.javaBug.BugElement.BugInvokable;
-import de.siebn.javaBug.BugElement.BugEntry;
-import de.siebn.javaBug.BugElement.BugGroup;
-import de.siebn.javaBug.BugElement.BugText;
+import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.objectOut.ListItemBuilder.ParameterBuilder;
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
@@ -76,13 +70,15 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     }
 
     @Override
-    public void add(BugGroup list, Object o) {
+    public BugElement get(Object o) {
+        BugList list = new BugList();
         for (Method m : AllClassMembers.getForClass(getClass()).methods) {
             Property getterSetter = m.getAnnotation(Property.class);
             if (getterSetter != null && showGetterSetter(o, m)) {
                 list.add(getProperty(getterSetter, o, m));
             }
         }
+        return list;
     }
 
     @Override

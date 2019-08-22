@@ -1,7 +1,7 @@
 package de.siebn.javaBug.objectOut;
 
-import de.siebn.javaBug.BugElement.BugEntry;
-import de.siebn.javaBug.BugElement.BugGroup;
+import de.siebn.javaBug.BugElement;
+import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.util.XML;
 
@@ -18,11 +18,13 @@ public class ArrayOutput extends AbstractOutputCategory {
     }
 
     @Override
-    public void add(BugGroup parent, Object o) {
+    public BugElement get(Object o) {
+        BugList list = new BugList();
         int len = Array.getLength(o);
         for (int i = 0; i < len; i++) {
-            parent.add(new BugEntry().addText("[" + i + "] " + Array.get(o, i)));
+            list.add(new BugEntry().addText("[" + i + "] " + Array.get(o, i)));
         }
+        return list;
     }
 
     @Override

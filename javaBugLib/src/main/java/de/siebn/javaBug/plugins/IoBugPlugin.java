@@ -121,21 +121,21 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         private String title;
 
         @OutputMethod("Overview")
-        public void overview(BugGroup parent) {
+        public BugElement overview() {
             BugList list = new BugList();
             list.add(new BugEntry().add(new BugText("Input: ")).add(BugText.getForByteSize(in.bout.size())));
             list.add(new BugEntry().add(new BugText("Output: ")).add(BugText.getForByteSize(out.bout.size())));
-            parent.add(list);
+            return list;
         }
 
         @OutputMethod(value = "Input", order = 100)
-        public void input(BugGroup parent) {
-            parent.add(new BugPre(new String(in.bout.toByteArray())));
+        public BugElement input() {
+            return new BugPre(new String(in.bout.toByteArray()));
         }
 
         @OutputMethod(value = "Output", order = 200)
-        public void output(BugGroup parent) {
-            parent.add(new BugPre(new String(out.bout.toByteArray())));
+        public BugElement output() {
+            return new BugPre(new String(out.bout.toByteArray()));
         }
     }
 

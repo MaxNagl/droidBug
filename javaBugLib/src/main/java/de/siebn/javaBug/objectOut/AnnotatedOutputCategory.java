@@ -4,7 +4,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.BugGroup;
+import de.siebn.javaBug.BugElement.BugList;
 import de.siebn.javaBug.util.XML;
 
 public class AnnotatedOutputCategory implements OutputCategory {
@@ -36,14 +38,15 @@ public class AnnotatedOutputCategory implements OutputCategory {
     }
 
     @Override
-    public void add(BugGroup list, Object o) {
+    public BugElement get(Object o) {
         try {
-            method.invoke(o, list);
+            return (BugElement) method.invoke(o);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
+        throw new IllegalStateException();
     }
 
     @Override

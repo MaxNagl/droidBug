@@ -1,15 +1,15 @@
 package de.siebn.javaBug.testApplication;
 
+import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
-import de.siebn.javaBug.BugFormat;
-import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.objectOut.AbstractOutputCategory;
 import de.siebn.javaBug.objectOut.OutputMethod;
 import de.siebn.javaBug.util.AllClassMembers;
 
 public class BugFormatTest {
     @OutputMethod(value = "Formats", order = 100)
-    public void formats(BugGroup list) {
+    public BugElement formats() {
+        BugList list = new BugList();
         for (BugFormat bugFormat : BugFormat.values()) {
             BugEntry entry = new BugEntry();
             entry.add(new BugText("[Text]").format(bugFormat));
@@ -21,5 +21,6 @@ public class BugFormatTest {
             entry.add(new BugText(bugFormat.name()));
             list.add(entry);
         }
+        return list;
     }
 }

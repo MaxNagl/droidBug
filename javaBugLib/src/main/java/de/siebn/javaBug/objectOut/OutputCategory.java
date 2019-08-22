@@ -2,6 +2,7 @@ package de.siebn.javaBug.objectOut;
 
 import java.util.List;
 
+import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.BugGroup;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.util.XML;
@@ -12,7 +13,7 @@ import de.siebn.javaBug.util.XML;
 public interface OutputCategory extends JavaBug.BugPlugin {
     void add(XML ul, Object o);
 
-    void add(BugGroup list, Object o);
+    BugElement get(Object o);
 
     String getId();
 

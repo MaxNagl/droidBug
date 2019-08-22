@@ -2,7 +2,9 @@ package de.siebn.javaBug.testApplication;
 
 import java.lang.reflect.Method;
 
+import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.BugGroup;
+import de.siebn.javaBug.BugElement.BugList;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.objectOut.AbstractOutputCategory;
 import de.siebn.javaBug.util.AllClassMembers;
@@ -18,7 +20,8 @@ public class TestOutputCatergory extends AbstractOutputCategory {
     }
 
     @Override
-    public void add(BugGroup list, Object o) {
+    public BugElement get(Object o) {
+        BugList list = new BugList();
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Method m : allMembers.methods) {
             if (m.getName().equals("multiply")) {
@@ -29,6 +32,7 @@ public class TestOutputCatergory extends AbstractOutputCategory {
                 list.add(getMethodInformation(o, m, new Object[]{2}, new Object[]{1, 2}));
             }
         }
+        return list;
     }
 
     @Override
