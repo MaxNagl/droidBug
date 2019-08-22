@@ -1,6 +1,6 @@
 function loadModel(parent, content, callback) {
     if (typeof content === 'string' || content instanceof String) {
-        $.getJSON(content, function(data) {
+        $.getJSON(content, function (data) {
             callback(getModel(parent, data))
         });
     } else {
@@ -20,6 +20,7 @@ function getModel(parent, data) {
     if (data.type == 'BugImg') return new BugImg(parent, data);
     if (data.type == 'BugInputText') return new BugInputText(parent, data);
     if (data.type == 'BugInputList') return new BugInputList(parent, data);
+    if (data.type == 'BugInputCheckbox') return new BugInputCheckbox(parent, data);
     if (data.type == 'BugTabs') return new BugTabs(parent, data);
     if (data.type == 'BugSplit') return new BugSplit(parent, data);
 }
@@ -32,6 +33,7 @@ class BugElement {
         if (this.view != null) {
             this.view.addClass(this.constructor.name);
             if (data.clazz != null) this.view.addClass(data.clazz);
+            if (data.id != null) this.view.attr("id", data.id);
             if (data.onClick != null) {
                 this.view.click(function () {
                     if (data.onClick == "invoke") this.getParent(BugInvokable).invoke(this);
@@ -40,7 +42,7 @@ class BugElement {
                 this.view.addClass("clickable");
             }
             if (data.styles != null) {
-                Object.keys(data.styles).forEach(function(style){
+                Object.keys(data.styles).forEach(function (style) {
                     this.view.css(style, data.styles[style]);
                 }.bind(this));
             }
@@ -101,14 +103,14 @@ class BugGroup extends BugElement {
 
 class BugList extends BugGroup {
     constructor(parent, data) {
-        super(parent, data, $('<div class="bugList">'))
+        super(parent, data, $('<div>'))
         this.extractElements(this.view, data.elements, this.elements);
     }
 }
 
 class BugDiv extends BugGroup {
     constructor(parent, data) {
-        super(parent, data, $('<div class="bugDiv">'))
+        super(parent, data, $('<div>'))
         this.extractElements(this.view, data.elements, this.elements);
     }
 }
@@ -122,7 +124,7 @@ class BugImg extends BugElement {
 
 class BugInlineList extends BugGroup {
     constructor(parent, data) {
-        super(parent, data, $('<span class="BugInlineList">'))
+        super(parent, data, $('<span>'))
         this.extractElements(this.view, data.elements, this.elements);
     }
 }
@@ -210,7 +212,37 @@ class BugInputList extends BugElement {
             this.view.append($('<option value="' + option.id + '">' + option.text + '</option>'));
         }.bind(this));
         this.view.change(function () {
-            this.getParent(BugInvokable).invoke(this);
+            if (data.onChange != null) {
+                eval(data.onChange);
+            } else {
+                this.getParent(BugInvokable).invoke(this);
+            }
+        }.bind(this));
+        this.view.val(data.text);
+    }
+
+    setValue(value) {
+        this.view.val(value);
+    }
+
+    getValue() {
+        return this.view.val();
+    }
+}
+
+class BugInputCheckbox extends BugElement {
+    constructor(parent, data) {
+        super(parent, data, $('<label>'));
+        this.checkboxView = $('<input type="checkbox">');
+        this.checkboxView.attr('checked', data.checked);
+        this.view.append(this.checkboxView);
+        if (data.text != null) this.view.append($('<span>' + data.text + '</span>'));
+        this.view.change(function () {
+            if (data.onChange != null) {
+                eval(data.onChange);
+            } else {
+                this.getParent(BugInvokable).invoke(this);
+            }
         }.bind(this));
         this.view.val(data.text);
     }
@@ -358,7 +390,7 @@ class BugTabs extends BugElement {
 
     load(tab) {
         if (tab.model == null) {
-            loadModel(this, tab.content, function(model) {
+            loadModel(this, tab.content, function (model) {
                 tab.model = model;
                 tab.contentView.append(model.view);
             }.bind(this))
@@ -371,11 +403,14 @@ class BugSplit extends BugElement {
         super(parent, data, $('<div>'));
         if (data.orientation == 'vertical') this.view.css('flex-direction', 'column');
         if (data.orientation == 'horizontal') this.view.css('flex-direction', 'row');
-        data.elements.forEach(function(element) {
+        data.elements.forEach(function (element) {
             element.contentView = $('<div class="splitElement">');
             this.view.append(element.contentView);
-            if (element.weight != null) element.contentView.css('flex-grow', element.weight)
-            loadModel(this, element.content, function(model) {
+            if (element.style != null) element.contentView.attr('style', element.style);
+            if (element.clazz != null) element.contentView.addClass(element.clazz);
+            if (element.weight != null) element.contentView.css('flex-grow', element.weight);
+            if (element.fixed != null) element.contentView.css('flex-basis', element.fixed);
+            loadModel(this, element.content, function (model) {
                 element.model = model;
                 element.contentView.append(model.view);
             }.bind(this))

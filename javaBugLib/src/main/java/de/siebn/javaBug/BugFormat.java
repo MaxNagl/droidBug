@@ -1,6 +1,8 @@
 package de.siebn.javaBug;
 
 public enum BugFormat {
+    paddingNormal,
+
     colorNeutral,
     colorNeutralLight,
     colorPrimary,

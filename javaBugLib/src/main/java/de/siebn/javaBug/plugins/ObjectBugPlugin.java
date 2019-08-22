@@ -1,28 +1,16 @@
 package de.siebn.javaBug.plugins;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.*;
+import java.util.*;
 import java.util.Map.Entry;
 
 import de.siebn.javaBug.*;
-import de.siebn.javaBug.BugElement.BugEntry;
-import de.siebn.javaBug.BugElement.BugInvokable;
-import de.siebn.javaBug.BugElement.BugList;
-import de.siebn.javaBug.BugElement.BugText;
-import de.siebn.javaBug.objectOut.AnnotatedOutputCategory;
-import de.siebn.javaBug.objectOut.ListItemBuilder;
-import de.siebn.javaBug.objectOut.OutputCategory;
-import de.siebn.javaBug.objectOut.OutputMethod;
+import de.siebn.javaBug.BugElement.*;
+import de.siebn.javaBug.BugElement.BugSplit.BugSplitElement;
+import de.siebn.javaBug.objectOut.*;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
-import de.siebn.javaBug.util.AllClassMembers;
-import de.siebn.javaBug.util.XML;
+import de.siebn.javaBug.util.*;
 
 public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public final HashMap<Integer, Object> references = new HashMap<>();
@@ -88,16 +76,37 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @Override
     public int getOrder() {
-        return 1000;
+        return 0;
     }
+
+    public static int visibleModifiers = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL | Modifier.SYNCHRONIZED | Modifier.STATIC | Modifier.VOLATILE | Modifier.INTERFACE;
 
     @JavaBug.Serve("^/objectsJson/")
     public BugElement serveObjectsJsonRoot(String[] params) {
+        BugSplit split = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
         BugList list = new BugList();
+        list.addClazz("modFilter").format(BugFormat.paddingNormal);
         for (Object o : rootObjects) {
             list.elements.add(getJsonBugObjectFor(o));
         }
-        return list;
+        split.elements.add(new BugSplitElement(list.setId("ABCDEF")));
+        BugEntry options = new BugEntry();
+        for (Entry<Integer, String> mod : StringifierUtil.modifierNames.entrySet()) {
+            BugInputCheckbox checkbox = new BugInputCheckbox(null, mod.getValue());
+            checkbox.setOnChange("$('#" + list.id + "').toggleClass('show" + mod.getValue() + "');");
+            checkbox.addClazz("checkWithBorder");
+            if ((visibleModifiers & mod.getKey()) != 0) {
+                checkbox.setChecked(true);
+                list.addClazz("show" + mod.getValue());
+            }
+            options.add(checkbox).addSpace();
+        }
+        BugSplitElement e = new BugSplitElement(options);
+        e.clazz = "colorBgLight";
+        e.weight = "0";
+        e.fixed = "20px";
+        split.elements.add(e);
+        return split;
     }
 
     @JavaBug.Serve("^/objectsJson/([^/]*)/details/")

@@ -15,8 +15,6 @@
 .colorBgLight { background: #444444; }
 // @formatter:on
 
-
-
 // Mixins
 
 .flexMaxHeight {
@@ -25,8 +23,6 @@
   flex-grow: 1;
   flex-basis: 0;
 }
-
-
 
 // General elements
 
@@ -64,8 +60,6 @@ a {
   transform: translate(-50%, -50%);
 }
 
-
-
 // BugElements
 
 .BugTabs {
@@ -89,7 +83,6 @@ a {
     .tabsContentHolder {
       .flexMaxHeight;
       overflow: auto;
-      padding: 16px;
     }
   }
 }
@@ -146,9 +139,11 @@ a {
   }
 }
 
-
-
 // Custom formats
+
+.paddingNormal {
+  padding: 16px;
+}
 
 .groupHover {
   background-color: rgba(100, 100, 255, 0.2);
@@ -161,3 +156,31 @@ a {
 .entryContent {
   padding-left: 16px;
 }
+
+.checkWithBorder {
+  span {
+    .colorNeutralLight
+  }
+  input {
+    display: none;
+    &:checked + span {
+      .colorNeutral
+    }
+  }
+}
+
+// @formatter:off
+.modFilter:not(.showpublic) .modpublic{display:none}
+.modFilter:not(.showprivate) .modprivate{display:none}
+.modFilter:not(.showpackage) .modpackage{display:none}
+.modFilter:not(.showprotected) .modprotected{display:none}
+.modFilter:not(.showstatic) .modstatic{display:none}
+.modFilter:not(.showfinal) .modfinal{display:none}
+.modFilter:not(.showsynchronized) .modsynchronized{display:none}
+.modFilter:not(.showvolatile) .modvolatile{display:none}
+.modFilter:not(.showtransient) .modtransient{display:none}
+.modFilter:not(.shownative) .modnative{display:none}
+.modFilter:not(.showinterface) .modinterface{display:none}
+.modFilter:not(.showabstract) .modabstract{display:none}
+.modFilter:not(.showstrict) .modstrict{display:none}
+// @formatter:on

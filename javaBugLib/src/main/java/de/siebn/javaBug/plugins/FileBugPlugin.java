@@ -41,7 +41,7 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @Override
     public int getOrder() {
-        return 0;
+        return 1000;
     }
 
     @JavaBug.Serve("^/filesJson/(.*)")

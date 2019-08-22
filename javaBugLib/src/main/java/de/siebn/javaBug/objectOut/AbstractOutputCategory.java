@@ -145,17 +145,18 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         return json;
     }
 
-    public BugElement getMethodInformation(Object o, Method m, Object[] predifined, Object[] preset) {
-        if (predifined == null) predifined = empty;
+    public BugElement getMethodInformation(Object o, Method m, Object[] predefined, Object[] preset) {
+        if (predefined == null) predefined = empty;
         if (preset == null) preset = empty;
         boolean canInvoke = true;
         Class<?>[] parameterTypes = m.getParameterTypes();
         for (int i = 0; i < parameterTypes.length; i++) {
             Class c = parameterTypes[i];
-            if (!TypeAdapters.getTypeAdapter(c).canParse(c) && (predifined.length <= i || predifined[i] == null))
+            if (!TypeAdapters.getTypeAdapter(c).canParse(c) && (predefined.length <= i || predefined[i] == null))
                 canInvoke = false;
         }
         BugEntry json = new BugEntry();
+        json.addClazz(StringifierUtil.modifiersToString(m.getModifiers(), "mod", true));
         json.add(BugText.getForModifier(m.getModifiers())).addSpace();
         json.add(BugText.getForClass(m.getReturnType())).addSpace();
         json.add(new BugText(m.getName()).format(method).setOnClick(BugText.ON_CLICK_EXPAND));
@@ -183,6 +184,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
 
         BugEntry json = new BugEntry();
 
+        json.addClazz(StringifierUtil.modifiersToString(f.getModifiers(), "mod", true));
         json.add(BugText.getForModifier(f.getModifiers())).addSpace();
         json.add(BugText.getForClass(f.getType())).addSpace();
         json.add(new BugText(f.getName()).format(field).setOnClick(BugText.ON_CLICK_EXPAND));

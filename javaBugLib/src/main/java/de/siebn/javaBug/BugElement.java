@@ -18,6 +18,7 @@ public abstract class BugElement {
     public static String ON_CLICK_EXPAND = "expand";
 
     public final String type;
+    public String id;
     public String clazz;
     public String onClick;
     public String hoverGroup;
@@ -25,6 +26,11 @@ public abstract class BugElement {
 
     public BugElement() {
         this.type = getClass().getSimpleName();
+    }
+
+    public BugElement setId(String id) {
+        this.id = id;
+        return this;
     }
 
     public BugElement setClazz(String clazz) {
@@ -215,6 +221,27 @@ public abstract class BugElement {
         }
     }
 
+    public static class BugInputCheckbox extends BugInputElement {
+        public String text;
+        public String onChange;
+        public boolean checked;
+
+        public BugInputCheckbox(String callId, String text) {
+            this.callId = callId;
+            this.text = text;
+        }
+
+        public BugInputCheckbox setOnChange(String onChange) {
+            this.onChange = onChange;
+            return this;
+        }
+
+        public BugInputCheckbox setChecked(boolean checked) {
+            this.checked = checked;
+            return this;
+        }
+    }
+
     public static class BugInvokable extends BugGroup {
         public static String ACTION_SET_VALUE = "setValue";
         public static String ACTION_REFRESH_ELEMENTS = "refreshEntry";
@@ -263,7 +290,10 @@ public abstract class BugElement {
         }
 
         public static class BugSplitElement {
-            public String weight;
+            public String clazz;
+            public String style;
+            public String weight = "1";
+            public String fixed = "0";
             public Object content;
 
             public BugSplitElement(Object content) {
