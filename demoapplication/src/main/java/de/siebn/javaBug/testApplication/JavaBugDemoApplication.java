@@ -19,18 +19,18 @@ public class JavaBugDemoApplication {
         jb.addPlugin(new TestOutputCatergory(jb));
 
         TestClass test = new TestClass();
-        jb.getObjectBug().addRootObject(test);
-        jb.getObjectBug().addRootObject(jb);
-        jb.getObjectBug().addRootObject(new BugFormatTest());
-        jb.getObjectBug().addRootObject(new String[]{"Eins", "Zwei", "Drei"});
-        jb.getObjectBug().addRootObject(Arrays.asList("One", "Two", "Three"));
+        jb.getObjectBug().addRootObject("Test", test);
+        jb.getObjectBug().addRootObject("JavaBug", jb);
+        jb.getObjectBug().addRootObject("Formats", new BugFormatTest());
+        jb.getObjectBug().addRootObject("Array", new String[]{"Eins", "Zwei", "Drei"});
+        jb.getObjectBug().addRootObject("List", Arrays.asList("One", "Two", "Three"));
         HashMap<String, String> map = new LinkedHashMap<>();
         map.put("One", "Eins");
         map.put("Two", "Zwei");
         map.put("Three", "Drei");
-        jb.getObjectBug().addRootObject(map);
+        jb.getObjectBug().addRootObject("Map", map);
         for (int i = 0; i < 100; i++)
-            jb.getObjectBug().addRootObject(i);
+            jb.getObjectBug().addRootObject("Integer " + i, i);
 
         jb.tryToStart();
 

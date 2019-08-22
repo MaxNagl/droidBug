@@ -58,8 +58,8 @@ public class CollectionsOutput extends AbstractOutputCategory {
             entry.add(BugText.getForValue(val).setOnClick(BugElement.ON_CLICK_EXPAND));
             if (key != null) {
                 BugList expand = new BugList();
-                expand.add(getObjectElement("Key", key));
-                expand.add(getObjectElement("Value", val));
+                expand.add(javaBug.getObjectBug().getObjectElement(null, "Key", key));
+                expand.add(javaBug.getObjectBug().getObjectElement(null, "Value", val));
                 entry.setExpand(expand);
             } else {
                 entry.setExpand(javaBug.getObjectBug().getObjectDetailsLinkJson(val));

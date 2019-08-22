@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
         jb.addPlugin(new ViewShotOutput(jb));
         jb.addPlugin(new LayoutParameterOutput(jb));
 
-        jb.getObjectBug().addRootObject(jb);
+        jb.getObjectBug().addRootObject("DroidBug", jb);
 
         jb.tryToStart();
 

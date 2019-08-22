@@ -14,7 +14,12 @@ import de.siebn.javaBug.util.*;
 
 public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public final HashMap<Integer, Object> references = new HashMap<>();
-    private ArrayList<Object> rootObjects = new ArrayList<>();
+    private ArrayList<RootObject> rootObjects = new ArrayList<>();
+
+    public static class RootObject {
+        String name;
+        Object value;
+    }
 
     private JavaBug javaBug;
 
@@ -50,8 +55,11 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         return outputCategories;
     }
 
-    public void addRootObject(Object object) {
-        rootObjects.add(object);
+    public void addRootObject(String name, Object value) {
+        RootObject rootObject = new RootObject();
+        rootObject.name = name;
+        rootObject.value = value;
+        rootObjects.add(rootObject);
     }
 
     @Override
@@ -86,8 +94,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugSplit split = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
         BugList list = new BugList();
         list.addClazz("modFilter").format(BugFormat.paddingNormal);
-        for (Object o : rootObjects) {
-            list.elements.add(getJsonBugObjectFor(o));
+        for (RootObject o : rootObjects) {
+            list.elements.add(getObjectElement(o.name, null, o.value));
         }
         split.elements.add(new BugSplitElement(list.setId("ABCDEF")));
         BugEntry options = new BugEntry();
@@ -354,6 +362,21 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             }
         }
         throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Method not found");
+    }
+
+    public BugElement getObjectElement(String title, String category, Object value) {
+        BugEntry entry = new BugEntry();
+        entry.setExpand(javaBug.getObjectBug().getObjectDetailsLinkJson(value));
+        if (title != null) {
+            entry.add(new BugText(title).setOnClick(BugElement.ON_CLICK_EXPAND).format(BugFormat.title));
+            entry.add(BugText.VALUE_SEPARATOR);
+        }
+        if (category != null) {
+            entry.add(new BugText(category).setOnClick(BugElement.ON_CLICK_EXPAND).format(BugFormat.category));
+            entry.add(BugText.VALUE_SEPARATOR);
+        }
+        entry.add(BugText.getForValue(value).setOnClick(BugElement.ON_CLICK_EXPAND));
+        return entry;
     }
 
     public String getPojoLink(Object o, String field) {
