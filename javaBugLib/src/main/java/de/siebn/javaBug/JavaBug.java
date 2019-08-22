@@ -22,7 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.siebn.javaBug.NanoHTTPD.Response.Status;
-import de.siebn.javaBug.objectOut.ArrayOutput;
+import de.siebn.javaBug.objectOut.CollectionsOutput;
 import de.siebn.javaBug.objectOut.FieldsOutput;
 import de.siebn.javaBug.objectOut.MethodsOutput;
 import de.siebn.javaBug.objectOut.PojoOutput;
@@ -110,7 +110,7 @@ public class JavaBug extends NanoHTTPD {
         addPlugin(getObjectBug());
         addPlugin(new IoBugPlugin(this));
 
-        addPlugin(new ArrayOutput(this));
+        addPlugin(new CollectionsOutput(this));
         addPlugin(new FieldsOutput(this));
         addPlugin(new MethodsOutput(this));
         addPlugin(new StringOutput(this));

@@ -207,6 +207,15 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         return json;
     }
 
+    public BugElement getObjectElement(String name, Object value) {
+        BugEntry entry = new BugEntry();
+        entry.setExpand(javaBug.getObjectBug().getObjectDetailsLinkJson(value));
+        entry.add(new BugText(name).setOnClick(BugElement.ON_CLICK_EXPAND).format(BugFormat.category));
+        entry.add(BugText.VALUE_SEPARATOR);
+        entry.add(BugText.getForValue(value).setOnClick(BugElement.ON_CLICK_EXPAND));
+        return entry;
+    }
+
     public BugElement getPojo(Object o, String field) {
         AllClassMembers.POJO pojo = AllClassMembers.getForClass(o.getClass()).pojos.get(field);
         if (pojo == null) return null;

@@ -96,7 +96,7 @@ public abstract class BugElement {
         public Object expand;
         public Boolean autoExpand;
 
-        public BugEntry setExpand(String expand) {
+        public BugEntry setExpand(Object expand) {
             this.expand = expand;
             return this;
         }

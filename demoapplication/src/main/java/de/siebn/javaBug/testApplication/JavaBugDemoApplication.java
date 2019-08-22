@@ -1,5 +1,10 @@
 package de.siebn.javaBug.testApplication;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+
 import de.siebn.javaBug.JavaBug;
 
 /**
@@ -17,6 +22,13 @@ public class JavaBugDemoApplication {
         jb.getObjectBug().addRootObject(test);
         jb.getObjectBug().addRootObject(jb);
         jb.getObjectBug().addRootObject(new BugFormatTest());
+        jb.getObjectBug().addRootObject(new String[]{"Eins", "Zwei", "Drei"});
+        jb.getObjectBug().addRootObject(Arrays.asList("One", "Two", "Three"));
+        HashMap<String, String> map = new LinkedHashMap<>();
+        map.put("One", "Eins");
+        map.put("Two", "Zwei");
+        map.put("Three", "Drei");
+        jb.getObjectBug().addRootObject(map);
         for (int i = 0; i < 100; i++)
             jb.getObjectBug().addRootObject(i);
 

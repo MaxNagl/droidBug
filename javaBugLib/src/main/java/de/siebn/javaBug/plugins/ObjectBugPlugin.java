@@ -236,6 +236,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     public String getObjectDetailsLinkJson(Object o) {
+        if (o == null) return null;
         return "/objectsJson/" + getObjectReference(o) + "/details/";
     }
 
