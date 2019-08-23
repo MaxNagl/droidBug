@@ -27,7 +27,6 @@ import de.siebn.javaBug.objectOut.FieldsOutput;
 import de.siebn.javaBug.objectOut.MethodsOutput;
 import de.siebn.javaBug.objectOut.PojoOutput;
 import de.siebn.javaBug.objectOut.StackTraceOutput;
-import de.siebn.javaBug.objectOut.StringOutput;
 import de.siebn.javaBug.plugins.FileBugPlugin;
 import de.siebn.javaBug.plugins.IoBugPlugin;
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
@@ -113,7 +112,6 @@ public class JavaBug extends NanoHTTPD {
         addPlugin(new CollectionsOutput(this));
         addPlugin(new FieldsOutput(this));
         addPlugin(new MethodsOutput(this));
-        addPlugin(new StringOutput(this));
         addPlugin(new PojoOutput(this));
         addPlugin(new StackTraceOutput(this));
     }
