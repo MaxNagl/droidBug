@@ -98,11 +98,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             }
             options.add(checkbox).addSpace();
         }
-        BugSplitElement e = new BugSplitElement(options);
-        e.clazz = "colorBgLight";
-        e.weight = "0";
-        e.fixed = "20px";
-        split.add(e);
+        split.add(new BugSplitElement(options).setWeight("0").setFixed("auto").format(BugFormat.bgLight));
         return split;
     }
 

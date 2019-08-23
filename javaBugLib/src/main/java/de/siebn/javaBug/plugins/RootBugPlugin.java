@@ -43,7 +43,7 @@ public class RootBugPlugin implements BugPlugin {
         head.add("script").appendText("$(function () { $('body').loadBugElement('/start/'); });");
 
         XML body = xhtml.add("body");
-        body.add("div").addClass("loading").appendText("Loading...");
+        body.add("div").setId("loading").appendText("Loading...");
 
         return xhtml.getHtml();
     }

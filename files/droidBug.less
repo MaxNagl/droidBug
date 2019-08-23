@@ -10,9 +10,9 @@
 .colorTernaryLight { color: #00be0b; }
 .colorError { color: #ee4d2e; }
 
-.colorBgDark { background-color: #111111; }
-.colorBg { background: #222222; }
-.colorBgLight { background: #444444; }
+.bgDark { background-color: #111111; }
+.bgNormal { background: #222222; }
+.bgLight { background: #444444; }
 // @formatter:on
 
 // Mixins
@@ -41,7 +41,7 @@ body {
   .flexMaxHeight;
   .colorNeutralLight;
   height: 100%;
-  .colorBg;
+  .bgNormal;
 }
 
 pre {
@@ -69,7 +69,7 @@ a {
 .BugTabs {
   .flexMaxHeight;
   .tabBar {
-    .colorBgLight;
+    .bgLight;
     .tab {
       cursor: pointer;
       display: inline-block;

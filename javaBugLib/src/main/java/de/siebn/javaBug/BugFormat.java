@@ -13,6 +13,10 @@ public enum BugFormat {
     colorTernaryLight,
     colorError,
 
+    bgDark,
+    bgNormal,
+    bgLight,
+
     title(colorPrimary),
     category(colorSecondary),
     modifier(colorPrimary),

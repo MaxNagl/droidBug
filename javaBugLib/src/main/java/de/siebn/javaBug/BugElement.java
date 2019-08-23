@@ -296,5 +296,20 @@ public abstract class BugElement {
         public BugSplitElement(Object content) {
             this.content = content;
         }
+
+        public BugSplitElement setWeight(String weight) {
+            this.weight = weight;
+            return this;
+        }
+
+        public BugSplitElement setFixed(String fixed) {
+            this.fixed = fixed;
+            return this;
+        }
+
+        public BugSplitElement setContent(Object content) {
+            this.content = content;
+            return this;
+        }
     }
 }
