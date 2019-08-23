@@ -278,28 +278,24 @@ public abstract class BugElement {
         }
     }
 
-    public static class BugSplit extends BugElement {
+    public static class BugSplit extends BugGroup {
         public static final String ORIENTATION_VERTICAL = "vertical";
         public static final String ORIENTATION_HORIZONTAL = "horizontal";
-
-        public List<BugSplitElement> elements = new ArrayList<>();
         public String orientation;
 
         public BugSplit(String orientation) {
             this.orientation = orientation;
         }
 
-        public static class BugSplitElement {
-            public String clazz;
-            public String style;
-            public String weight = "1";
-            public String fixed = "0";
-            public Object content;
-
-            public BugSplitElement(Object content) {
-                this.content = content;
-            }
-        }
     }
 
+    public static class BugSplitElement extends BugElement {
+        public String weight = "1";
+        public String fixed = "0";
+        public Object content;
+
+        public BugSplitElement(Object content) {
+            this.content = content;
+        }
+    }
 }

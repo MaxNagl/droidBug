@@ -8,7 +8,5 @@ function getError(result) {
 }
 
 $(function () {
-    loadModel(null, '/root/', function(model) {
-        $("#loading").replaceWith(model.view);
-    });
+    $('body').loadBugElement('/root/');
 });

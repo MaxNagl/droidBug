@@ -89,7 +89,7 @@ a {
 
 .BugSplit {
   .flexMaxHeight;
-  .splitElement {
+  .BugSplitElement {
     .flexMaxHeight;
     overflow: auto;
   }
@@ -101,14 +101,15 @@ a {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  &:before {
+  > .opener:before {
     display: inline-block;
     width: 16px;
     .colorNeutralLight;
     content: " ";
   }
   &.closed {
-    &:before {
+    > .opener:before {
+      cursor: pointer;
       content: "\25BA";
     }
     .hideCollapsed {
@@ -116,7 +117,8 @@ a {
     }
   }
   &.opened {
-    &:before {
+    > .opener:before {
+      cursor: pointer;
       content: "\25BC";
     }
   }

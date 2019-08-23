@@ -6,7 +6,6 @@ import java.util.Map.Entry;
 
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
-import de.siebn.javaBug.BugElement.BugSplit.BugSplitElement;
 import de.siebn.javaBug.objectOut.*;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
@@ -95,9 +94,9 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugList list = new BugList();
         list.addClazz("modFilter").format(BugFormat.paddingNormal);
         for (RootObject o : rootObjects) {
-            list.elements.add(getObjectElement(o.name, null, o.value));
+            list.add(getObjectElement(o.name, null, o.value));
         }
-        split.elements.add(new BugSplitElement(list.setId("ABCDEF")));
+        split.add(new BugSplitElement(list.setId("ABCDEF")));
         BugEntry options = new BugEntry();
         for (Entry<Integer, String> mod : StringifierUtil.modifierNames.entrySet()) {
             BugInputCheckbox checkbox = new BugInputCheckbox(null, mod.getValue());
@@ -113,7 +112,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         e.clazz = "colorBgLight";
         e.weight = "0";
         e.fixed = "20px";
-        split.elements.add(e);
+        split.add(e);
         return split;
     }
 

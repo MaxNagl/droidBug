@@ -9,18 +9,8 @@ import android.view.ViewGroup;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
-import de.siebn.javaBug.BugElement;
-import de.siebn.javaBug.BugElement.BugDiv;
-import de.siebn.javaBug.BugElement.BugEntry;
-import de.siebn.javaBug.BugElement.BugGroup;
-import de.siebn.javaBug.BugElement.BugImg;
-import de.siebn.javaBug.BugElement.BugList;
-import de.siebn.javaBug.BugElement.BugSplit;
-import de.siebn.javaBug.BugElement.BugSplit.BugSplitElement;
-import de.siebn.javaBug.BugElement.BugText;
-import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.NanoHTTPD;
-import de.siebn.javaBug.plugins.ObjectBugPlugin;
+import de.siebn.javaBug.*;
+import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.plugins.RootBugPlugin;
 import de.siebn.javaBug.util.XML;
 
@@ -69,13 +59,12 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @JavaBug.Serve("^/viewsJson")
     public BugElement serveViewsJson() {
-        BugElement three = new BugText("three");
         BugSplit horizontal = new BugSplit(BugSplit.ORIENTATION_HORIZONTAL);
         BugSplit vertical = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
-        horizontal.elements.add(new BugSplitElement(vertical));
-        horizontal.elements.add(new BugSplitElement(three));
-        vertical.elements.add(new BugSplitElement("/viewTreeDivsJson"));
-        vertical.elements.add(new BugSplitElement("/viewTreeJson"));
+        horizontal.add(new BugSplitElement(vertical));
+        horizontal.add(new BugSplitElement(new BugDiv().setId("VuewBugDetails").format(BugFormat.paddingNormal)));
+        vertical.add(new BugSplitElement("/viewTreeDivsJson").format(BugFormat.paddingNormal));
+        vertical.add(new BugSplitElement("/viewTreeJson").format(BugFormat.paddingNormal));
         return horizontal;
     }
 
@@ -98,7 +87,9 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugEntry entry = new BugEntry();
         entry.hoverGroup = javaBug.getObjectBug().getObjectReference(view);
         entry.autoExpand = true;
-        entry.add(new BugText(view.toString()).setClazz("title").setOnClick(BugElement.ON_CLICK_EXPAND));
+        BugElement title = new BugText(view.toString()).setClazz("title");
+        setLoadDetailsOnClick(title, view);
+        entry.add(title);
         if (view instanceof ViewGroup) {
             BugList list = new BugList();
             ViewGroup vg = (ViewGroup) view;
@@ -128,6 +119,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     private void addViewDivTree(BugGroup parent, View view) {
         BugDiv div = new BugDiv();
         div.hoverGroup = javaBug.getObjectBug().getObjectReference(view);
+        setLoadDetailsOnClick(div, view);
         setPositionStyle(div, view);
         parent.add(div);
         if (view instanceof ViewGroup) {
@@ -135,6 +127,11 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
             for (int i = 0; i < vg.getChildCount(); i++)
                 addViewDivTree(div, vg.getChildAt(i));
         }
+    }
+
+    private void setLoadDetailsOnClick(BugElement element, View view) {
+        String details = javaBug.getObjectBug().getObjectDetailsLinkJson(view);
+        element.setOnClick("$('#VuewBugDetails').loadBugElement('" + details + "');");
     }
 
     private void setPositionStyle(BugElement element, View view) {

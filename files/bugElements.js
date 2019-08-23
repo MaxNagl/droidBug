@@ -1,3 +1,11 @@
+$.fn.loadBugElement = function load(content, append) {
+    if (append != true) this.empty();
+    loadModel(this.data('model'), content, function (model) {
+        this.append(model.view);
+    }.bind(this));
+    return this;
+}
+
 function loadModel(parent, content, callback) {
     if (typeof content === 'string' || content instanceof String) {
         $.getJSON(content, function (data) {
@@ -23,6 +31,7 @@ function getModel(parent, data) {
     if (data.type == 'BugInputCheckbox') return new BugInputCheckbox(parent, data);
     if (data.type == 'BugTabs') return new BugTabs(parent, data);
     if (data.type == 'BugSplit') return new BugSplit(parent, data);
+    if (data.type == 'BugSplitElement') return new BugSplitElement(parent, data);
 }
 
 class BugElement {
@@ -31,13 +40,16 @@ class BugElement {
         this.data = data;
         this.view = view;
         if (this.view != null) {
+            this.view.data('model', this);
             this.view.addClass(this.constructor.name);
             if (data.clazz != null) this.view.addClass(data.clazz);
             if (data.id != null) this.view.attr("id", data.id);
             if (data.onClick != null) {
                 this.view.click(function () {
                     if (data.onClick == "invoke") this.getParent(BugInvokable).invoke(this);
-                    if (data.onClick == "expand") this.getParent(BugEntry).toggleExpand();
+                    else if (data.onClick == "expand") this.getParent(BugEntry).toggleExpand();
+                    else eval(data.onClick);
+                    event.stopPropagation();
                 }.bind(this));
                 this.view.addClass("clickable");
             }
@@ -305,6 +317,9 @@ class BugEntry extends BugGroup {
         super(parent, data, $('<div>'));
         var bugEntry = this;
         this.data = data;
+        this.opener = $('<span class="opener">');
+        this.view.append(this.opener);
+        this.opener.click(this.toggleExpand.bind(this));
         this.extractElements(this.view, data.elements, this.elements);
         if (data.expand != null) {
             this.view.addClass("closed")
@@ -396,22 +411,31 @@ class BugTabs extends BugElement {
     }
 }
 
-class BugSplit extends BugElement {
+class BugSplit extends BugGroup {
     constructor(parent, data) {
         super(parent, data, $('<div>'));
         if (data.orientation == 'vertical') this.view.css('flex-direction', 'column');
         if (data.orientation == 'horizontal') this.view.css('flex-direction', 'row');
-        data.elements.forEach(function (element) {
-            element.contentView = $('<div class="splitElement">');
-            this.view.append(element.contentView);
-            if (element.style != null) element.contentView.attr('style', element.style);
-            if (element.clazz != null) element.contentView.addClass(element.clazz);
-            if (element.weight != null) element.contentView.css('flex-grow', element.weight);
-            if (element.fixed != null) element.contentView.css('flex-basis', element.fixed);
-            loadModel(this, element.content, function (model) {
-                element.model = model;
-                element.contentView.append(model.view);
-            }.bind(this))
-        }.bind(this));
+        this.extractElements(this.view, data.elements, this.elements);
+        //data.elements.forEach(function (element) {
+        //    element.contentView = $('<div class="splitElement">');
+        //    this.view.append(element.contentView);
+        //    loadModel(this, element.content, function (model) {
+        //        element.model = model;
+        //        element.contentView.append(model.view);
+        //    }.bind(this))
+        //}.bind(this));
     }
 }
+
+class BugSplitElement extends BugElement {
+    constructor(parent, data) {
+        super(parent, data, $('<div>'));
+        if (data.weight != null) this.view.css('flex-grow', data.weight);
+        if (data.fixed != null) this.view.css('flex-basis', data.fixed);
+        loadModel(this, data.content, function (model) {
+            this.view.append(model.view);
+        }.bind(this))
+    }
+}
+
