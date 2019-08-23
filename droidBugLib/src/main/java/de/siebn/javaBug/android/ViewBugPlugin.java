@@ -104,8 +104,6 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     public BugElement serveViewDivsTree() {
         View decorView = activity.getWindow().getDecorView();
         BugDiv div = new BugDiv();
-        div.setStyle("transform", "scale(0.5,0.5)");
-        div.setStyle("transform-origin", "0% 0%");
 
         BugImg img = new BugImg();
         setPositionStyle(img, decorView);
@@ -113,7 +111,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         div.add(img);
 
         addViewDivTree(div, decorView);
-        return div;
+        return div.format(BugFormat.autoScale, BugFormat.autoScaleCenter);
     }
 
     private void addViewDivTree(BugGroup parent, View view) {
@@ -121,6 +119,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         div.hoverGroup = javaBug.getObjectBug().getObjectReference(view);
         setLoadDetailsOnClick(div, view);
         setPositionStyle(div, view);
+        div.setStyle("position", "absolute");
         parent.add(div);
         if (view instanceof ViewGroup) {
             ViewGroup vg = (ViewGroup) view;
@@ -130,7 +129,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     private void setLoadDetailsOnClick(BugElement element, View view) {
-        String details = javaBug.getObjectBug().getObjectDetailsLinkJson(view);
+        String details = javaBug.getObjectBug().getObjectDetailsLink(view);
         element.setOnClick("$('#VuewBugDetails').loadBugElement('" + details + "');");
     }
 
@@ -139,7 +138,6 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         element.setStyle("top", view.getTop() + "px");
         element.setStyle("width", view.getWidth() + "px");
         element.setStyle("height", view.getHeight() + "px");
-        element.setStyle("position", "absolute");
     }
 
     @JavaBug.Serve("^/viewcol")
@@ -204,7 +202,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public String getUrl() {
+    public Object getContent() {
         return "/viewsJson";
     }
 

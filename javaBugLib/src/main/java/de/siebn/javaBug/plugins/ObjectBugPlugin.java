@@ -76,13 +76,13 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         return 0;
     }
 
-    public static int visibleModifiers = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL | Modifier.SYNCHRONIZED | Modifier.STATIC | Modifier.VOLATILE | Modifier.INTERFACE;
+    public static int visibleModifiers = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL | Modifier.SYNCHRONIZED | Modifier.STATIC | Modifier.VOLATILE | Modifier.INTERFACE | Modifier.VOLATILE;
 
     @JavaBug.Serve("^/objects/")
     public BugElement serveObjectsRoot(String[] params) {
         BugSplit split = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
         BugList list = new BugList();
-        list.addClazz("modFilter").format(BugFormat.tabContent);
+        list.addClazz("modFilter").format(BugFormat.tabContent).setId("ObjectBugList").format(BugFormat.autoScale);
         for (RootObject o : rootObjects) {
             list.add(getObjectElement(o.name, null, o.value));
         }

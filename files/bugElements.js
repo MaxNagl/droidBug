@@ -13,14 +13,18 @@ function loadModel(parent, content, callback) {
             type: "GET",
             url: content,
             success: function (result) {
-                callback(getModel(parent, result))
+                var model = getModel(parent, result);
+                callback(model);
+                if (model.view != null) viewAdded(model.view);
             }.bind(this),
             error: function (result) {
                 alert(getError(result));
             }.bind(this),
         });
     } else {
-        callback(getModel(parent, content))
+        var model = getModel(parent, content);
+        callback(model);
+        if (model.view != null) viewAdded(model.view);
     }
 }
 
@@ -147,6 +151,7 @@ class BugImg extends BugElement {
     constructor(parent, data) {
         super(parent, data, $('<img>'))
         if (data.src != null) this.view.attr("src", data.src);
+        this.view.bind('load', autoScale);
     }
 }
 
@@ -431,16 +436,8 @@ class BugSplit extends BugGroup {
     constructor(parent, data) {
         super(parent, data, $('<div>'));
         if (data.orientation == 'vertical') this.view.css('flex-direction', 'column');
-        if (data.orientation == 'horizontal') this.view.css('flex-direction', 'row');
+        if (data.orientation == 'horizontal') this.view.css({'flex-direction': 'row', 'height': '100%'});
         this.extractElements(this.view, data.elements, this.elements);
-        //data.elements.forEach(function (element) {
-        //    element.contentView = $('<div class="splitElement">');
-        //    this.view.append(element.contentView);
-        //    loadModel(this, element.content, function (model) {
-        //        element.model = model;
-        //        element.contentView.append(model.view);
-        //    }.bind(this))
-        //}.bind(this));
     }
 }
 
@@ -455,3 +452,30 @@ class BugSplitElement extends BugElement {
     }
 }
 
+function viewAdded(view) {
+    if (document.contains(view[0])) {
+        autoScale(null, view);
+    }
+}
+
+function autoScale(event, parent) {
+    if (parent == null) parent = $('body');
+    $('.autoScale', parent).each(function() {
+        var v = $(this);
+        v.css('margin', '0px');
+        var h = v.outerHeight(), w = v.outerWidth();
+        var ph = v.parent().height(), pw = v.parent().width();
+        var l = 0, t = 0;
+        var scale = Math.min(1, Math.min(ph / h, pw / w));
+        if (v.hasClass('autoScaleCenter')) {
+            l = (pw - w * scale) / 2;
+            t = (ph - h * scale) / 2;
+        }
+        v.css('transform', 'scale('+scale+","+scale+')');
+        v.css('margin-left', l);
+        v.css('margin-top', t);
+        v.css('margin-right', Math.min(0, w * scale - w - l));
+        v.css('margin-bottom', Math.min(0, h * scale - h - t));
+    });
+}
+$(window).resize(autoScale);

@@ -29,6 +29,9 @@ public enum BugFormat {
     value(colorTernary),
     nul(colorTernaryLight),
 
+    autoScale,
+    autoScaleCenter,
+
     ;
 
     public final String clazzes;

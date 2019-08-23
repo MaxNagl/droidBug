@@ -36,7 +36,7 @@ public class RootBugPlugin implements BugPlugin {
         XML xhtml = new XML();
 
         XML head = xhtml.add("head");
-        head.add("link").setAttr("rel", "stylesheet/less").setAttr("href", "/file/droidBug.less");
+        head.add("link").setAttr("rel", "stylesheet/less").setAttr("href", "/file/bugStyle.less");
         head.add("script").setAttr("src", "/file/jquery.js");
         head.add("script").setAttr("src", "/file/less.js");
         head.add("script").setAttr("src", "/file/bugElements.js");

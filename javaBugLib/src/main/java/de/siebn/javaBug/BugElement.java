@@ -46,8 +46,9 @@ public abstract class BugElement {
         return this;
     }
 
-    public BugElement format(BugFormat format) {
-        return addClazz(format.clazzes);
+    public BugElement format(BugFormat... formats) {
+        for (BugFormat format : formats) addClazz(format.clazzes);
+        return this;
     }
 
     public BugElement setOnClick(String onClick) {
