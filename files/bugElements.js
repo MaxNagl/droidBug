@@ -8,8 +8,15 @@ $.fn.loadBugElement = function load(content, append) {
 
 function loadModel(parent, content, callback) {
     if (typeof content === 'string' || content instanceof String) {
-        $.getJSON(content, function (data) {
-            callback(getModel(parent, data))
+        $.ajax({
+            type: "GET",
+            url: content,
+            success: function (result) {
+                callback(getModel(parent, result))
+            }.bind(this),
+            error: function (result) {
+                alert(getError(result));
+            }.bind(this),
         });
     } else {
         callback(getModel(parent, content))
@@ -32,6 +39,14 @@ function getModel(parent, data) {
     if (data.type == 'BugTabs') return new BugTabs(parent, data);
     if (data.type == 'BugSplit') return new BugSplit(parent, data);
     if (data.type == 'BugSplitElement') return new BugSplitElement(parent, data);
+}
+
+function getError(result) {
+    if (result.responseText != undefined) {
+        return result.responseText;
+    } else {
+        return 'HTTP Error: ' + result.status + " " + result.statusText;
+    }
 }
 
 class BugElement {

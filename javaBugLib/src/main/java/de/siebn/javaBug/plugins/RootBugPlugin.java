@@ -27,12 +27,29 @@ public class RootBugPlugin implements BugPlugin {
     }
 
     public interface MainBugPlugin extends BugPlugin {
-        public String getTabName();
-        public String getUrl();
+        String getTabName();
+        String getUrl();
     }
 
-    @JavaBug.Serve("/root/")
-    public BugElement serveRootJson() {
+    @JavaBug.Serve("/")
+    public String serveRoot() {
+        XML xhtml = new XML();
+
+        XML head = xhtml.add("head");
+        head.add("link").setAttr("rel", "stylesheet/less").setAttr("href", "/file/droidBug.less");
+        head.add("script").setAttr("src", "/file/jquery.js");
+        head.add("script").setAttr("src", "/file/less.js");
+        head.add("script").setAttr("src", "/file/bugElements.js");
+        head.add("script").appendText("$(function () { $('body').loadBugElement('/start/'); });");
+
+        XML body = xhtml.add("body");
+        body.add("div").addClass("loading").appendText("Loading...");
+
+        return xhtml.getHtml();
+    }
+
+    @JavaBug.Serve("/start/")
+    public BugElement serveStart() {
         BugTabs tabs = new BugTabs();
         for (MainBugPlugin plugin : jb.getPlugins(MainBugPlugin.class)) {
             BugTab tab = new BugTab();

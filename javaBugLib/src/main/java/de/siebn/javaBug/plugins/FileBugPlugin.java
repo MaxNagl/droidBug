@@ -9,8 +9,6 @@ import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.NanoHTTPD.Response;
 import de.siebn.javaBug.NanoHTTPD.Response.Status;
-import de.siebn.javaBug.objectOut.ListItemBuilder;
-import de.siebn.javaBug.util.*;
 
 public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
     private Map<File, String> roots = new LinkedHashMap<>();
