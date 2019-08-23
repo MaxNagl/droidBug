@@ -28,14 +28,6 @@ public class PojoOutput extends AbstractOutputCategory {
     }
 
     @Override
-    public void add(XML ul, Object o) {
-        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        for (Map.Entry<String, AllClassMembers.POJO> pojo : allMembers.pojos.entrySet()) {
-            addPojo(ul, o, pojo.getKey());
-        }
-    }
-
-    @Override
     public boolean canOutputClass(Class<?> clazz) {
         AllClassMembers allMembers = AllClassMembers.getForClass(clazz);
         return allMembers.pojos.size() > 0;

@@ -26,18 +26,6 @@ public class AnnotatedOutputCategory implements OutputCategory {
     }
 
     @Override
-    @SuppressWarnings("TryWithIdenticalCatches")
-    public void add(XML ul, Object o) {
-        try {
-            method.invoke(o, ul);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
     public BugElement get(Object o) {
         try {
             return (BugElement) method.invoke(o);

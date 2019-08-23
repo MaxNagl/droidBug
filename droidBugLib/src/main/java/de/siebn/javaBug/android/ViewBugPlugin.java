@@ -205,17 +205,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @Override
     public String getUrl() {
-        return "/views";
-    }
-
-    @Override
-    public String getContentUrl() {
         return "/viewsJson";
-    }
-
-    @Override
-    public String getTagClass() {
-        return "Views";
     }
 
     @Override

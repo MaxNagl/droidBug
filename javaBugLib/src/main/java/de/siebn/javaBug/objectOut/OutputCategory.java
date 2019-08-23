@@ -11,8 +11,6 @@ import de.siebn.javaBug.util.XML;
  * Created by Sieben on 16.03.2015.
  */
 public interface OutputCategory extends JavaBug.BugPlugin {
-    void add(XML ul, Object o);
-
     BugElement get(Object o);
 
     String getId();

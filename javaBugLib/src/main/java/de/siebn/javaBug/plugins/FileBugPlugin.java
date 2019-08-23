@@ -26,17 +26,7 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @Override
     public String getUrl() {
-        return "/files";
-    }
-
-    @Override
-    public String getContentUrl() {
         return "/filesJson/";
-    }
-
-    @Override
-    public String getTagClass() {
-        return "files";
     }
 
     @Override
@@ -68,7 +58,7 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
                     f.expand = "/filesJson/" + file.getAbsolutePath();
                 } else {
                     f.addSpace().add(new BugLink("[view]").setUrl("/file/" + file.getAbsolutePath()));
-                    f.addSpace().add(new BugLink("[download]").setUrl("/fileDownload/" + file.getAbsolutePath()));
+                    f.addSpace().add(new BugLink("[download]").setUrl("/file/" + file.getAbsolutePath() + "?download=true"));
                 }
                 long size = file.length();
                 f.addSpace().add(BugText.getForByteSize(size));
@@ -76,43 +66,6 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
             }
         }
         return list;
-    }
-
-    //@JavaBug.Serve("^/files(.*)")
-    public String serverFiles(String[] param) throws IOException {
-        XML xml = new XML();
-        String path = param[1];
-        File files[];
-        boolean showRoots = path == null || path.length() == 0;
-        if (showRoots) {
-            files = roots.keySet().toArray(new File[0]);
-        } else {
-            File file = new File(param[1]);
-            if (!file.exists()) {
-                xml.appendText("Not Found.");
-                return xml.getXml();
-            }
-            files = file.listFiles();
-        }
-        if (files != null) {
-            sortFiles(files);
-            for (File file : files) {
-                ListItemBuilder builder = new ListItemBuilder();
-                String name = file.getAbsolutePath();
-                if (showRoots) name = roots.get(file) + " (" + name + ")";
-                builder.setName(name);
-                if (file.isDirectory()) {
-                    builder.setExpandLink("/files" + file.getAbsolutePath());
-                } else {
-                    long size = file.length();
-                    builder.addColumn().setText(HumanReadable.formatByteSizeBinary(size)).setClass("byteSize");
-                    builder.addColumn().setText("[download]").setClass("download").setLink("/file/" + file.getAbsolutePath());
-                    builder.addColumn().setText("[tail]").setClass("tail").setAppendLink("/fileIframe/" + file.getAbsolutePath() + "?tail=10");
-                }
-                builder.build(xml);
-            }
-        }
-        return xml.getXml();
     }
 
     private void sortFiles(File[] files) {
@@ -126,39 +79,21 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         });
     }
 
-    @JavaBug.Serve("^/fileIframe/(.*)")
-    public String serverFileIframe(String[] param, NanoHTTPD.IHTTPSession session) throws IOException {
-        XML span = new XML("span");
-        XML iframe = span.add("iframe");
-        String id = UUID.randomUUID().toString();
-        iframe.setId(id);
-        String src = param[0].replace("fileIframe", "file");
-        String query = session.getQueryParameterString();
-        if (query != null) src += "?" + query;
-        iframe.setAttr("src", src);
-        XML refresh = span.add("span");
-        refresh.appendText(" \u27F3");
-        String jQueryIframe = JsUtil.getJQuerySelector(iframe);
-        refresh.setAttr("onclick", jQueryIframe + ".attr(\"src\", " + jQueryIframe + ".attr(\"src\"))");
-        return span.getXml();
-    }
-
     @JavaBug.Serve("^/file/(.*)")
     public NanoHTTPD.Response serverFile(String[] param, NanoHTTPD.IHTTPSession session) throws IOException {
         String mimeType = URLConnection.guessContentTypeFromName(param[1]);
         InputStream in = openStream(param[1]);
         Map<String, String> parms = session.getParms();
+        Response response;
         if (parms != null && parms.containsKey("tail")) {
             int tail = Integer.parseInt(parms.get("tail"));
-            return new Response(Status.OK, mimeType, getTail(in, tail));
+            response = new Response(Status.OK, mimeType, getTail(in, tail));
+        } else {
+            response = new Response(Status.OK, mimeType, in);
         }
-        return new Response(Status.OK, mimeType, in);
-    }
-
-    @JavaBug.Serve("^/fileDownload/(.*)")
-    public NanoHTTPD.Response serverFileDownload(String[] param, NanoHTTPD.IHTTPSession session) throws IOException {
-        Response response = serverFile(param, session);
-        response.addHeader("Content-Disposition", "attachment");
+        if (parms != null && parms.containsKey("download")) {
+            response.addHeader("Content-Disposition", "attachment");
+        }
         return response;
     }
 

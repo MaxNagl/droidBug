@@ -4,8 +4,7 @@ import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.BugFormat;
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.UnicodeCharacters;
-import de.siebn.javaBug.util.XML;
+import de.siebn.javaBug.util.UnicodeCharacters;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
@@ -67,14 +66,6 @@ public class CollectionsOutput extends AbstractOutputCategory {
             list.add(entry);
         }
         return list;
-    }
-
-    @Override
-    public void add(XML ul, Object o) {
-        int len = Array.getLength(o);
-        for (int i = 0; i < len; i++) {
-            ul.add("li").appendText("[" + i + "] " + Array.get(o, i));
-        }
     }
 
     @Override

@@ -6,7 +6,6 @@ import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.BugList;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.util.AllClassMembers;
-import de.siebn.javaBug.util.XML;
 
 public class FieldsOutput extends AbstractOutputCategory {
 
@@ -22,14 +21,6 @@ public class FieldsOutput extends AbstractOutputCategory {
             list.add(getFieldInformation(o, f));
         }
         return list;
-    }
-
-    @Override
-    public void add(XML ul, Object o) {
-        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        for (Field f : allMembers.fields) {
-            addFieldInformation(ul, o, f);
-        }
     }
 
     @Override

@@ -28,14 +28,6 @@ public class MethodsOutput extends AbstractOutputCategory {
     }
 
     @Override
-    public void add(XML ul, Object o) {
-        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        for (Method m : allMembers.methods) {
-            addMethodInformation(ul, o, m, null, null);
-        }
-    }
-
-    @Override
     public boolean canOutputClass(Class<?> clazz) {
         return true;
     }

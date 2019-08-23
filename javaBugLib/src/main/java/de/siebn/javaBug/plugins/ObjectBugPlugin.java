@@ -68,17 +68,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @Override
     public String getUrl() {
-        return "/objects/";
-    }
-
-    @Override
-    public String getContentUrl() {
         return "/objectsJson/";
-    }
-
-    @Override
-    public String getTagClass() {
-        return "objects";
     }
 
     @Override
@@ -161,70 +151,6 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         return e;
     }
 
-    @JavaBug.Serve("^/objects/")
-    public String serveObjects() {
-        XML ul = new XML("ul");
-        for (Object o : rootObjects) {
-            ListItemBuilder builder = new ListItemBuilder();
-            builder.addValue().setValue(o);
-            builder.setExpandObject(this, o, o.getClass());
-            builder.build(ul);
-        }
-        return ul.getXml();
-    }
-
-    @JavaBug.Serve("^/objectDetails/([^/]*)")
-    public String serveObjectDetails(String[] params) {
-        try {
-            Object o = parseObjectReference(params[1]);
-            return getObjectDetails(o, null);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "ERROR";
-        }
-    }
-
-    @JavaBug.Serve("^/objectDetails/([^/]*)/([^/]*)")
-    public String serveObjectDetailsType(String[] params) {
-        try {
-            Object o = parseObjectReference(params[2]);
-            return getObjectDetails(o, params[1]);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "ERROR";
-        }
-    }
-
-    public String getObjectDetails(Object o, String type) {
-        XML ul = new XML("ul");
-
-        List<OutputCategory> outputCategories = javaBug.getObjectBug().getOutputCategories(o.getClass());
-        for (OutputCategory oc : outputCategories) {
-            if (oc.getType().equals(type)) {
-                oc.add(ul, o);
-                return ul.getXml();
-            }
-        }
-
-        boolean alreadyOpened = false;
-        for (OutputCategory oc : outputCategories) {
-            String name = oc.getName(o);
-            if (name != null) {
-                ListItemBuilder builder = new ListItemBuilder();
-                builder.setName(name);
-                builder.setExpandLink(javaBug.getObjectBug().getObjectDetailsLink(o, oc.getType()));
-                builder.setRefreshLink(javaBug.getObjectBug().getObjectDetailsLink(o, oc.getType()));
-                if (oc.opened(outputCategories, alreadyOpened)) {
-                    XML expand = builder.createExtended("ul").setClass("expand");
-                    oc.add(expand, o);
-                    alreadyOpened = true;
-                }
-                XML ocul = builder.build(ul);
-            }
-        }
-        return ul.getXml();
-    }
-
     public Object parseObjectReference(String reference) {
         return references.get(parseHash(reference));
     }
@@ -299,7 +225,6 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     public static String RETURN_TYPE_STRING = "string";
-    public static String RETURN_TYPE_XML = "xml";
     public static String RETURN_TYPE_JSON = "json";
 
     public String getInvokationLink(String returnType, Object o, Method m, Object... predefined) {
@@ -350,7 +275,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
                 if (r == null) return "null";
                 String returnType = parms.get("returnType");
                 if (RETURN_TYPE_STRING.equals(returnType)) {
-                    return getObjectDetails(r, "string");
+                    return TypeAdapters.toString(r);
                 } else if (RETURN_TYPE_JSON.equals(returnType)) {
                     return getJsonBugObjectFor(r);
                 } else {

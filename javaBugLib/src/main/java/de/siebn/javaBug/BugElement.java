@@ -10,8 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
-import de.siebn.javaBug.util.HumanReadable;
-import de.siebn.javaBug.util.StringifierUtil;
+import de.siebn.javaBug.util.*;
 
 public abstract class BugElement {
     public static String ON_CLICK_INVOKE = "invoke";

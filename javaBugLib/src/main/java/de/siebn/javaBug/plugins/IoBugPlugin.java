@@ -1,23 +1,12 @@
 package de.siebn.javaBug.plugins;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import de.siebn.javaBug.*;
-import de.siebn.javaBug.BugElement.BugEntry;
-import de.siebn.javaBug.BugElement.BugGroup;
-import de.siebn.javaBug.BugElement.BugList;
-import de.siebn.javaBug.BugElement.BugPre;
-import de.siebn.javaBug.BugElement.BugText;
-import de.siebn.javaBug.objectOut.ListItemBuilder;
+import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.objectOut.OutputMethod;
-import de.siebn.javaBug.util.HumanReadable;
-import de.siebn.javaBug.util.XML;
 
 /**
  * Created by Sieben on 16.11.2016.
@@ -49,21 +38,6 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         return list;
     }
 
-    @JavaBug.Serve("^/io/")
-    public synchronized String serveIos() {
-        XML xhtml = new XML();
-        XML ul = xhtml.add("ul");
-        for (MonitoredIo mio : monitoredIos) {
-            ListItemBuilder builder = new ListItemBuilder();
-            builder.setName(mio.title);
-            builder.addColumn().setText("In: " + HumanReadable.formatByteSizeBinary(mio.in.bout.size()));
-            builder.addColumn().setText("Out: " + HumanReadable.formatByteSizeBinary(mio.out.bout.size()));
-            builder.setExpandObject(javaBug.getObjectBug(), mio, mio.getClass());
-            builder.build(ul);
-        }
-        return xhtml.getHtml();
-    }
-
     @Override
     public String getTabName() {
         return "I/O";
@@ -71,17 +45,7 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @Override
     public String getUrl() {
-        return "/io/";
-    }
-
-    @Override
-    public String getContentUrl() {
         return "/ioJson/";
-    }
-
-    @Override
-    public String getTagClass() {
-        return "io";
     }
 
     @Override

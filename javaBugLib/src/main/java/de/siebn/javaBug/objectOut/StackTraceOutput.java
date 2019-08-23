@@ -2,7 +2,7 @@ package de.siebn.javaBug.objectOut;
 
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
-import de.siebn.javaBug.util.XML;
+import de.siebn.javaBug.util.UnicodeCharacters;
 
 /**
  * Created by Sieben on 16.03.2015.
@@ -49,13 +49,6 @@ public class StackTraceOutput extends AbstractOutputCategory {
             }
         }
         return list;
-    }
-
-    @Override
-    public void add(XML ul, Object o) {
-        Thread t = (Thread) o;
-        for (StackTraceElement stacktrace : t.getStackTrace())
-            ul.add("li").setClass("object").add("span").setClass("value").appendText(stacktrace.toString());
     }
 
     @Override

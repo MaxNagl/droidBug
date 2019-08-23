@@ -1,4 +1,4 @@
-package de.siebn.javaBug;
+package de.siebn.javaBug.util;
 
 public class UnicodeCharacters {
     public static String NULL = "\u2205";

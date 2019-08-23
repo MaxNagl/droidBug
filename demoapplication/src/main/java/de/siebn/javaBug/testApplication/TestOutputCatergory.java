@@ -36,20 +36,6 @@ public class TestOutputCatergory extends AbstractOutputCategory {
     }
 
     @Override
-    public void add(XML ul, Object o) {
-        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        for (Method m : allMembers.methods) {
-            if (m.getName().equals("multiply")) {
-                addMethodInformation(ul, o, m, null, null);
-                addMethodInformation(ul, o, m, null, new Object[]{2});
-                addMethodInformation(ul, o, m, null, new Object[]{1, 2});
-                addMethodInformation(ul, o, m, new Object[]{2}, null);
-                addMethodInformation(ul, o, m, new Object[]{2}, new Object[]{1, 2});
-            }
-        }
-    }
-
-    @Override
     public boolean canOutputClass(Class<?> clazz) {
         return clazz.equals(TestClass.class);
     }
