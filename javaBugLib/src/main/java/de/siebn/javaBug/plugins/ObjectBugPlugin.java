@@ -67,8 +67,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public String getUrl() {
-        return "/objectsJson/";
+    public String getContent() {
+        return "/objects/";
     }
 
     @Override
@@ -78,15 +78,15 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     public static int visibleModifiers = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL | Modifier.SYNCHRONIZED | Modifier.STATIC | Modifier.VOLATILE | Modifier.INTERFACE;
 
-    @JavaBug.Serve("^/objectsJson/")
-    public BugElement serveObjectsJsonRoot(String[] params) {
+    @JavaBug.Serve("^/objects/")
+    public BugElement serveObjectsRoot(String[] params) {
         BugSplit split = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
         BugList list = new BugList();
-        list.addClazz("modFilter").format(BugFormat.paddingNormal);
+        list.addClazz("modFilter").format(BugFormat.tabContent);
         for (RootObject o : rootObjects) {
             list.add(getObjectElement(o.name, null, o.value));
         }
-        split.add(new BugSplitElement(list.setId("ABCDEF")));
+        split.add(new BugSplitElement(list));
         BugEntry options = new BugEntry();
         for (Entry<Integer, String> mod : StringifierUtil.modifierNames.entrySet()) {
             BugInputCheckbox checkbox = new BugInputCheckbox(null, mod.getValue());
@@ -102,8 +102,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         return split;
     }
 
-    @JavaBug.Serve("^/objectsJson/([^/]*)/details/")
-    public BugElement serveObjectsJsonDetails(String[] params) {
+    @JavaBug.Serve("^/objects/([^/]*)/details/")
+    public BugElement serveObjectsDetails(String[] params) {
         Object o = parseObjectReference(params[1]);
         BugList list = new BugList();
         boolean alreadyOpened = false;
@@ -113,7 +113,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             if (name != null) {
                 BugEntry c = new BugEntry();
                 c.elements.add(new BugText(name).setOnClick(BugText.ON_CLICK_EXPAND).format(BugFormat.category));
-                c.expand = "/objectsJson/" + getObjectReference(o) + "/details/" + cat.getId();
+                c.expand = "/objects/" + getObjectReference(o) + "/details/" + cat.getId();
                 c.elements.add(BugText.NBSP);
                 c.elements.add(BugInvokable.getExpandRefresh((String) c.expand));
                 if (cat.opened(outputCategories, alreadyOpened)) {
@@ -126,8 +126,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         return list;
     }
 
-    @JavaBug.Serve("^/objectsJson/([^/]*)/details/([^/]+)")
-    public BugElement serveObjectsJsonDetailsCategory(String[] params) {
+    @JavaBug.Serve("^/objects/([^/]*)/details/([^/]+)")
+    public BugElement serveObjectsDetailsCategory(String[] params) {
         Object o = parseObjectReference(params[1]);
         String category = params[2];
         for (OutputCategory cat : getOutputCategories(o.getClass())) {
@@ -138,12 +138,12 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         throw new IllegalArgumentException();
     }
 
-    public BugElement getJsonBugObjectFor(Object o) {
+    public BugElement getBugObjectFor(Object o) {
         BugEntry e = new BugEntry();
         e.elements.add(new BugText(o.getClass().getName()).format(BugFormat.clazz).setOnClick(BugText.ON_CLICK_EXPAND));
         e.elements.add(BugText.VALUE_SEPARATOR);
         e.elements.add(BugText.getForValue(o).format(BugFormat.value));
-        e.expand = "/objectsJson/" + getObjectReference(o) + "/details/";
+        e.expand = "/objects/" + getObjectReference(o) + "/details/";
         return e;
     }
 
@@ -157,20 +157,12 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     public String getObjectDetailsLink(Object o) {
-        return "/objectDetails/" + getObjectReference(o);
+        if (o == null) return null;
+        return "/objects/" + getObjectReference(o) + "/details/";
     }
 
     public String getObjectDetailsLink(Object o, String type) {
-        return "/objectDetails/" + type + "/" + getObjectReference(o);
-    }
-
-    public String getObjectDetailsLinkJson(Object o) {
-        if (o == null) return null;
-        return "/objectsJson/" + getObjectReference(o) + "/details/";
-    }
-
-    public String getObjectDetailsLinkJson(Object o, String type) {
-        return "/objectsJson/" + type + "/details/" + getObjectReference(o);
+        return "/objects/" + type + "/details/" + getObjectReference(o);
     }
 
     public String getObjectGetLink(Object o, Field f) {
@@ -273,7 +265,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
                 if (RETURN_TYPE_STRING.equals(returnType)) {
                     return TypeAdapters.toString(r);
                 } else if (RETURN_TYPE_JSON.equals(returnType)) {
-                    return getJsonBugObjectFor(r);
+                    return getBugObjectFor(r);
                 } else {
                     String rta = parms.get("rta");
                     TypeAdapters.TypeAdapter adapter = rta == null ? null : TypeAdapters.getTypeAdapterClass((Class<?>) parseObjectReference(rta));
@@ -286,7 +278,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     public BugElement getObjectElement(String title, String category, Object value) {
         BugEntry entry = new BugEntry();
-        entry.setExpand(javaBug.getObjectBug().getObjectDetailsLinkJson(value));
+        entry.setExpand(javaBug.getObjectBug().getObjectDetailsLink(value));
         if (title != null) {
             entry.add(new BugText(title).setOnClick(BugElement.ON_CLICK_EXPAND).format(BugFormat.title));
             entry.add(BugText.VALUE_SEPARATOR);

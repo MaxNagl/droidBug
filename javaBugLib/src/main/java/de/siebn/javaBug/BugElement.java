@@ -65,6 +65,19 @@ public abstract class BugElement {
         return new Gson().toJson(this);
     }
 
+    public static class BugInclude extends BugElement {
+        public String url;
+
+        public BugInclude(String url) {
+            this.url = url;
+        }
+
+        public BugInclude setUrl(String url) {
+            this.url = url;
+            return this;
+        }
+    }
+
     public static abstract class BugGroup extends BugElement {
         public final List<BugElement> elements = new ArrayList<>();
 

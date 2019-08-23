@@ -22,8 +22,8 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         this.javaBug = javaBug;
     }
 
-    @JavaBug.Serve("^/ioJson/")
-    public synchronized BugElement serveIosJson() {
+    @JavaBug.Serve("^/io/")
+    public synchronized BugElement serveIos() {
         BugList list = new BugList();
         for (MonitoredIo mio : monitoredIos) {
             BugEntry entry = new BugEntry();
@@ -32,7 +32,7 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
             entry.add(BugText.getForByteSize(mio.in.bout.size()));
             entry.addText(" Out: ");
             entry.add(BugText.getForByteSize(mio.out.bout.size()));
-            entry.setExpand(javaBug.getObjectBug().getObjectDetailsLinkJson(mio));
+            entry.setExpand(javaBug.getObjectBug().getObjectDetailsLink(mio));
             list.add(entry);
         }
         return list;
@@ -44,8 +44,8 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public String getUrl() {
-        return "/ioJson/";
+    public Object getContent() {
+        return new BugDiv().add(new BugInclude("/io/")).format(BugFormat.tabContent);
     }
 
     @Override

@@ -17,6 +17,8 @@ public enum BugFormat {
     bgNormal,
     bgLight,
 
+    tabContent(paddingNormal),
+
     title(colorPrimary),
     category(colorSecondary),
     modifier(colorPrimary),

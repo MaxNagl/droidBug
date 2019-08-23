@@ -61,7 +61,7 @@ public class CollectionsOutput extends AbstractOutputCategory {
                 expand.add(javaBug.getObjectBug().getObjectElement(null, "Value", val));
                 entry.setExpand(expand);
             } else {
-                entry.setExpand(javaBug.getObjectBug().getObjectDetailsLinkJson(val));
+                entry.setExpand(javaBug.getObjectBug().getObjectDetailsLink(val));
             }
             list.add(entry);
         }

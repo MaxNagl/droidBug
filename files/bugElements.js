@@ -7,6 +7,7 @@ $.fn.loadBugElement = function load(content, append) {
 }
 
 function loadModel(parent, content, callback) {
+    if (content.type == "BugInclude") content = content.url
     if (typeof content === 'string' || content instanceof String) {
         $.ajax({
             type: "GET",

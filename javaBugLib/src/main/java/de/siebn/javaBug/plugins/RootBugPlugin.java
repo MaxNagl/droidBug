@@ -28,7 +28,7 @@ public class RootBugPlugin implements BugPlugin {
 
     public interface MainBugPlugin extends BugPlugin {
         String getTabName();
-        String getUrl();
+        Object getContent();
     }
 
     @JavaBug.Serve("/")
@@ -54,7 +54,7 @@ public class RootBugPlugin implements BugPlugin {
         for (MainBugPlugin plugin : jb.getPlugins(MainBugPlugin.class)) {
             BugTab tab = new BugTab();
             tab.title = plugin.getTabName();
-            tab.content = plugin.getUrl();
+            tab.content = plugin.getContent();
             tabs.tabs.add(tab);
         }
         return tabs;

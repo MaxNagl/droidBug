@@ -15,14 +15,14 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
         this.javaBug = javaBug;
     }
 
-    @JavaBug.Serve("^/threadsJson/")
+    @JavaBug.Serve("^/threads/")
     public BugElement serveThreadsJson() {
         BugList list = new BugList();
         Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
         for (Thread thread : threadSet) {
             BugEntry entry = new BugEntry();
             entry.add(new BugText(thread.getName()).format(BugFormat.title).setOnClick(BugElement.ON_CLICK_EXPAND).format(BugFormat.title));
-            entry.setExpand(javaBug.getObjectBug().getObjectDetailsLinkJson(thread));
+            entry.setExpand(javaBug.getObjectBug().getObjectDetailsLink(thread));
             list.add(entry);
         }
         return list;
@@ -34,8 +34,8 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public String getUrl() {
-        return "/threadsJson/";
+    public Object getContent() {
+        return new BugDiv().add(new BugInclude("/threads/")).format(BugFormat.tabContent);
     }
 
     @Override

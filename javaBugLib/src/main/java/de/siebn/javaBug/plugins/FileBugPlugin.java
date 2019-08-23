@@ -23,8 +23,8 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public String getUrl() {
-        return "/filesJson/";
+    public Object getContent() {
+        return new BugDiv().add(new BugInclude("/files/")).format(BugFormat.tabContent);
     }
 
     @Override
@@ -32,11 +32,11 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         return 1000;
     }
 
-    @JavaBug.Serve("^/filesJson/(.*)")
-    public BugElement serverFilesJson(String[] param) throws IOException {
+    @JavaBug.Serve("^/files/(.*)")
+    public BugElement serverFiles(String[] param) {
         BugList list = new BugList();
         String path = param[1];
-        File files[];
+        File[] files;
         boolean showRoots = path == null || path.length() == 0;
         if (showRoots) {
             files = roots.keySet().toArray(new File[0]);
