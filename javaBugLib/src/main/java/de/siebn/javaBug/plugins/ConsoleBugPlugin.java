@@ -1,7 +1,6 @@
 package de.siebn.javaBug.plugins;
 
 
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.*;
 
@@ -10,19 +9,18 @@ import javax.script.*;
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.BugElement.BugInputList.Option;
-import de.siebn.javaBug.NanoHTTPD.Response;
-import de.siebn.javaBug.NanoHTTPD.Response.Status;
+import de.siebn.javaBug.plugins.ObjectBugPlugin.RootObject;
 import de.siebn.javaBug.plugins.StreamBugPlugin.BugStream;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
+import de.siebn.javaBug.util.UnicodeCharacters;
 
 /**
  * Created by Sieben on 05.03.2015.
  */
 public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin {
     private final JavaBug javaBug;
-    public static String a = "abc";
-
     private List<ScriptEngine> scriptEngines;
+    private ScriptConsole scriptConsole = new ScriptConsole();
 
     private Bindings bindings = new SimpleBindings() {
         @Override
@@ -39,8 +37,9 @@ public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin {
     };
 
     private Object getBinding(Object key) {
-        if ("a".equals(key)) return 1;
-        if ("b".equals(key)) return 2;
+        if ("console".equals(key)) return scriptConsole;
+        RootObject rootObject = javaBug.getObjectBug().getRootObjects().get(key);
+        if (rootObject != null) return rootObject.value;
         return null;
     }
 
@@ -66,26 +65,27 @@ public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @JavaBug.Serve("^/console/")
     public BugElement serveConsole() {
-        BugSplit split = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
-
-        BugPre stream = new BugElement.BugPre("");
-        stream.setStyle("height", "100%");
-        stream.stream = "/stream/";
-        split.add(new BugSplitElement(stream));
-
-        BugEntry entry = new BugEntry();
         BugInvokable invokable = new BugInvokable(null);
         invokable.url = "/exec/";
+        invokable.addClazz("console");
+
+        BugList list = new BugList();
+        invokable.add(list);
+
         List<ScriptEngine> scriptEngines = getScriptEngines();
         BugInputList engine = new BugInputList("engine", scriptEngines.get(0).getFactory().getEngineName());
         for (ScriptEngine e : scriptEngines) engine.options.add(new Option(e.getFactory().getEngineName(), e.getFactory().getEngineName()));
-        invokable.add(engine);
-        BugInputText script = new BugInputText("script", "");
-        invokable.add(script);
-        entry.add(invokable);
-        split.add(new BugSplitElement(entry));
+        list.add(new BugDiv().add(engine));
 
-        return split;
+        BugPre stream = new BugElement.BugPre("Welcome");
+        stream.setStyle("height", "100%");
+        stream.stream = "/stream/";
+        list.add(new BugSplitElement(stream));
+
+        BugInputText script = new BugInputText("script", "");
+        list.add(new BugDiv().add(script));
+
+        return invokable;
     }
 
     @JavaBug.Serve("^/exec/")
@@ -104,11 +104,30 @@ public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin {
 
         try {
             Object result = scriptEngine.eval(script);
-            javaBug.getStreamBugPlugin().getConsoleStream().sendFormatedText("> " + TypeAdapters.toString(result + "\n"), BugFormat.value.clazzes);
+            if (result != null) scriptConsole.log(result, BugFormat.value);
         } catch (ScriptException e) {
-            javaBug.getStreamBugPlugin().getConsoleStream().sendFormatedText(e.getMessage() + "\n", BugFormat.colorError.clazzes);
+            scriptConsole.log(e.getMessage(), BugFormat.colorError);
         }
         return "";
+    }
+
+    public class ScriptConsole {
+        public void log(Object o) {
+            log(o, BugFormat.colorNeutralLight);
+        }
+
+        public void error(Object o) {
+            log(o, BugFormat.colorError);
+        }
+
+        private void log(Object o, BugFormat format) {
+            BugEntry entry = new BugEntry();
+            entry.add(new BugText(o == null ? "null" : TypeAdapters.toString(o)).format(format).setOnClick(BugEntry.ON_CLICK_EXPAND));
+            if (!o.getClass().isPrimitive() && !o.getClass().equals(String.class)) {
+                entry.setExpandInclude(javaBug.getObjectBug().getObjectDetailsLink(o));
+            }
+            javaBug.getStreamBugPlugin().getConsoleStream().send(entry);
+        }
     }
 
     @Override
@@ -117,8 +136,8 @@ public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public Object getContent() {
-        return "/console/";
+    public BugElement getContent() {
+        return new BugInclude("/console/");
     }
 
     @Override

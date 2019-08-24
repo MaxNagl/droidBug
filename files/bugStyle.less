@@ -46,10 +46,9 @@ body {
 
 pre {
   background: #333;
-  max-height: 300px;
   overflow: auto;
   border: 1px solid #444;
-  padding: 0.5em;
+  padding: 8px;
 }
 
 a {
@@ -178,6 +177,33 @@ a {
     display: none;
     &:checked + span {
       .colorNeutral
+    }
+  }
+}
+
+.console {
+  pre {
+    padding-bottom: 0px;
+    border: none;
+    background-color: transparent;
+  }
+  span.BugInputText {
+   display:inline-block;
+    position: relative;
+    font-family: monospace;
+    border: none;
+    outline: none;
+    width: 100%;
+    padding-left: 24px;
+    background-color: transparent;
+    &.active {
+      border: none;
+    }
+    &:after {
+      position: absolute;
+      left: 8px;
+      top: 0px;
+      content: "\25BA";
     }
   }
 }

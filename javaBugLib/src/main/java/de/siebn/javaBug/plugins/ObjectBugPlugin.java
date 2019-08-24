@@ -13,7 +13,7 @@ import de.siebn.javaBug.util.*;
 
 public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public final HashMap<Integer, Object> references = new HashMap<>();
-    private ArrayList<RootObject> rootObjects = new ArrayList<>();
+    private HashMap<String, RootObject> rootObjects = new LinkedHashMap<>();
 
     public static class RootObject {
         String name;
@@ -58,7 +58,11 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         RootObject rootObject = new RootObject();
         rootObject.name = name;
         rootObject.value = value;
-        rootObjects.add(rootObject);
+        rootObjects.put(name, rootObject);
+    }
+
+    public HashMap<String, RootObject> getRootObjects() {
+        return rootObjects;
     }
 
     @Override
@@ -67,8 +71,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public String getContent() {
-        return "/objects/";
+    public BugElement getContent() {
+        return new BugInclude("/objects/");
     }
 
     @Override
@@ -83,7 +87,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugSplit split = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
         BugList list = new BugList();
         list.addClazz("modFilter").format(BugFormat.tabContent).setId("ObjectBugList");
-        for (RootObject o : rootObjects) {
+        for (RootObject o : rootObjects.values()) {
             list.add(getObjectElement(o.name, null, o.value));
         }
         split.add(new BugSplitElement(list));
@@ -113,9 +117,10 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             if (name != null) {
                 BugEntry c = new BugEntry();
                 c.elements.add(new BugText(name).setOnClick(BugText.ON_CLICK_EXPAND).format(BugFormat.category));
-                c.expand = "/objects/" + getObjectReference(o) + "/details/" + cat.getId();
+                String expandUrl = "/objects/" + getObjectReference(o) + "/details/" + cat.getId();
+                c.setExpandInclude(expandUrl);
                 c.elements.add(BugText.NBSP);
-                c.elements.add(BugInvokable.getExpandRefresh((String) c.expand));
+                c.elements.add(BugInvokable.getExpandRefresh(expandUrl));
                 if (cat.opened(outputCategories, alreadyOpened)) {
                     c.autoExpand = true;
                     alreadyOpened = true;
@@ -140,10 +145,12 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     public BugElement getBugObjectFor(Object o) {
         BugEntry e = new BugEntry();
-        e.elements.add(new BugText(o.getClass().getName()).format(BugFormat.clazz).setOnClick(BugText.ON_CLICK_EXPAND));
-        e.elements.add(BugText.VALUE_SEPARATOR);
-        e.elements.add(BugText.getForValue(o).format(BugFormat.value));
-        e.expand = "/objects/" + getObjectReference(o) + "/details/";
+        if (o != null) {
+            e.elements.add(new BugText(o.getClass().getName()).format(BugFormat.clazz).setOnClick(BugText.ON_CLICK_EXPAND));
+            e.elements.add(BugText.VALUE_SEPARATOR);
+        }
+        e.elements.add(BugText.getForValue(o));
+        e.setExpandInclude("/objects/" + getObjectReference(o) + "/details/");
         return e;
     }
 
@@ -278,7 +285,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     public BugElement getObjectElement(String title, String category, Object value) {
         BugEntry entry = new BugEntry();
-        entry.setExpand(javaBug.getObjectBug().getObjectDetailsLink(value));
+        entry.setExpand(new BugInclude(javaBug.getObjectBug().getObjectDetailsLink(value)));
         if (title != null) {
             entry.add(new BugText(title).setOnClick(BugElement.ON_CLICK_EXPAND).format(BugFormat.title));
             entry.add(BugText.VALUE_SEPARATOR);

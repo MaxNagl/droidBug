@@ -32,7 +32,7 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
             entry.add(BugText.getForByteSize(mio.in.bout.size()));
             entry.addText(" Out: ");
             entry.add(BugText.getForByteSize(mio.out.bout.size()));
-            entry.setExpand(javaBug.getObjectBug().getObjectDetailsLink(mio));
+            entry.setExpandInclude(javaBug.getObjectBug().getObjectDetailsLink(mio));
             list.add(entry);
         }
         return list;
@@ -44,7 +44,7 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public Object getContent() {
+    public BugElement getContent() {
         return new BugDiv().add(new BugInclude("/io/")).format(BugFormat.tabContent);
     }
 

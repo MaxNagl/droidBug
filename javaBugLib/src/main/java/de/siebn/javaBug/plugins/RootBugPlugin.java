@@ -1,9 +1,8 @@
 package de.siebn.javaBug.plugins;
 
 import de.siebn.javaBug.BugElement;
-import de.siebn.javaBug.BugElement.BugTabs;
+import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.BugElement.BugTabs.BugTab;
-import de.siebn.javaBug.BugElement.BugText;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.NanoHTTPD.Response;
 import de.siebn.javaBug.util.HtmlPage;
@@ -30,7 +29,7 @@ public class RootBugPlugin implements BugPlugin {
 
     public interface MainBugPlugin extends BugPlugin {
         String getTabName();
-        Object getContent();
+        BugElement getContent();
     }
 
     @JavaBug.Serve("/")
@@ -42,7 +41,7 @@ public class RootBugPlugin implements BugPlugin {
         head.add("script").setAttr("src", "/file/jquery.js");
         head.add("script").setAttr("src", "/file/less.js");
         head.add("script").setAttr("src", "/file/bugElements.js");
-        head.add("script").appendText("$(function () { $('body').loadBugElement('/start/'); });");
+        head.add("script").appendText("$(function () { $('body').loadContent('" + new BugInclude("/start/").toJson() + "', 'application/json'); });");
 
         XML body = xhtml.add("body");
         body.add("div").setId("loading").appendText("Loading...");

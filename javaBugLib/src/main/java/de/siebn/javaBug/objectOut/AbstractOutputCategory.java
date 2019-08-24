@@ -169,7 +169,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         }
 
         BugEntry json = new BugEntry();
-        json.setExpand(javaBug.getObjectBug().getObjectDetailsLink(val));
+        json.setExpandInclude(javaBug.getObjectBug().getObjectDetailsLink(val));
         json.addClazz(StringifierUtil.modifiersToString(f.getModifiers(), "mod", true));
         json.add(BugText.getForModifier(f.getModifiers())).addSpace();
         json.add(BugText.getForClass(f.getType())).addSpace();

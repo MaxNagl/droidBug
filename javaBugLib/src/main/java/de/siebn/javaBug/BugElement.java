@@ -106,12 +106,16 @@ public abstract class BugElement {
     }
 
     public static class BugEntry extends BugGroup {
-        public Object expand;
+        public BugElement expand;
         public Boolean autoExpand;
 
-        public BugEntry setExpand(Object expand) {
+        public BugEntry setExpand(BugElement expand) {
             this.expand = expand;
             return this;
+        }
+
+        public BugEntry setExpandInclude(String url) {
+            return setExpand(new BugInclude(url));
         }
     }
 
@@ -158,7 +162,7 @@ public abstract class BugElement {
         }
 
         public static BugText getForValue(Object val) {
-            BugText text = new BugText(TypeAdapters.toString(val));
+            BugText text = new BugText(val == null ? "null" : TypeAdapters.toString(val));
             text.format(val == null ? BugFormat.nul : BugFormat.value);
             return text;
         }
@@ -289,7 +293,7 @@ public abstract class BugElement {
 
         public static class BugTab {
             public String title;
-            public Object content;
+            public BugElement content;
         }
     }
 
@@ -307,9 +311,9 @@ public abstract class BugElement {
     public static class BugSplitElement extends BugElement {
         public String weight = "1";
         public String fixed = "0";
-        public Object content;
+        public BugElement content;
 
-        public BugSplitElement(Object content) {
+        public BugSplitElement(BugElement content) {
             this.content = content;
         }
 
@@ -323,7 +327,7 @@ public abstract class BugElement {
             return this;
         }
 
-        public BugSplitElement setContent(Object content) {
+        public BugSplitElement setContent(BugElement content) {
             this.content = content;
             return this;
         }

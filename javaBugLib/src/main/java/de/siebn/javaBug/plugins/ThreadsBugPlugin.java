@@ -22,7 +22,7 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
         for (Thread thread : threadSet) {
             BugEntry entry = new BugEntry();
             entry.add(new BugText(thread.getName()).format(BugFormat.title).setOnClick(BugElement.ON_CLICK_EXPAND).format(BugFormat.title));
-            entry.setExpand(javaBug.getObjectBug().getObjectDetailsLink(thread));
+            entry.setExpandInclude(javaBug.getObjectBug().getObjectDetailsLink(thread));
             list.add(entry);
         }
         return list;
@@ -34,7 +34,7 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public Object getContent() {
+    public BugElement getContent() {
         return new BugDiv().add(new BugInclude("/threads/")).format(BugFormat.tabContent);
     }
 

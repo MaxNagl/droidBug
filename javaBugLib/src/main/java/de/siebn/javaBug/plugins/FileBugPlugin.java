@@ -23,7 +23,7 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public Object getContent() {
+    public BugElement getContent() {
         return new BugDiv().add(new BugInclude("/files/")).format(BugFormat.tabContent);
     }
 
@@ -53,7 +53,7 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
                 BugEntry f = new BugEntry();
                 f.add(new BugText(file.getAbsolutePath()).format(BugFormat.file).setOnClick(BugText.ON_CLICK_EXPAND));
                 if (file.isDirectory()) {
-                    f.expand = "/filesJson/" + file.getAbsolutePath();
+                    f.setExpandInclude("/files/" + file.getAbsolutePath());
                 } else {
                     f.addSpace().add(new BugLink("[view]").setUrl("/file/" + file.getAbsolutePath()));
                     f.addSpace().add(new BugLink("[download]").setUrl("/file/" + file.getAbsolutePath() + "?download=true"));

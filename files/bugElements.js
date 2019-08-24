@@ -1,17 +1,21 @@
-$.fn.loadBugElement = function load(content, append) {
+$.fn.loadContent = function(content, mimeType, append) {
     if (append != true) this.empty();
-    loadModel(this.data('model'), content, function (model) {
-        this.append(model.view);
-    }.bind(this));
+    if (mimeType == 'application/json') {
+        if ((typeof content) == 'string') content = JSON.parse(content);
+        loadModel(this.data('model'), content, function (model) {
+            this.append(model.view);
+        }.bind(this));
+    } else if (mimeType == 'text/plain') {
+            this.append(content);
+    }
     return this;
 }
 
 function loadModel(parent, content, callback) {
-    if (content.type == "BugInclude") content = content.url
-    if (typeof content === 'string' || content instanceof String) {
+    if (content.type == "BugInclude") {
         $.ajax({
             type: "GET",
-            url: content,
+            url: content.url,
             success: function (result) {
                 var model = getModel(parent, result);
                 callback(model);
@@ -29,6 +33,7 @@ function loadModel(parent, content, callback) {
 }
 
 function getModel(parent, data) {
+    if (data.type == 'BugInclude') return new BugInclude(parent, data);
     if (data.type == 'BugEntry') return new BugEntry(parent, data);
     if (data.type == 'BugList') return new BugList(parent, data);
     if (data.type == 'BugDiv') return new BugDiv(parent, data);
@@ -200,16 +205,17 @@ class BugPre extends BugText {
             type: "GET",
             url: this.data.stream,
             success: function (result, status, xhr) {
-                var tag = xhr.getResponseHeader("tag");
-                var clazz = xhr.getResponseHeader("clazz");
-                if (tag != null || clazz != null) {
-                    var span = tag == null ? $('<span>') : $('<' + tag + '>');
-                    span.append(result);
-                    if (clazz != null) span.addClass(clazz);
-                    this.view.append(span);
-                } else {
-                    this.view.append(result);
-                }
+                this.view.loadContent(result, xhr.getResponseHeader("Content-Type"), true);
+//                var tag = xhr.getResponseHeader("tag");
+//                var clazz = xhr.getResponseHeader("clazz");
+//                if (tag != null || clazz != null) {
+//                    var span = tag == null ? $('<span>') : $('<' + tag + '>');
+//                    span.append(result);
+//                    if (clazz != null) span.addClass(clazz);
+//                    this.view.append(span);
+//                } else {
+//                    this.view.append(result);
+//                }
                 this.appendStream();
             }.bind(this),
             timeout: 2000,
@@ -356,7 +362,7 @@ class BugInvokable extends BugGroup {
                 if (value != null) request[element.data.callId] = value;
             }
             if (element.elements != null) this.addElementsToRequest(request, element.elements)
-        });
+        }.bind(this));
     }
 }
 

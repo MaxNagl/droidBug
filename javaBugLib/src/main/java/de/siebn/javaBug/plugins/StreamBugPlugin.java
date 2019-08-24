@@ -6,10 +6,10 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import de.siebn.javaBug.*;
+import de.siebn.javaBug.BugElement.BugText;
+import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.JavaBug.BugPlugin;
-import de.siebn.javaBug.NanoHTTPD.Response;
-import de.siebn.javaBug.NanoHTTPD.Response.Status;
+import de.siebn.javaBug.NanoHTTPD;
 
 /**
  * Created by Sieben on 05.03.2015.
@@ -54,12 +54,6 @@ public class StreamBugPlugin implements BugPlugin {
             notifyAll();
         }
 
-        public void sendFormatedText(String text, String clazz) {
-            Response response = new Response(Status.OK, NanoHTTPD.MIME_PLAINTEXT, text);
-            response.addHeader("clazz", clazz);
-            send(response);
-        }
-
         public synchronized void waitIfEmpty(long timeout) {
             if (queue.isEmpty()) {
                 try {
@@ -98,7 +92,7 @@ public class StreamBugPlugin implements BugPlugin {
 
         public static class OutputStreamSender {
             public void send(BugStream bugStream, byte[] b, int off, int len) {
-                bugStream.send(new Response(Status.OK, NanoHTTPD.MIME_PLAINTEXT, new String(b, off, len)));
+                bugStream.send(new String(b, off, len));
             }
         }
 
@@ -110,9 +104,7 @@ public class StreamBugPlugin implements BugPlugin {
             }
 
             public void send(BugStream bugStream, byte[] b, int off, int len) {
-                Response response = new Response(Status.OK, NanoHTTPD.MIME_PLAINTEXT, new String(b, off, len));
-                response.addHeader("clazz", clazz);
-                bugStream.send(response);
+                bugStream.send(new BugText(new String(b, off, len)).addClazz(clazz));
             }
         }
     }
