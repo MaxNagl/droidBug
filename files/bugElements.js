@@ -190,6 +190,33 @@ class BugText extends BugElement {
 class BugPre extends BugText {
     constructor(parent, data) {
         super(parent, data, $('<pre>'))
+        if (data.stream != null) {
+            this.appendStream();
+        }
+    }
+
+    appendStream() {
+        $.ajax({
+            type: "GET",
+            url: this.data.stream,
+            success: function (result, status, xhr) {
+                var tag = xhr.getResponseHeader("tag");
+                var clazz = xhr.getResponseHeader("clazz");
+                if (tag != null || clazz != null) {
+                    var span = tag == null ? $('<span>') : $('<' + tag + '>');
+                    span.append(result);
+                    if (clazz != null) span.addClass(clazz);
+                    this.view.append(span);
+                } else {
+                    this.view.append(result);
+                }
+                this.appendStream();
+            }.bind(this),
+            timeout: 2000,
+            error: function (result) {
+                this.appendStream();
+            }.bind(this)
+        });
     }
 }
 
@@ -297,7 +324,7 @@ class BugInvokable extends BugGroup {
         var request = {};
         this.addElementsToRequest(request, this.elements);
         $.ajax({
-            type: "GET",
+            type: "POST",
             url: this.data.url,
             data: request,
             success: function (result, status) {

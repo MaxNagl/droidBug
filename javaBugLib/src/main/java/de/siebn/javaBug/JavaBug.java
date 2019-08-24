@@ -1,44 +1,26 @@
 package de.siebn.javaBug;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.siebn.javaBug.NanoHTTPD.Response.Status;
-import de.siebn.javaBug.objectOut.CollectionsOutput;
-import de.siebn.javaBug.objectOut.FieldsOutput;
-import de.siebn.javaBug.objectOut.MethodsOutput;
-import de.siebn.javaBug.objectOut.PojoOutput;
-import de.siebn.javaBug.objectOut.StackTraceOutput;
-import de.siebn.javaBug.plugins.FileBugPlugin;
-import de.siebn.javaBug.plugins.IoBugPlugin;
-import de.siebn.javaBug.plugins.ObjectBugPlugin;
-import de.siebn.javaBug.plugins.RootBugPlugin;
-import de.siebn.javaBug.plugins.ThreadsBugPlugin;
-import de.siebn.javaBug.util.StringifierUtil;
+import de.siebn.javaBug.objectOut.*;
+import de.siebn.javaBug.plugins.*;
 import de.siebn.javaBug.util.XML;
+import de.siebn.javaBug.util.XML.HTML;
 
 /**
  * Created by Sieben on 04.03.2015.
  */
 public class JavaBug extends NanoHTTPD {
+    private final StreamBugPlugin streamBugPlugin = new StreamBugPlugin(this);
     private final ObjectBugPlugin objectBugPlugin = new ObjectBugPlugin(this);
     private final FileBugPlugin fileBugPlugin = new FileBugPlugin();
     private final ArrayList<Server> servers = new ArrayList<>();
@@ -103,11 +85,13 @@ public class JavaBug extends NanoHTTPD {
     public void addDefaultPlugins() {
         fileBugPlugin.addRoot("/", new File(".").getAbsoluteFile());
 
-        addPlugin(new RootBugPlugin(this));
-        addPlugin(new ThreadsBugPlugin(this));
         addPlugin(getFileBug());
         addPlugin(getObjectBug());
+        addPlugin(getStreamBugPlugin());
+        addPlugin(new RootBugPlugin(this));
+        addPlugin(new ThreadsBugPlugin(this));
         addPlugin(new IoBugPlugin(this));
+        addPlugin(new ConsoleBugPlugin(this));
 
         addPlugin(new CollectionsOutput(this));
         addPlugin(new FieldsOutput(this));
@@ -167,7 +151,9 @@ public class JavaBug extends NanoHTTPD {
                             }
                             Object r = invokeSync(object, method, param);
                             if (r instanceof Response) return (Response) r;
-                            if (r instanceof XML) return new Response(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, ((XML) r).getXml());
+                            if (r instanceof String) return new Response(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, (String) r);
+                            if (r instanceof HTML) return new Response(Response.Status.OK, NanoHTTPD.MIME_HTML, ((HTML) r).getHtml());
+                            if (r instanceof XML) return new Response(Response.Status.OK, "application/xml", ((XML) r).getXml());
                             if (r instanceof BugElement) return new Response(Response.Status.OK, "application/json", ((BugElement) r).toJson());
                             if (r instanceof byte[]) return new Response(Response.Status.OK, "application/octet-stream", new ByteArrayInputStream((byte[]) r));
                             if (r instanceof InputStream) return new Response(Response.Status.OK, "application/octet-stream", (InputStream) r);
@@ -235,7 +221,6 @@ public class JavaBug extends NanoHTTPD {
 
     @Override
     public Response serve(IHTTPSession session) {
-        long start = System.nanoTime();
         try {
             for (Server server : servers)
                 if (server.responsible(session))
@@ -246,8 +231,6 @@ public class JavaBug extends NanoHTTPD {
         } catch (Throwable t) {
             t.printStackTrace();
             return new Response(Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT, t.getClass().getSimpleName() + ": " + t.getMessage());
-        } finally {
-            System.out.println("Serving: " + session.getUri() + " in: " + StringifierUtil.nanoSecondsToString(System.nanoTime() - start));
         }
     }
 
@@ -302,5 +285,9 @@ public class JavaBug extends NanoHTTPD {
 
     public FileBugPlugin getFileBug() {
         return fileBugPlugin;
+    }
+
+    public StreamBugPlugin getStreamBugPlugin() {
+        return streamBugPlugin;
     }
 }

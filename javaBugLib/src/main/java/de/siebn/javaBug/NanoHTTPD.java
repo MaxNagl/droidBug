@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import de.siebn.javaBug.util.StringifierUtil;
+
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
  * <p/>
@@ -179,6 +181,8 @@ public abstract class NanoHTTPD {
                         asyncRunner.exec(new Runnable() {
                             @Override
                             public void run() {
+                                System.out.println(Thread.currentThread().getName() + ": connected at " + SimpleDateFormat.getDateTimeInstance().format(new Date()));
+                                long connectionTime = System.nanoTime();
                                 OutputStream outputStream = null;
                                 try {
                                     outputStream = finalAccept.getOutputStream();
@@ -199,6 +203,7 @@ public abstract class NanoHTTPD {
                                     safeClose(finalAccept);
                                     unRegisterConnection(finalAccept);
                                 }
+                                System.out.println(Thread.currentThread().getName() + ": disconnected after " + StringifierUtil.nanoSecondsToString(System.nanoTime() - connectionTime));
                             }
                         });
                     } catch (IOException e) {
@@ -212,7 +217,7 @@ public abstract class NanoHTTPD {
     }
 
     protected HTTPSession createHttpSession(OutputStream outputStream, TempFileManager tempFileManager, InputStream inputStream, Socket finalAccept) {
-        return new HTTPSession(tempFileManager, inputStream, outputStream, finalAccept.getInetAddress());
+        return new HTTPSession(tempFileManager, inputStream, outputStream, finalAccept.getInetAddress(), finalAccept);
     }
 
     /**
@@ -849,6 +854,7 @@ public abstract class NanoHTTPD {
         private final TempFileManager tempFileManager;
         private final OutputStream outputStream;
         private PushbackInputStream inputStream;
+        private Socket socket;
         private int splitbyte;
         private int rlen;
         private String uri;
@@ -864,10 +870,11 @@ public abstract class NanoHTTPD {
             this.outputStream = outputStream;
         }
 
-        public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+        public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress, Socket socket) {
             this.tempFileManager = tempFileManager;
             this.inputStream = new PushbackInputStream(inputStream, BUFSIZE);
             this.outputStream = outputStream;
+            this.socket = socket;
             String remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress();
             headers = new HashMap<String, String>();
 
@@ -935,7 +942,9 @@ public abstract class NanoHTTPD {
                 cookies = new CookieHandler(headers);
 
                 // Ok, now do the serve()
+                long start = System.nanoTime();
                 Response r = serve(this);
+                System.out.println(Thread.currentThread().getName() + ": " + getUri() + " in " + StringifierUtil.nanoSecondsToString(System.nanoTime() - start));
                 if (r == null) {
                     throw new ResponseException(Response.Status.INTERNAL_ERROR, "SERVER INTERNAL ERROR: Serve() returned a null response.");
                 } else {

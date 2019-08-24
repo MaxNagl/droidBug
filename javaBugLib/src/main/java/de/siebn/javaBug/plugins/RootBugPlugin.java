@@ -5,9 +5,11 @@ import de.siebn.javaBug.BugElement.BugTabs;
 import de.siebn.javaBug.BugElement.BugTabs.BugTab;
 import de.siebn.javaBug.BugElement.BugText;
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.NanoHTTPD.Response;
 import de.siebn.javaBug.util.HtmlPage;
 import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
+import de.siebn.javaBug.util.XML.HTML;
 
 import static de.siebn.javaBug.JavaBug.BugPlugin;
 
@@ -32,8 +34,8 @@ public class RootBugPlugin implements BugPlugin {
     }
 
     @JavaBug.Serve("/")
-    public String serveRoot() {
-        XML xhtml = new XML();
+    public XML serveRoot() {
+        XML xhtml = new HTML();
 
         XML head = xhtml.add("head");
         head.add("link").setAttr("rel", "stylesheet/less").setAttr("href", "/file/bugStyle.less");
@@ -45,7 +47,7 @@ public class RootBugPlugin implements BugPlugin {
         XML body = xhtml.add("body");
         body.add("div").setId("loading").appendText("Loading...");
 
-        return xhtml.getHtml();
+        return xhtml;
     }
 
     @JavaBug.Serve("/start/")

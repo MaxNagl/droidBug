@@ -82,7 +82,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public BugElement serveObjectsRoot(String[] params) {
         BugSplit split = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
         BugList list = new BugList();
-        list.addClazz("modFilter").format(BugFormat.tabContent).setId("ObjectBugList").format(BugFormat.autoScale);
+        list.addClazz("modFilter").format(BugFormat.tabContent).setId("ObjectBugList");
         for (RootObject o : rootObjects) {
             list.add(getObjectElement(o.name, null, o.value));
         }

@@ -172,6 +172,8 @@ public abstract class BugElement {
     }
 
     public static class BugPre extends BugText {
+        public String stream;
+
         public BugPre(String text) {
             super(text);
         }
