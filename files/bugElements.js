@@ -237,27 +237,71 @@ class BugLink extends BugText {
 class BugInputText extends BugText {
     constructor(parent, data) {
         super(parent, data, $('<span>'));
+        this.setMode(data.mode == null ? 'text' : data.mode);
         if (data.enabled == false) {
             this.view.prop('disabled', true);
         } else {
             this.view.attr('contenteditable', true);
             this.view.on('keydown', function (e) {
                 if (e.keyCode == 13) { // enter
-                    e.preventDefault();
-                    this.onEnter();
+                    if (!e.shiftKey && (data.multiline != true || e.ctrlKey)) {
+                        e.preventDefault();
+                        this.onEnter();
+                    }
                 }
                 if (e.keyCode == 27) { // esc
                     e.preventDefault();
                     this.onEsc();
                 }
                 if (e.keyCode == 8 || e.keyCode == 46) { // backspace or delete
-                    if (this.data.nullable == true && this.view.text() == "") this.view.toggleClass("null");
+                    if (this.data.nullable == true && this.view.text() == "") {
+                        if (this.mode == 'null') this.unsetNull(); else this.setMode('null');
+                    }
                 }
             }.bind(this));
+            this.view.on('keypress', function (e) {
+                if (e.keyCode == 32 && (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey)) { // ctrl
+                    e.preventDefault();
+                    this.toggleMode();
+                }
+            }.bind(this));
+            this.view.on('paste', function(e) {
+                e.preventDefault();
+                document.execCommand("insertText", false, e.originalEvent.clipboardData.getData("text/plain"));
+            }.bind(this));
             this.view.on('keyup keypress focus blur change', function (e) {
-                if (this.view.text() != "") this.view.removeClass("null");
+                if (this.mode == 'null' && this.view.text() != '') this.unsetNull()
             }.bind(this));
         }
+    }
+
+    setMode(mode) {
+        if (mode == "null" && this.mode != "null") this.lastMode = this.mode;
+        this.mode = mode;
+        this.view.attr('mode', mode);
+        var prefix = null;
+        if (mode == 'script')  prefix = 'js';
+        if (mode == 'null')  prefix = 'null';
+        this.view.attr('prefix', prefix);
+        if (prefix != null) {
+            var measure = $('<span>').append(prefix);
+            $('html').append(measure);
+            this.view.css('padding-left', measure.outerWidth() + 18);
+            measure.remove();
+        } else {
+            this.view.css('padding-left', '');
+        }
+    }
+
+    unsetNull() {
+        if (this.lastMode != null) this.setMode(this.lastMode); else this.toggleMode();
+    }
+
+    toggleMode() {
+        var allModes = ['text', 'script'];
+        var index = allModes.indexOf(this.mode);
+        console.log(index);
+        this.setMode(allModes[(index + 1) % allModes.length]);
     }
 
     onEnter() {

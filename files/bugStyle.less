@@ -132,18 +132,20 @@ a {
   padding: 0px 5px;
   display: inline-block;
   cursor: default;
+  position: relative;
   &[contenteditable=true] {
     cursor: text;
     background-color: #111;
-  }
-  &:empty:before {
-    content: "\00a0";
-  }
-  &.null {
-    .colorSecondary;
-  }
-  &.null:before {
-    content: "null";
+    &:empty:before {
+      content: "\00a0";
+    }
+    &:after {
+      .colorSecondary;
+      position: absolute;
+      left: 8px;
+      top: 0px;
+      content: attr(prefix);
+    }
   }
 }
 
@@ -185,25 +187,17 @@ a {
   pre {
     padding-bottom: 0px;
     border: none;
-    background-color: transparent;
+    background-color: #111;
   }
   span.BugInputText {
-   display:inline-block;
+    display:block;
     position: relative;
     font-family: monospace;
     border: none;
     outline: none;
-    width: 100%;
-    padding-left: 24px;
     background-color: transparent;
     &.active {
       border: none;
-    }
-    &:after {
-      position: absolute;
-      left: 8px;
-      top: 0px;
-      content: "\25BA";
     }
   }
 }

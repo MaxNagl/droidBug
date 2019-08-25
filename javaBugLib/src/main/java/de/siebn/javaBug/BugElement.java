@@ -198,6 +198,7 @@ public abstract class BugElement {
 
     public static class BugInputText extends BugText {
         public boolean nullable;
+        public String mode;
 
         public BugInputText(String callId, String text) {
             super(text);

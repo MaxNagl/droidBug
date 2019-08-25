@@ -83,6 +83,8 @@ public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin {
         list.add(new BugSplitElement(stream));
 
         BugInputText script = new BugInputText("script", "");
+        script.mode = "script";
+        script.nullable = true;
         list.add(new BugDiv().add(script));
 
         return invokable;
