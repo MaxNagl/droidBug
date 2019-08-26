@@ -1,6 +1,12 @@
 apply plugin: 'java'
+apply plugin: 'kotlin'
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':javaBugLib')
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-script-util:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-script-util:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlin_version"
+    runtime "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$kotlin_version"
 }

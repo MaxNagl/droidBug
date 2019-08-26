@@ -52,6 +52,10 @@ public class JavaBug extends NanoHTTPD {
         String[] requiredParameters() default {};
     }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface ServeAsync {
+    }
+
     public JavaBug(int port) {
         super(port);
         this.port = port;
@@ -149,7 +153,8 @@ public class JavaBug extends NanoHTTPD {
                                     if (!params.containsKey(reqParam)) throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Missing parameter \"" + reqParam + "\"");
                                 }
                             }
-                            Object r = invokeSync(object, method, param);
+
+                            Object r = (method.getAnnotation(ServeAsync.class) != null) ? method.invoke(object, param) : invokeSync(object, method, param);
                             if (r instanceof Response) return (Response) r;
                             if (r instanceof String) return new Response(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, (String) r);
                             if (r instanceof HTML) return new Response(Response.Status.OK, NanoHTTPD.MIME_HTML, ((HTML) r).getHtml());

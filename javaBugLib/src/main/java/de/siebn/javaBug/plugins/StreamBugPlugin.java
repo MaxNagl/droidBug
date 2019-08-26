@@ -24,6 +24,7 @@ public class StreamBugPlugin implements BugPlugin {
     }
 
     @JavaBug.Serve("^/stream/")
+    @JavaBug.ServeAsync
     public Object getStream(NanoHTTPD.IHTTPSession session) {
         Object token = new Object();
         try {

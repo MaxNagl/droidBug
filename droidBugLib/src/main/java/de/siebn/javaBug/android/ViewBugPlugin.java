@@ -63,8 +63,8 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugSplit vertical = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
         horizontal.add(new BugSplitElement(vertical));
         horizontal.add(new BugSplitElement(new BugDiv().setId("VuewBugDetails").format(BugFormat.paddingNormal)));
-        vertical.add(new BugSplitElement("/viewTreeDivsJson").format(BugFormat.paddingNormal));
-        vertical.add(new BugSplitElement("/viewTreeJson").format(BugFormat.paddingNormal));
+        vertical.add(new BugSplitElement(new BugInclude("/viewTreeDivsJson")).format(BugFormat.paddingNormal));
+        vertical.add(new BugSplitElement(new BugInclude("/viewTreeJson")).format(BugFormat.paddingNormal));
         return horizontal;
     }
 
@@ -202,8 +202,8 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
-    public Object getContent() {
-        return "/viewsJson";
+    public BugElement getContent() {
+        return new BugInclude("/viewsJson");
     }
 
     @Override
