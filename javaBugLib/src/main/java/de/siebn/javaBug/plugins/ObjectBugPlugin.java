@@ -16,8 +16,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     private HashMap<String, RootObject> rootObjects = new LinkedHashMap<>();
 
     public static class RootObject {
-        String name;
-        Object value;
+        public String name;
+        public Object value;
     }
 
     private JavaBug javaBug;

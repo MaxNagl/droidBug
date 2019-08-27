@@ -1,2 +1,0 @@
-package de.siebn.javaBug;
-

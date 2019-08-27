@@ -13,6 +13,8 @@ import java.util.regex.Pattern;
 import de.siebn.javaBug.NanoHTTPD.Response.Status;
 import de.siebn.javaBug.objectOut.*;
 import de.siebn.javaBug.plugins.*;
+import de.siebn.javaBug.plugins.ObjectBugPlugin.RootObject;
+import de.siebn.javaBug.plugins.scripts.*;
 import de.siebn.javaBug.util.XML;
 import de.siebn.javaBug.util.XML.HTML;
 
@@ -86,8 +88,19 @@ public class JavaBug extends NanoHTTPD {
         addAnnotatedMethods(plugin);
     }
 
+    public Object getBinding(Object key) {
+        //if ("console".equals(key)) return scriptConsole;
+        RootObject rootObject = getObjectBug().getRootObjects().get(key);
+        if (rootObject != null) return rootObject.value;
+        return null;
+    }
+
     public void addDefaultPlugins() {
         fileBugPlugin.addRoot("/", new File(".").getAbsoluteFile());
+
+        addPlugin(new BugScriptJsr223Plugin(this));
+        addPlugin(new BugScriptRhinoPlugin(this));
+        addPlugin(new BugScriptGroovyPlugin(this));
 
         addPlugin(getFileBug());
         addPlugin(getObjectBug());

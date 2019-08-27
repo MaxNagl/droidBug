@@ -12,9 +12,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
 
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.NanoHTTPD.AsyncRunner;
