@@ -36,13 +36,13 @@ public class BugScriptGroovyPlugin implements BugScriptEnginePlugin {
             shell = new GroovyShell(new Binding() {
                 @Override
                 public Object getVariable(String name) {
-                    Object o = javaBug.getBinding(name);
+                    Object o = javaBug.resolveReference(name);
                     return o != null ? o : super.getVariable(name);
                 }
 
                 @Override
                 public boolean hasVariable(String name) {
-                    Object o = javaBug.getBinding(name);
+                    Object o = javaBug.resolveReference(name);
                     return o != null || super.hasVariable(name);
                 }
             });

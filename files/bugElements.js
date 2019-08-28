@@ -178,11 +178,6 @@ class BugText extends BugElement {
     setValue(value) {
         if (this.view.text() != value) {
             this.view.text(value)
-            if (value == null) {
-                this.view.addClass("null");
-            } else {
-                this.view.removeClass("null");
-            }
         }
     }
 
@@ -210,7 +205,7 @@ class BugPre extends BugText {
                 this.appendStream();
                 if (scrolledDown) this.view.scrollTop(this.view[0].scrollHeight);
             }.bind(this),
-            timeout: 2000,
+            timeout: 60000,
             error: function (result) {
                 this.appendStream();
             }.bind(this)
@@ -277,8 +272,8 @@ class BugInputText extends BugText {
             this.view.attr('mode', 'script');
             prefix = mode.substring(7);
         } 
-        if (mode == 'null')  prefix = 'null';
-        if (mode == 'ref')  prefix = '@';
+        if (mode == 'null') prefix = 'null';
+        if (mode == 'ref') prefix = '@';
         this.view.attr('prefix', prefix);
         if (prefix != null) {
             var measure = $('<span class="measurePre">').append(prefix);
@@ -287,6 +282,15 @@ class BugInputText extends BugText {
             measure.remove();
         } else {
             this.view.css('padding-left', '');
+        }
+    }
+
+    setValue(value) {
+        super.setValue(value)
+        if (value == null) {
+            this.setMode("null");
+        } else if (this.mode == "null") {
+            this.toggleMode();
         }
     }
 

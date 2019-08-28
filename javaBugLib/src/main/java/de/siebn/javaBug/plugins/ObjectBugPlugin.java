@@ -12,7 +12,6 @@ import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 import de.siebn.javaBug.util.*;
 
 public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
-    public final HashMap<Integer, Object> references = new HashMap<>();
     private HashMap<String, RootObject> rootObjects = new LinkedHashMap<>();
 
     public static class RootObject {
@@ -24,14 +23,6 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     public ObjectBugPlugin(JavaBug javaBug) {
         this.javaBug = javaBug;
-    }
-
-    public static int parseHash(String hashString) {
-        return Integer.parseInt(hashString.substring(hashString.startsWith("/") ? 2 : 1), 16);
-    }
-
-    public static String getHash(Object o) {
-        return "@" + Integer.toHexString(System.identityHashCode(o));
     }
 
     public List<OutputCategory> getOutputCategories(Class<?> clazz) {
@@ -108,7 +99,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @JavaBug.Serve("^/objects/([^/]*)/details/")
     public BugElement serveObjectsDetails(String[] params) {
-        Object o = parseObjectReference(params[1]);
+        Object o = BugObjectCache.get(params[1]);
         BugList list = new BugList();
         boolean alreadyOpened = false;
         List<OutputCategory> outputCategories = getOutputCategories(o.getClass());
@@ -117,7 +108,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             if (name != null) {
                 BugEntry c = new BugEntry();
                 c.elements.add(new BugText(name).setOnClick(BugText.ON_CLICK_EXPAND).format(BugFormat.category));
-                String expandUrl = "/objects/" + getObjectReference(o) + "/details/" + cat.getId();
+                String expandUrl = "/objects/" + BugObjectCache.getReference(o) + "/details/" + cat.getId();
                 c.setExpandInclude(expandUrl);
                 c.elements.add(BugText.NBSP);
                 c.elements.add(BugInvokable.getExpandRefresh(expandUrl));
@@ -133,7 +124,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @JavaBug.Serve("^/objects/([^/]*)/details/([^/]+)")
     public BugElement serveObjectsDetailsCategory(String[] params) {
-        Object o = parseObjectReference(params[1]);
+        Object o = BugObjectCache.get(params[1]);
         String category = params[2];
         for (OutputCategory cat : getOutputCategories(o.getClass())) {
             if (cat.getId().equals(category)) {
@@ -150,42 +141,33 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
             e.elements.add(BugText.VALUE_SEPARATOR);
         }
         e.elements.add(BugText.getForValue(o));
-        e.setExpandInclude("/objects/" + getObjectReference(o) + "/details/");
+        e.setExpandInclude("/objects/" + BugObjectCache.getReference(o) + "/details/");
         return e;
-    }
-
-    public Object parseObjectReference(String reference) {
-        return references.get(parseHash(reference));
-    }
-
-    public String getObjectReference(Object o) {
-        references.put(System.identityHashCode(o), o);
-        return getHash(o);
     }
 
     public String getObjectDetailsLink(Object o) {
         if (o == null) return null;
-        return "/objects/" + getObjectReference(o) + "/details/";
+        return "/objects/" + BugObjectCache.getReference(o) + "/details/";
     }
 
     public String getObjectDetailsLink(Object o, String type) {
-        return "/objects/" + type + "/details/" + getObjectReference(o);
+        return "/objects/" + type + "/details/" + BugObjectCache.getReference(o);
     }
 
     public String getObjectGetLink(Object o, Field f) {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        return "/objectGet?object=" + getObjectReference(o) + "&field=" + allMembers.getFieldIdentifier(f);
+        return "/objectGet?object=" + BugObjectCache.getReference(o) + "&field=" + allMembers.getFieldIdentifier(f);
     }
 
     public String getObjectEditLink(Object o, Field f) {
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        return "/objectEdit?object=" + getObjectReference(o) + "&field=" + allMembers.getFieldIdentifier(f);
+        return "/objectEdit?object=" + BugObjectCache.getReference(o) + "&field=" + allMembers.getFieldIdentifier(f);
     }
 
     @JavaBug.Serve("^/objectGet")
     public String serveObjectGet(NanoHTTPD.IHTTPSession session) throws Exception {
         Map<String, String> parms = session.getParms();
-        Object o = parseObjectReference(parms.get("object"));
+        Object o = BugObjectCache.get(parms.get("object"));
         String fieldName = parms.get("field");
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         Field f = allMembers.getField(fieldName);
@@ -198,7 +180,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     @JavaBug.Serve("^/objectEdit")
     public String serveObjectEdit(NanoHTTPD.IHTTPSession session) throws Exception {
         Map<String, String> parms = session.getParms();
-        Object o = parseObjectReference(parms.get("object"));
+        Object o = BugObjectCache.get(parms.get("object"));
         String fieldName = parms.get("field");
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         Field f = allMembers.getField(fieldName);
@@ -224,13 +206,13 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     public String getInvokationLink(String returnType, Object o, Method m, Object... predefined) {
         StringBuilder link = new StringBuilder("/invoke");
-        link.append("?object=").append(getObjectReference(o));
+        link.append("?object=").append(BugObjectCache.getReference(o));
         link.append("&returnType=").append(returnType);
-        link.append("&method=").append(getHash(m));
+        link.append("&method=").append(BugObjectCache.getReference(m));
         int param = 0;
         for (Object p : predefined) {
             if (p != null)
-                link.append("&p").append(param).append("=").append(getObjectReference(p));
+                link.append("&p").append(param).append("=").append(BugObjectCache.getReference(p));
             param++;
         }
         return link.toString();
@@ -239,48 +221,43 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     @JavaBug.Serve(value = "^/invoke", requiredParameters = {"object", "method"})
     public Object serveInvoke(NanoHTTPD.IHTTPSession session) throws Exception {
         Map<String, String> parms = session.getParms();
-        Object o = parseObjectReference(parms.get("object"));
-        int methodHash = parseHash(parms.get("method"));
+        Object o = BugObjectCache.get(parms.get("object"));
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        for (Method m : allMembers.methods) {
-            if (System.identityHashCode(m) == methodHash) {
-                Class<?>[] parameterTypes = m.getParameterTypes();
-                Object[] ps = new Object[parameterTypes.length];
-                for (int i = 0; i < parameterTypes.length; i++) {
-                    Class<?> c = parameterTypes[i];
-                    TypeAdapters.TypeAdapter adapter;
-                    String ta = parms.get("ta" + (i));
-                    if (ta != null) {
-                        adapter = TypeAdapters.getTypeAdapterClass((Class<?>) parseObjectReference(ta));
-                    } else {
-                        adapter = TypeAdapters.getTypeAdapter(c);
-                    }
-                    String parameter = parms.get("p" + i);
-                    if (parameter != null) {
-                        if (parameter.startsWith("@")) {
-                            ps[i] = parseObjectReference(parameter);
-                        } else {
-                            ps[i] = adapter.parse(c, parameter);
-                        }
-                    } else if (parms.containsKey("p" + i)) {
-                        ps[i] = parseObjectReference(parms.get("p" + i));
-                    }
-                }
-                Object r = m.invoke(o, ps);
-                if (r == null) return "null";
-                String returnType = parms.get("returnType");
-                if (RETURN_TYPE_STRING.equals(returnType)) {
-                    return TypeAdapters.toString(r);
-                } else if (RETURN_TYPE_JSON.equals(returnType)) {
-                    return getBugObjectFor(r);
+        Method m = (Method) BugObjectCache.get(parms.get("method"));
+        Class<?>[] parameterTypes = m.getParameterTypes();
+        Object[] ps = new Object[parameterTypes.length];
+        for (int i = 0; i < parameterTypes.length; i++) {
+            Class<?> c = parameterTypes[i];
+            TypeAdapters.TypeAdapter adapter;
+            String ta = parms.get("ta" + (i));
+            if (ta != null) {
+                adapter = TypeAdapters.getTypeAdapterClass((Class<?>) BugObjectCache.get(ta));
+            } else {
+                adapter = TypeAdapters.getTypeAdapter(c);
+            }
+            String parameter = parms.get("p" + i);
+            if (parameter != null) {
+                if (parameter.startsWith("@")) {
+                    ps[i] = BugObjectCache.get(parameter);
                 } else {
-                    String rta = parms.get("rta");
-                    TypeAdapters.TypeAdapter adapter = rta == null ? null : TypeAdapters.getTypeAdapterClass((Class<?>) parseObjectReference(rta));
-                    return TypeAdapters.toString(r, adapter);
+                    ps[i] = adapter.parse(c, parameter);
                 }
+            } else if (parms.containsKey("p" + i)) {
+                ps[i] = BugObjectCache.get(parms.get("p" + i));
             }
         }
-        throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Method not found");
+        Object r = m.invoke(o, ps);
+        if (r == null) return "null";
+        String returnType = parms.get("returnType");
+        if (RETURN_TYPE_STRING.equals(returnType)) {
+            return TypeAdapters.toString(r);
+        } else if (RETURN_TYPE_JSON.equals(returnType)) {
+            return getBugObjectFor(r);
+        } else {
+            String rta = parms.get("rta");
+            TypeAdapters.TypeAdapter adapter = rta == null ? null : TypeAdapters.getTypeAdapterClass((Class<?>) BugObjectCache.get(rta));
+            return TypeAdapters.toString(r, adapter);
+        }
     }
 
     public BugElement getObjectElement(String title, String category, Object value) {
@@ -299,13 +276,13 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     public String getPojoLink(Object o, String field) {
-        return "/pojo?object=" + getObjectReference(o) + "&field=" + field;
+        return "/pojo?object=" + BugObjectCache.getReference(o) + "&field=" + field;
     }
 
     @JavaBug.Serve(value = "^/pojo", requiredParameters = {"object", "field"})
     public String servePojo(NanoHTTPD.IHTTPSession session) throws Exception {
         Map<String, String> parms = session.getParms();
-        Object o = parseObjectReference(parms.get("object"));
+        Object o = BugObjectCache.get(parms.get("object"));
         String fieldName = parms.get("field");
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         AllClassMembers.POJO pojo = allMembers.pojos.get(fieldName);
@@ -388,21 +365,21 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
 
         public String build() {
             StringBuilder link = new StringBuilder("/invoke");
-            link.append("?object=").append(getObjectReference(object));
+            link.append("?object=").append(BugObjectCache.getReference(object));
             if (details) link.append("&details=true");
-            link.append("&method=").append(getHash(method));
+            link.append("&method=").append(BugObjectCache.getReference(method));
             if (predefined != null) {
                 for (Entry<Integer, Object> entry : predefined.entrySet()) {
-                    link.append("&p").append(entry.getKey()).append("=").append(getObjectReference(entry.getValue()));
+                    link.append("&p").append(entry.getKey()).append("=").append(BugObjectCache.getReference(entry.getValue()));
                 }
             }
             if (typeAdapters != null) {
                 for (Entry<Integer, Class<?>> entry : typeAdapters.entrySet()) {
-                    link.append("&ta").append(entry.getKey()).append("=").append(getObjectReference(entry.getValue()));
+                    link.append("&ta").append(entry.getKey()).append("=").append(BugObjectCache.getReference(entry.getValue()));
                 }
             }
             if (returnTypeAdapter != null) {
-                link.append("&rta=" + getObjectReference(returnTypeAdapter));
+                link.append("&rta=" + BugObjectCache.getReference(returnTypeAdapter));
             }
             return link.toString();
         }

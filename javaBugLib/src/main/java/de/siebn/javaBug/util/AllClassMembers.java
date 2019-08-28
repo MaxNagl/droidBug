@@ -79,29 +79,6 @@ public class AllClassMembers {
         return fieldName;
     }
 
-    public Method getMethod(String identifier) {
-        if (identifier.startsWith("@")) {
-            int hash = ObjectBugPlugin.parseHash(identifier);
-            for (Method m : methods) {
-                if (System.identityHashCode(m) == hash) return m;
-            }
-        } else {
-            for (Method m : methods) {
-                if (m.getName().equals(identifier)) return m;
-            }
-        }
-        return null;
-    }
-
-    public String getMethodIdentifier(Method method) {
-        String methodName = method.getName();
-        boolean unique = true;
-        for (Method m : methods) {
-            if (m != method && m.getName().equals(methodName)) unique = false;
-        }
-        return unique ? methodName : ObjectBugPlugin.getHash(method);
-    }
-
     public static AllClassMembers getForClass(Class<?> clazz) {
         AllClassMembers allMembers = allMembersMap.get(clazz);
         if (allMembers == null)

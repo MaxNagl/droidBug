@@ -15,8 +15,10 @@ import de.siebn.javaBug.objectOut.*;
 import de.siebn.javaBug.plugins.*;
 import de.siebn.javaBug.plugins.ObjectBugPlugin.RootObject;
 import de.siebn.javaBug.plugins.scripts.*;
+import de.siebn.javaBug.util.BugObjectCache;
 import de.siebn.javaBug.util.XML;
 import de.siebn.javaBug.util.XML.HTML;
+import groovy.util.ObjectGraphBuilder.ReferenceResolver;
 
 /**
  * Created by Sieben on 04.03.2015.
@@ -30,6 +32,7 @@ public class JavaBug extends NanoHTTPD {
     private final ArrayList<BugPlugin> plugins = new ArrayList<>();
     private final HashMap<Class<?>, Object> pluginMap = new HashMap<>();
     private final HashMap<Class<?>, ArrayList<?>> filteredPlugins = new HashMap<>();
+    private List<BugReferenceResolver> referenceResolvers;
     private final int port;
 
     public AsyncRunner invocationRunner;
@@ -43,7 +46,11 @@ public class JavaBug extends NanoHTTPD {
     }
 
     public interface BugPlugin {
-        public int getOrder();
+        int getOrder();
+    }
+
+    public interface BugReferenceResolver {
+        Object resolve(String reference);
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -89,11 +96,14 @@ public class JavaBug extends NanoHTTPD {
         addAnnotatedMethods(plugin);
     }
 
-    public Object getBinding(Object key) {
-        //if ("console".equals(key)) return scriptConsole;
-        RootObject rootObject = getObjectBug().getRootObjects().get(key);
-        if (rootObject != null) return rootObject.value;
-        return null;
+    public Object resolveReference(String reference) {
+        if (reference == null) return null;
+        if (referenceResolvers == null) referenceResolvers = getPlugins(BugReferenceResolver.class);
+        for (BugReferenceResolver resolver : referenceResolvers) {
+            Object value = resolver.resolve(reference);
+            if (value != null) return value;
+        }
+        return BugObjectCache.get(reference);
     }
 
     public void addDefaultPlugins() {

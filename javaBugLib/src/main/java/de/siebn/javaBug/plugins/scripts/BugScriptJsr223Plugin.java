@@ -59,14 +59,13 @@ public class BugScriptJsr223Plugin implements BugScriptEnginePlugin {
             engine.setBindings(new SimpleBindings() {
                 @Override
                 public boolean containsKey(Object key) {
-                    System.out.println("ASDF " + key);
-                    Object o = javaBug.getBinding(key);
+                    Object o = key instanceof String ? javaBug.resolveReference((String) key) : null;
                     return o != null || super.containsKey(key);
                 }
 
                 @Override
                 public Object get(Object key) {
-                    Object o = javaBug.getBinding(key);
+                    Object o = key instanceof String ? javaBug.resolveReference((String) key) : null;
                     return o != null ? o : super.get(key);
                 }
             }, ScriptContext.GLOBAL_SCOPE);

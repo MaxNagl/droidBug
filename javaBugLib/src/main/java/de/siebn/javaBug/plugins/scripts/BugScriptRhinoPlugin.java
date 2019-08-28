@@ -56,13 +56,13 @@ public class BugScriptRhinoPlugin implements BugScriptEnginePlugin {
 
                         @Override
                         public boolean has(String name, Scriptable start) {
-                            Object o = javaBug.getBinding(name);
+                            Object o = javaBug.resolveReference(name);
                             return o != null || super.has(name, start);
                         }
 
                         @Override
                         public Object get(String name, Scriptable start) {
-                            Object o = javaBug.getBinding(name);
+                            Object o = javaBug.resolveReference(name);
                             return o != null ? o : super.get(name, start);
                         }
                     };

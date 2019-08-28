@@ -7,13 +7,14 @@ import java.util.Map;
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.BugElement.BugInputList.Option;
+import de.siebn.javaBug.JavaBug.BugReferenceResolver;
 import de.siebn.javaBug.plugins.scripts.BugScriptEnginePlugin.BugScriptEngine;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 
 /**
  * Created by Sieben on 05.03.2015.
  */
-public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin {
+public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin, BugReferenceResolver {
     private final JavaBug javaBug;
     private ScriptConsole scriptConsole = new ScriptConsole();
 
@@ -64,6 +65,12 @@ public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin {
             scriptConsole.log(t.getMessage(), BugFormat.colorError);
         }
         return "";
+    }
+
+    @Override
+    public Object resolve(String reference) {
+        if (reference.equals("console")) return scriptConsole;
+        return null;
     }
 
     public class ScriptConsole {

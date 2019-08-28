@@ -4,6 +4,7 @@ package de.siebn.javaBug.testApplication;
 import java.util.*;
 
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.util.BugObjectCache;
 
 /**
  * Created by Sieben on 16.03.2015.
@@ -33,7 +34,7 @@ public class JavaBugDemoApplication {
         jb.tryToStart();
 
         System.out.println("javaBug startet. Open your browser at: " + jb.getIPAddresses(true));
-        System.out.println("Test Object " + jb.getObjectBug().getObjectReference(test));
+        System.out.println("Test Object " + BugObjectCache.getReference(test));
 
         while (true) {
             try {

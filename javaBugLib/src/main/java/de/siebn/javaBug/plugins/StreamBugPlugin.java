@@ -29,7 +29,7 @@ public class StreamBugPlugin implements BugPlugin {
         Object token = new Object();
         try {
             console.token = token;
-            console.waitIfEmpty(5000);
+            console.waitIfEmpty(30000);
             return console.get(token);
         } catch (Exception e) {
             e.printStackTrace();
