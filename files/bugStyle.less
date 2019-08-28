@@ -133,6 +133,7 @@ a {
   display: inline-block;
   cursor: default;
   position: relative;
+  white-space: pre-wrap;
   &[contenteditable=true] {
     cursor: text;
     background-color: #111;
@@ -171,6 +172,10 @@ a {
   padding-left: 16px;
 }
 
+.measurePre {
+  font-family: monospace;
+}
+
 .checkWithBorder {
   span {
     .colorNeutralLight
@@ -183,22 +188,24 @@ a {
   }
 }
 
-.console {
-  pre {
-    padding-bottom: 0px;
+pre.console {
+  border: none;
+  border-bottom: 1px solid #777;
+  background-color: #222;
+}
+.BugInvokable.console {
+  padding: 8px 0px;
+  background-color: #111;
+}
+.BugInputText.console {
+  display:block;
+  position: relative;
+  font-family: monospace;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  &.active {
     border: none;
-    background-color: #111;
-  }
-  span.BugInputText {
-    display:block;
-    position: relative;
-    font-family: monospace;
-    border: none;
-    outline: none;
-    background-color: transparent;
-    &.active {
-      border: none;
-    }
   }
 }
 

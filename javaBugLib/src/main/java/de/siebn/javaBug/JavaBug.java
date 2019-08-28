@@ -24,6 +24,7 @@ import de.siebn.javaBug.util.XML.HTML;
 public class JavaBug extends NanoHTTPD {
     private final StreamBugPlugin streamBugPlugin = new StreamBugPlugin(this);
     private final ObjectBugPlugin objectBugPlugin = new ObjectBugPlugin(this);
+    private final ScriptBugPlugin scriptBugPlugin = new ScriptBugPlugin(this);
     private final FileBugPlugin fileBugPlugin = new FileBugPlugin();
     private final ArrayList<Server> servers = new ArrayList<>();
     private final ArrayList<BugPlugin> plugins = new ArrayList<>();
@@ -307,5 +308,9 @@ public class JavaBug extends NanoHTTPD {
 
     public StreamBugPlugin getStreamBugPlugin() {
         return streamBugPlugin;
+    }
+
+    public ScriptBugPlugin getScriptBugPlugin() {
+        return scriptBugPlugin;
     }
 }

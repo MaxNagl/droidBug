@@ -7,7 +7,7 @@ import java.util.Set;
 
 import de.siebn.javaBug.JavaBug;
 
-public class BugScriptRhinoPlugin implements BugScriptPlugin {
+public class BugScriptRhinoPlugin implements BugScriptEnginePlugin {
     private final JavaBug javaBug;
 
     public BugScriptRhinoPlugin(JavaBug javaBug) {
@@ -17,9 +17,7 @@ public class BugScriptRhinoPlugin implements BugScriptPlugin {
     @Override
     public void getEngines(List<BugScriptEngine> engines, Set<String> loadedExtensions) {
         try {
-            if (!loadedExtensions.contains("js")) {
-                engines.add(new BugScriptEngineRhino());
-            }
+            engines.add(new BugScriptEngineRhino());
         } catch (NoClassDefFoundError e) {
         }
     }
@@ -84,6 +82,11 @@ public class BugScriptRhinoPlugin implements BugScriptPlugin {
 
         @Override
         public String getName() {
-            return "JavaScript";
+            return "rhino";
+        }
+
+        @Override
+        public String getNameShort() {
+            return "js";
         }
     }}

@@ -7,7 +7,7 @@ import de.siebn.javaBug.JavaBug;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 
-public class BugScriptGroovyPlugin implements BugScriptPlugin {
+public class BugScriptGroovyPlugin implements BugScriptEnginePlugin {
     private final JavaBug javaBug;
 
     public BugScriptGroovyPlugin(JavaBug javaBug) {
@@ -56,6 +56,11 @@ public class BugScriptGroovyPlugin implements BugScriptPlugin {
         @Override
         public String getName() {
             return "Groovy Scripting Engine";
+        }
+
+        @Override
+        public String getNameShort() {
+            return "groovy";
         }
     }
 }

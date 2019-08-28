@@ -41,7 +41,7 @@ public class RootBugPlugin implements BugPlugin {
         head.add("script").setAttr("src", "/file/jquery.js");
         head.add("script").setAttr("src", "/file/less.js");
         head.add("script").setAttr("src", "/file/bugElements.js");
-        head.add("script").appendText("$(function () { $('body').loadContent('" + new BugInclude("/start/").toJson() + "', 'application/json'); });");
+        head.add("script").appendText("$(function () { availableScripts = " + jb.getScriptBugPlugin().getEnginesJSArray() + "; $('body').loadContent('" + new BugInclude("/start/").toJson() + "', 'application/json'); });");
 
         XML body = xhtml.add("body");
         body.add("div").setId("loading").appendText("Loading...");

@@ -9,7 +9,7 @@ import de.siebn.javaBug.BugFormat;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.plugins.StreamBugPlugin.BugStream;
 
-public class BugScriptJsr223Plugin implements BugScriptPlugin {
+public class BugScriptJsr223Plugin implements BugScriptEnginePlugin {
     private final static String[] DEFAULT_FACTORY_CLASSES = {
             "jdk.nashorn.api.scripting.NashornScriptEngineFactory",
             "org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory"
@@ -84,6 +84,13 @@ public class BugScriptJsr223Plugin implements BugScriptPlugin {
         @Override
         public String getName() {
             return factory.getEngineName();
+        }
+
+        @Override
+        public String getNameShort() {
+            List<String> extensions = factory.getExtensions();
+            if (extensions == null || extensions.isEmpty()) return factory.getEngineName();
+            return extensions.get(0);
         }
     }
 }

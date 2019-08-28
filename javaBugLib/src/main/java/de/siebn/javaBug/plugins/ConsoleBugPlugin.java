@@ -1,13 +1,13 @@
 package de.siebn.javaBug.plugins;
 
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.BugElement.BugInputList.Option;
-import de.siebn.javaBug.plugins.scripts.BugScriptPlugin;
-import de.siebn.javaBug.plugins.scripts.BugScriptPlugin.BugScriptEngine;
+import de.siebn.javaBug.plugins.scripts.BugScriptEnginePlugin.BugScriptEngine;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 
 /**
@@ -15,64 +15,46 @@ import de.siebn.javaBug.typeAdapter.TypeAdapters;
  */
 public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin {
     private final JavaBug javaBug;
-    private List<BugScriptEngine> scriptEngines;
     private ScriptConsole scriptConsole = new ScriptConsole();
 
     public ConsoleBugPlugin(JavaBug javaBug) {
         this.javaBug = javaBug;
     }
 
-    private synchronized List<BugScriptEngine> getScriptEngines() {
-        if (scriptEngines == null) {
-            scriptEngines = new ArrayList<>();
-            HashSet<String> extensions = new HashSet<>();
-            for (BugScriptPlugin plugin : javaBug.getPlugins(BugScriptPlugin.class)) {
-                plugin.getEngines(scriptEngines, extensions);
-            }
-        }
-        return scriptEngines;
-    }
-
     @JavaBug.Serve("^/console/")
     public BugElement serveConsole() {
-        BugInvokable invokable = new BugInvokable(null);
-        invokable.url = "/exec/";
-        invokable.addClazz("console");
-
-        BugList list = new BugList();
-        invokable.add(list);
-
-        List<BugScriptEngine> scriptEngines = getScriptEngines();
-        BugInputList engine = new BugInputList("engine", scriptEngines.isEmpty() ? "" : scriptEngines.get(0).getName());
-        for (BugScriptEngine e : scriptEngines) engine.options.add(new Option(e.getName(), e.getName()));
-        list.add(new BugDiv().add(engine));
+        BugSplit split = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
 
         BugPre stream = new BugElement.BugPre("Welcome");
-        stream.setStyle("height", "100%");
+        stream.setStyle("height", "100%").addClazz("console");
         stream.stream = "/stream/";
-        list.add(new BugSplitElement(stream));
+        split.add(new BugSplitElement(stream));
 
         BugInputText script = new BugInputText("script", "");
         script.mode = "script";
-        script.nullable = true;
-        list.add(new BugDiv().add(script));
+        script.nullable = false;
+        script.textable = false;
+        script.addClazz("console");
 
-        return invokable;
+        BugInvokable invokable = new BugInvokable(null);
+        invokable.url = "/exec/";
+        invokable.add(script).addClazz("console");
+        split.add(new BugSplitElement(invokable).setFixed("auto").setWeight("0"));
+
+        return split;
     }
 
     @JavaBug.Serve("^/exec/")
     public Object exec(NanoHTTPD.IHTTPSession session) {
         Map<String, String> parms = session.getParms();
-        String engineName = parms.get("engine");
-        String script = parms.get("script");
+        String script = parms.get("script").trim();
+        String mode = parms.get("script-type");
+        BugScriptEngine scriptEngine = javaBug.getScriptBugPlugin().getScriptEngineMap().get(mode);
 
-        BugScriptEngine scriptEngine = null;
-        for (BugScriptEngine engine : getScriptEngines()) {
-            if (engine.getName().equals(engineName)) {
-                scriptEngine = engine;
-                break;
-            }
-        }
+        BugList entry = new BugList();
+        entry.add(new BugText((mode.startsWith("script-") ? mode.substring(7) : mode) + "> ").setStyle("vertical-align", "top").format(BugFormat.colorSecondary));
+        entry.add(new BugText(script).setStyle("white-space", "pre-wrap").setStyle("display", "inline-block"));
+        javaBug.getStreamBugPlugin().getConsoleStream().send(entry);
 
         try {
             Object result = scriptEngine.eval(script);

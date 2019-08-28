@@ -197,7 +197,10 @@ public abstract class BugElement {
     }
 
     public static class BugInputText extends BugText {
-        public boolean nullable;
+        public boolean nullable = true;
+        public boolean scriptable = true;
+        public boolean referenceable = true;
+        public boolean textable = true;
         public String mode;
 
         public BugInputText(String callId, String text) {

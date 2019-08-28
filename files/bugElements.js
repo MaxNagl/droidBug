@@ -205,18 +205,10 @@ class BugPre extends BugText {
             type: "GET",
             url: this.data.stream,
             success: function (result, status, xhr) {
+                var scrolledDown = this.view.scrollTop() + this.view.innerHeight() >= this.view[0].scrollHeight;
                 this.view.loadContent(result, xhr.getResponseHeader("Content-Type"), true);
-//                var tag = xhr.getResponseHeader("tag");
-//                var clazz = xhr.getResponseHeader("clazz");
-//                if (tag != null || clazz != null) {
-//                    var span = tag == null ? $('<span>') : $('<' + tag + '>');
-//                    span.append(result);
-//                    if (clazz != null) span.addClass(clazz);
-//                    this.view.append(span);
-//                } else {
-//                    this.view.append(result);
-//                }
                 this.appendStream();
+                if (scrolledDown) this.view.scrollTop(this.view[0].scrollHeight);
             }.bind(this),
             timeout: 2000,
             error: function (result) {
@@ -237,7 +229,7 @@ class BugLink extends BugText {
 class BugInputText extends BugText {
     constructor(parent, data) {
         super(parent, data, $('<span>'));
-        this.setMode(data.mode == null ? 'text' : data.mode);
+        if (data.mode == null) this.toggleMode(); else this.setMode(data.mode);
         if (data.enabled == false) {
             this.view.prop('disabled', true);
         } else {
@@ -276,32 +268,51 @@ class BugInputText extends BugText {
     }
 
     setMode(mode) {
+        if (mode == 'script') mode = availableScripts.empty ? "" : availableScripts[0];
         if (mode == "null" && this.mode != "null") this.lastMode = this.mode;
         this.mode = mode;
         this.view.attr('mode', mode);
         var prefix = null;
-        if (mode == 'script')  prefix = 'js';
+        if (mode.startsWith('script-')) {
+            this.view.attr('mode', 'script');
+            prefix = mode.substring(7);
+        } 
         if (mode == 'null')  prefix = 'null';
+        if (mode == 'ref')  prefix = '@';
         this.view.attr('prefix', prefix);
         if (prefix != null) {
-            var measure = $('<span>').append(prefix);
+            var measure = $('<span class="measurePre">').append(prefix);
             $('html').append(measure);
-            this.view.css('padding-left', measure.outerWidth() + 18);
+            this.view.css('padding-left', measure.width() + 12);
             measure.remove();
         } else {
             this.view.css('padding-left', '');
         }
     }
 
+    getValueType() {
+        return this.mode;
+    }
+
     unsetNull() {
         if (this.lastMode != null) this.setMode(this.lastMode); else this.toggleMode();
     }
 
+    getAllModes() {
+        var allModes = [];
+        if (this.data.nullable == true) allModes.push('null');
+        if (this.data.textable == true) allModes.push('text');
+        if (this.data.scriptable == true) allModes = allModes.concat(availableScripts);
+        if (this.data.referenceable == true) allModes.push('ref');
+        return allModes;
+    }
+
     toggleMode() {
-        var allModes = ['text', 'script'];
+        var allModes = this.getAllModes()
         var index = allModes.indexOf(this.mode);
-        console.log(index);
-        this.setMode(allModes[(index + 1) % allModes.length]);
+        var nextIndex = (index + 1) % allModes.length;
+        if (allModes[nextIndex] == 'null' && this.getValue() != '') nextIndex = (index + 2) % allModes.length;
+        this.setMode(allModes[nextIndex]);
     }
 
     onEnter() {
@@ -403,7 +414,9 @@ class BugInvokable extends BugGroup {
         elements.forEach(function (element) {
             if (element.data != null && element.data.callId != null) {
                 var value = element.getValue();
+                var type = element.getValueType == null ? null : element.getValueType();
                 if (value != null) request[element.data.callId] = value;
+                if (type != null) request[element.data.callId + '-type'] = type;
             }
             if (element.elements != null) this.addElementsToRequest(request, element.elements)
         }.bind(this));
