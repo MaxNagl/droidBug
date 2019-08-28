@@ -10,6 +10,7 @@ import de.siebn.javaBug.BugElement.BugInputList.Option;
 import de.siebn.javaBug.JavaBug.BugReferenceResolver;
 import de.siebn.javaBug.plugins.scripts.BugScriptEnginePlugin.BugScriptEngine;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
+import de.siebn.javaBug.util.BugObjectCache;
 
 /**
  * Created by Sieben on 05.03.2015.
@@ -86,7 +87,7 @@ public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin, BugReferen
             BugEntry entry = new BugEntry();
             entry.add(new BugText(o == null ? "null" : TypeAdapters.toString(o)).format(format).setOnClick(BugEntry.ON_CLICK_EXPAND));
             if (o != null && !o.getClass().isPrimitive() && !o.getClass().equals(String.class)) {
-                entry.setExpandInclude(javaBug.getObjectBug().getObjectDetailsLink(o));
+                entry.setExpandInclude(javaBug.getObjectBug().getObjectDetailsLink(o)).setReference(BugObjectCache.getReference(o));
             }
             javaBug.getStreamBugPlugin().getConsoleStream().send(entry);
         }

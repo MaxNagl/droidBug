@@ -21,6 +21,7 @@ public abstract class BugElement {
     public String clazz;
     public String onClick;
     public String hoverGroup;
+    public String reference;
     public Map<String, String> styles;
 
     public BugElement() {
@@ -43,6 +44,11 @@ public abstract class BugElement {
         } else {
             this.clazz += " " + clazz;
         }
+        return this;
+    }
+
+    public BugElement setReference(String reference) {
+        this.reference = reference;
         return this;
     }
 

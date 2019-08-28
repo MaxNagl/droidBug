@@ -8,7 +8,7 @@ public class BugObjectCache {
     public static String getReference(Object o) {
         if (o == null) return null;
         String clazz = o.getClass().getSimpleName();
-        String hash = Integer.toHexString(System.identityHashCode(o) % 3);
+        String hash = Integer.toHexString(System.identityHashCode(o));
         HashMap<String, Object> clazzRefs = references.get(clazz);
         if (clazzRefs == null) references.put(clazz, clazzRefs = new HashMap<>());
         Object existing = clazzRefs.get(hash);

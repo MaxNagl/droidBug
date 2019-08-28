@@ -1,4 +1,4 @@
-$.fn.loadContent = function(content, mimeType, append) {
+$.fn.loadContent = function (content, mimeType, append) {
     if (append != true) this.empty();
     if (mimeType == 'application/json') {
         if ((typeof content) == 'string') content = JSON.parse(content);
@@ -6,7 +6,7 @@ $.fn.loadContent = function(content, mimeType, append) {
             this.append(model.view);
         }.bind(this));
     } else if (mimeType == 'text/plain') {
-            this.append(content);
+        this.append(content);
     }
     return this;
 }
@@ -88,6 +88,13 @@ class BugElement {
                 this.view.mouseover(function () {
                     $('.groupHover').removeClass("groupHover");
                     $('[hoverGroup="' + this.data.hoverGroup + '"]').addClass("groupHover");
+                    event.stopPropagation();
+                }.bind(this));
+            }
+            if (this.data.reference != null) {
+                this.view.attr({ draggable: "true" });
+                this.view.on('dragstart', function (e) {
+                    e.originalEvent.dataTransfer.setData("ref", this.data.reference);
                     event.stopPropagation();
                 }.bind(this));
             }
@@ -252,12 +259,33 @@ class BugInputText extends BugText {
                     this.toggleMode();
                 }
             }.bind(this));
-            this.view.on('paste', function(e) {
+            this.view.on('paste', function (e) {
                 e.preventDefault();
                 document.execCommand("insertText", false, e.originalEvent.clipboardData.getData("text/plain"));
             }.bind(this));
             this.view.on('keyup keypress focus blur change', function (e) {
                 if (this.mode == 'null' && this.view.text() != '') this.unsetNull()
+            }.bind(this));
+            this.view.on('dragover', function (e) {
+                setCaretToCoordinated(e.clientX, e.clientY);
+                e.preventDefault();
+            }.bind(this));
+            this.view.on('drop', function (e) {
+                var ref = e.originalEvent.dataTransfer.getData("ref");
+                if (ref != null && ref.length > 0 && this.data.referenceable) {
+                    if (this.mode.startsWith('script-')) {
+                        var range = setCaretToCoordinated(e.clientX, e.clientY);
+                        if (range != null) {
+                            range.insertNode(document.createTextNode(ref));
+                        } else {
+                            this.view.append(ref);
+                        }
+                    } else {
+                        this.setMode("ref");
+                        this.setValue(ref);
+                    }
+                }
+                e.preventDefault();
             }.bind(this));
         }
     }
@@ -271,7 +299,7 @@ class BugInputText extends BugText {
         if (mode.startsWith('script-')) {
             this.view.attr('mode', 'script');
             prefix = mode.substring(7);
-        } 
+        }
         if (mode == 'null') prefix = 'null';
         if (mode == 'ref') prefix = '@';
         this.view.attr('prefix', prefix);
@@ -530,7 +558,7 @@ class BugSplit extends BugGroup {
     constructor(parent, data) {
         super(parent, data, $('<div>'));
         if (data.orientation == 'vertical') this.view.css('flex-direction', 'column');
-        if (data.orientation == 'horizontal') this.view.css({'flex-direction': 'row', 'height': '100%'});
+        if (data.orientation == 'horizontal') this.view.css({ 'flex-direction': 'row', 'height': '100%' });
         this.extractElements(this.view, data.elements, this.elements);
     }
 }
@@ -554,7 +582,7 @@ function viewAdded(view) {
 
 function autoScale(event, parent) {
     if (parent == null) parent = $('body');
-    $('.autoScale', parent).each(function() {
+    $('.autoScale', parent).each(function () {
         var v = $(this);
         v.css('margin', '0px');
         var h = v.outerHeight(), w = v.outerWidth();
@@ -565,11 +593,29 @@ function autoScale(event, parent) {
             l = (pw - w * scale) / 2;
             t = (ph - h * scale) / 2;
         }
-        v.css('transform', 'scale('+scale+","+scale+')');
+        v.css('transform', 'scale(' + scale + "," + scale + ')');
         v.css('margin-left', l);
         v.css('margin-top', t);
         v.css('margin-right', Math.min(0, w * scale - w - l));
         v.css('margin-bottom', Math.min(0, h * scale - h - t));
     });
 }
+
+function setCaretToCoordinated(x, y) {
+    var range = null;
+    if (document.caretPositionFromPoint) {
+        var pos = document.caretPositionFromPoint(x, y);
+        range = document.createRange();
+        range.setStart(pos.offsetNode, pos.offset);
+        range.collapse();
+    } else if (document.caretRangeFromPoint) {
+        range = document.caretRangeFromPoint(x, y);
+    }
+    if (range != null) {
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+    }
+    return range;
+}
+
 $(window).resize(autoScale);
