@@ -13,12 +13,11 @@ import java.util.regex.Pattern;
 import de.siebn.javaBug.NanoHTTPD.Response.Status;
 import de.siebn.javaBug.objectOut.*;
 import de.siebn.javaBug.plugins.*;
-import de.siebn.javaBug.plugins.ObjectBugPlugin.RootObject;
 import de.siebn.javaBug.plugins.scripts.*;
+import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 import de.siebn.javaBug.util.BugObjectCache;
 import de.siebn.javaBug.util.XML;
 import de.siebn.javaBug.util.XML.HTML;
-import groovy.util.ObjectGraphBuilder.ReferenceResolver;
 
 /**
  * Created by Sieben on 04.03.2015.
@@ -33,6 +32,7 @@ public class JavaBug extends NanoHTTPD {
     private final HashMap<Class<?>, Object> pluginMap = new HashMap<>();
     private final HashMap<Class<?>, ArrayList<?>> filteredPlugins = new HashMap<>();
     private List<BugReferenceResolver> referenceResolvers;
+    private final HashMap<String, BugEvaluator> evaluators = new HashMap<>();
     private final int port;
 
     public AsyncRunner invocationRunner;
@@ -51,6 +51,12 @@ public class JavaBug extends NanoHTTPD {
 
     public interface BugReferenceResolver {
         Object resolve(String reference);
+    }
+
+    public interface BugEvaluator {
+        boolean canEvalType(String type);
+
+        Object eval(String type, String text, Class<?> clazz, TypeAdapter<?> adapter);
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -106,6 +112,21 @@ public class JavaBug extends NanoHTTPD {
         return BugObjectCache.get(reference);
     }
 
+    public Object eval(String type, String text, Class<?> clazz, TypeAdapter<?> adapter) {
+        if (text == null) return null;
+        BugEvaluator evaluator = evaluators.get(type);
+        if (evaluator == null) {
+            for (BugEvaluator e : getPlugins(BugEvaluator.class)) {
+                if (e.canEvalType(type)) {
+                    evaluators.put(type, evaluator = e);
+                    break;
+                }
+            }
+        }
+        if (evaluator == null) throw new IllegalArgumentException("Evaluator for type " + type + " not found.");
+        return evaluator.eval(type, text, clazz, adapter);
+    }
+
     public void addDefaultPlugins() {
         fileBugPlugin.addRoot("/", new File(".").getAbsoluteFile());
 
@@ -116,6 +137,7 @@ public class JavaBug extends NanoHTTPD {
         addPlugin(getFileBug());
         addPlugin(getObjectBug());
         addPlugin(getStreamBugPlugin());
+        addPlugin(getScriptBugPlugin());
         addPlugin(new RootBugPlugin(this));
         addPlugin(new ThreadsBugPlugin(this));
         addPlugin(new IoBugPlugin(this));

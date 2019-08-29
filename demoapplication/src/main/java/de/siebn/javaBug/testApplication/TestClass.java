@@ -53,4 +53,8 @@ public class TestClass extends TestBaseClass {
     public void setGetterAndSetter(String getterAndSetter) {
         this.getterAndSetter = getterAndSetter;
     }
+
+    public static String getStatic() {
+        return "static";
+    }
 }

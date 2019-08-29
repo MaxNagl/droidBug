@@ -3,11 +3,13 @@ package de.siebn.javaBug.plugins;
 import java.util.*;
 
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JavaBug.BugEvaluator;
 import de.siebn.javaBug.JavaBug.BugPlugin;
 import de.siebn.javaBug.plugins.scripts.BugScriptEnginePlugin;
 import de.siebn.javaBug.plugins.scripts.BugScriptEnginePlugin.BugScriptEngine;
+import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 
-public class ScriptBugPlugin implements BugPlugin {
+public class ScriptBugPlugin implements BugPlugin, BugEvaluator {
     private final JavaBug javaBug;
     private List<BugScriptEngine> scriptEngines;
     private Map<String, BugScriptEngine> scriptEngineMap;
@@ -57,5 +59,21 @@ public class ScriptBugPlugin implements BugPlugin {
             sb.append("'").append(engine).append("'");
         }
         return sb.append("]").toString();
+    }
+
+    @Override
+    public boolean canEvalType(String type) {
+        return getScriptEngineMap().containsKey(type);
+    }
+
+    @Override
+    public Object eval(String type, String text, Class<?> clazz, TypeAdapter<?> adapter) {
+        try {
+            return getScriptEngineMap().get(type).eval(text);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 }

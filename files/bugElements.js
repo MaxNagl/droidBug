@@ -112,6 +112,7 @@ class BugElement {
                 url: this.data.refreshUrl,
                 success: function (result) {
                     this.setValue(result);
+                    if (this.setMode != null) this.setMode('text');
                 }.bind(this),
                 error: function (result) {
                     alert(getError(result));

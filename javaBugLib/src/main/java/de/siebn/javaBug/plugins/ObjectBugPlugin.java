@@ -6,12 +6,13 @@ import java.util.Map.Entry;
 
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
+import de.siebn.javaBug.JavaBug.BugEvaluator;
 import de.siebn.javaBug.objectOut.*;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 import de.siebn.javaBug.util.*;
 
-public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
+public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluator {
     private HashMap<String, RootObject> rootObjects = new LinkedHashMap<>();
 
     public static class RootObject {
@@ -204,58 +205,29 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
     public static String RETURN_TYPE_STRING = "string";
     public static String RETURN_TYPE_JSON = "json";
 
-    public String getInvokationLink(String returnType, Object o, Method m, Object... predefined) {
-        StringBuilder link = new StringBuilder("/invoke");
-        link.append("?object=").append(BugObjectCache.getReference(o));
-        link.append("&returnType=").append(returnType);
-        link.append("&method=").append(BugObjectCache.getReference(m));
-        int param = 0;
-        for (Object p : predefined) {
-            if (p != null)
-                link.append("&p").append(param).append("=").append(BugObjectCache.getReference(p));
-            param++;
-        }
-        return link.toString();
-    }
-
-    @JavaBug.Serve(value = "^/invoke", requiredParameters = {"object", "method"})
+    @JavaBug.Serve(value = "^/invoke", requiredParameters = {"method"})
     public Object serveInvoke(NanoHTTPD.IHTTPSession session) throws Exception {
         Map<String, String> parms = session.getParms();
         Object o = BugObjectCache.get(parms.get("object"));
-        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         Method m = (Method) BugObjectCache.get(parms.get("method"));
         Class<?>[] parameterTypes = m.getParameterTypes();
         Object[] ps = new Object[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
             Class<?> c = parameterTypes[i];
-            TypeAdapters.TypeAdapter adapter;
-            String ta = parms.get("ta" + (i));
-            if (ta != null) {
-                adapter = TypeAdapters.getTypeAdapterClass((Class<?>) BugObjectCache.get(ta));
-            } else {
-                adapter = TypeAdapters.getTypeAdapter(c);
-            }
+            TypeAdapter adapter = (TypeAdapter) BugObjectCache.get(parms.get("p" + i + "-adapter"));
             String parameter = parms.get("p" + i);
-            if (parameter != null) {
-                if (parameter.startsWith("@")) {
-                    ps[i] = BugObjectCache.get(parameter);
-                } else {
-                    ps[i] = adapter.parse(c, parameter);
-                }
-            } else if (parms.containsKey("p" + i)) {
-                ps[i] = BugObjectCache.get(parms.get("p" + i));
-            }
+            String parameterType = parms.get("p" + i + "-type");
+            ps[i] = javaBug.eval(parameterType, parameter, c, adapter);
         }
         Object r = m.invoke(o, ps);
-        if (r == null) return "null";
         String returnType = parms.get("returnType");
         if (RETURN_TYPE_STRING.equals(returnType)) {
             return TypeAdapters.toString(r);
         } else if (RETURN_TYPE_JSON.equals(returnType)) {
             return getBugObjectFor(r);
         } else {
-            String rta = parms.get("rta");
-            TypeAdapters.TypeAdapter adapter = rta == null ? null : TypeAdapters.getTypeAdapterClass((Class<?>) BugObjectCache.get(rta));
+            String rta = parms.get("adapter");
+            TypeAdapters.TypeAdapter adapter = rta == null ? null : (TypeAdapter) BugObjectCache.get(rta);
             return TypeAdapters.toString(r, adapter);
         }
     }
@@ -316,72 +288,60 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin {
         throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "ERROR");
     }
 
-    public class InvocationLinkBuilder {
-        private Object object;
-        private boolean details;
-        private Method method;
-        private HashMap<Integer, Object> predefined;
-        private HashMap<Integer, Class<?>> typeAdapters;
-        private Class<?> returnTypeAdapter;
-
-        public InvocationLinkBuilder setObject(Object object) {
-            this.object = object;
-            return this;
+    public static class InvokationLinkBuilder extends BugLinkBuilder {
+        public InvokationLinkBuilder() {
+            super("/invoke");
         }
 
-        public InvocationLinkBuilder setDetails(boolean details) {
-            this.details = details;
-            return this;
+        public InvokationLinkBuilder(Method m, Object o) {
+            this();
+            setMethod(m);
+            if (!Modifier.isStatic(m.getModifiers())) setObject(o);
         }
 
-        public InvocationLinkBuilder setMethod(Method method) {
-            this.method = method;
-            return this;
+        public InvokationLinkBuilder setObject(Object object) {
+            return setParameter("object", BugObjectCache.getReference(object));
         }
 
-        public InvocationLinkBuilder setPredefined(int param, Object value) {
-            if (this.predefined == null) this.predefined = new HashMap<>();
-            this.predefined.put(param, value);
-            return this;
+        public InvokationLinkBuilder setMethod(Method method) {
+            return setParameter("method", BugObjectCache.getReference(method));
         }
 
-        public InvocationLinkBuilder setPredefinedList(Object... predefined) {
-            for (int i = 0; i < predefined.length; i++) {
-                if (predefined[i] != null) setPredefined(i, predefined[i]);
-            }
-            return this;
+        public InvokationLinkBuilder setReturnType(String returnType) {
+            return setParameter("returnType", returnType);
         }
 
-        public InvocationLinkBuilder setTypeAdapter(int param, TypeAdapter<?> typeAdapter) {
-            if (this.typeAdapters == null) this.typeAdapters = new HashMap<>();
-            this.typeAdapters.put(param, typeAdapter.getClass());
-            return this;
+        public InvokationLinkBuilder setPredefined(int param, Object value) {
+            setParameter("p" + param, BugObjectCache.getReference(value));
+            return setParameter("p" + param + "-type", "ref");
         }
 
-        public InvocationLinkBuilder setReturTypeAdapter(TypeAdapter<?> typeAdapter) {
-            this.returnTypeAdapter = typeAdapter.getClass();
-            return this;
+        public InvokationLinkBuilder setTypeAdapter(int param, TypeAdapter<?> typeAdapter) {
+            return setParameter("p" + param + "-adapter", BugObjectCache.getReference(typeAdapter));
         }
 
-        public String build() {
-            StringBuilder link = new StringBuilder("/invoke");
-            link.append("?object=").append(BugObjectCache.getReference(object));
-            if (details) link.append("&details=true");
-            link.append("&method=").append(BugObjectCache.getReference(method));
-            if (predefined != null) {
-                for (Entry<Integer, Object> entry : predefined.entrySet()) {
-                    link.append("&p").append(entry.getKey()).append("=").append(BugObjectCache.getReference(entry.getValue()));
-                }
-            }
-            if (typeAdapters != null) {
-                for (Entry<Integer, Class<?>> entry : typeAdapters.entrySet()) {
-                    link.append("&ta").append(entry.getKey()).append("=").append(BugObjectCache.getReference(entry.getValue()));
-                }
-            }
-            if (returnTypeAdapter != null) {
-                link.append("&rta=" + BugObjectCache.getReference(returnTypeAdapter));
-            }
-            return link.toString();
+        public InvokationLinkBuilder setReturTypeAdapter(TypeAdapter<?> typeAdapter) {
+            return setParameter("adapter", BugObjectCache.getReference(typeAdapter));
         }
+    }
+
+    @Override
+    public boolean canEvalType(String type) {
+        if (type == null) return true;
+        if ("text".equals(type)) return true;
+        return "ref".equals(type);
+    }
+
+    @Override
+    @SuppressWarnings({"unchecked", "ConstantConditions"})
+    public Object eval(String type, String text, Class<?> clazz, TypeAdapter<?> adapter) {
+        if ("ref".equals(type)) {
+            Object value = BugObjectCache.get(text);
+            if (value == null) throw new IllegalArgumentException("Refrence \"" + text + "\" not found.");
+            return value;
+        }
+        if (adapter != null) return adapter.parse((Class) clazz, text);
+        if (clazz != null) return TypeAdapters.getTypeAdapter(clazz).parse(clazz, text);
+        throw new IllegalArgumentException("Either class of adapter must not me null.");
     }
 }

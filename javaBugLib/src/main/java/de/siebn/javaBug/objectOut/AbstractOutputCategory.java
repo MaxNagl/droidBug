@@ -9,12 +9,11 @@ import java.util.List;
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
-import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
+import de.siebn.javaBug.plugins.ObjectBugPlugin.InvokationLinkBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeSelectionAdapter;
-import de.siebn.javaBug.util.AllClassMembers;
-import de.siebn.javaBug.util.StringifierUtil;
+import de.siebn.javaBug.util.*;
 
 import static de.siebn.javaBug.BugFormat.field;
 import static de.siebn.javaBug.BugFormat.method;
@@ -117,7 +116,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
                 input = bugInput;
             }
             invokable.add(input);
-            InvocationLinkBuilder invocation = javaBug.getObjectBug().new InvocationLinkBuilder().setObject(this).setMethod(setter).setPredefined(0, o);
+            InvokationLinkBuilder invocation = new InvokationLinkBuilder(setter, this).setPredefined(0, o);
             if (typeAdapter != null) {
                 invocation.setTypeAdapter(1, typeAdapter).setReturTypeAdapter(typeAdapter);
                 invokable.add(new BugText(typeAdapter.getUnit()));
@@ -153,7 +152,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             invokable.add(BugText.getForClass(parameterTypes[i])).addSpace();
             invokable.add(new BugInputText("p" + i, preset.length > i ? TypeAdapters.toString(preset[i]) : null));
         }
-        if (canInvoke) invokable.url = javaBug.getObjectBug().getInvokationLink(ObjectBugPlugin.RETURN_TYPE_JSON, o, m);
+        if (canInvoke) invokable.url = new InvokationLinkBuilder(m, o).setReturnType(ObjectBugPlugin.RETURN_TYPE_JSON).build();
         invokable.addBraces();
         invokable.add(BugText.INVOKER);
         json.add(invokable);

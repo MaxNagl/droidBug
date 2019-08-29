@@ -1,12 +1,10 @@
 package de.siebn.javaBug.plugins;
 
 
-import java.util.List;
 import java.util.Map;
 
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
-import de.siebn.javaBug.BugElement.BugInputList.Option;
 import de.siebn.javaBug.JavaBug.BugReferenceResolver;
 import de.siebn.javaBug.plugins.scripts.BugScriptEnginePlugin.BugScriptEngine;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
@@ -105,6 +103,6 @@ public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin, BugReferen
 
     @Override
     public int getOrder() {
-        return -1000;
+        return 1000;
     }
 }
