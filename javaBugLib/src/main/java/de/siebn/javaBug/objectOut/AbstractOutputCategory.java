@@ -13,7 +13,8 @@ import de.siebn.javaBug.plugins.ObjectBugPlugin.InvokationLinkBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeSelectionAdapter;
-import de.siebn.javaBug.util.*;
+import de.siebn.javaBug.util.AllClassMembers;
+import de.siebn.javaBug.util.StringifierUtil;
 
 import static de.siebn.javaBug.BugFormat.field;
 import static de.siebn.javaBug.BugFormat.method;
@@ -27,6 +28,13 @@ public abstract class AbstractOutputCategory implements OutputCategory {
 
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Property {
+        String value();
+
+        Class<?>[] typeAdapters() default {};
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface OutputMethod {
         String value();
 
         Class<?>[] typeAdapters() default {};
@@ -72,8 +80,16 @@ public abstract class AbstractOutputCategory implements OutputCategory {
             if (getterSetter != null && showGetterSetter(o, m)) {
                 list.add(getProperty(getterSetter, o, m));
             }
+            OutputMethod outputMethod = m.getAnnotation(OutputMethod.class);
+            if (outputMethod != null && showOutputMethod(o, m)) {
+                list.add(getMethodInformation(this, m, new Object[]{o}, null));
+            }
         }
         return list;
+    }
+
+    protected boolean showOutputMethod(Object o, Method method) {
+        return true;
     }
 
     protected boolean showGetterSetter(Object o, Method method) {
@@ -147,12 +163,15 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         json.add(new BugText(m.getName()).format(method).setOnClick(BugText.ON_CLICK_EXPAND));
 
         BugInvokable invokable = new BugInvokable(BugInvokable.ACTION_EXPAND_RESULT);
+        boolean firstParameter = true;
         for (int i = 0; i < parameterTypes.length; i++) {
-            if (i != 0) invokable.add(new BugText(", "));
+            if (predefined.length > i && predefined[i] != null) continue;
+            if (firstParameter) invokable.add(new BugText(", "));
             invokable.add(BugText.getForClass(parameterTypes[i])).addSpace();
             invokable.add(new BugInputText("p" + i, preset.length > i ? TypeAdapters.toString(preset[i]) : null));
+            firstParameter = false;
         }
-        if (canInvoke) invokable.url = new InvokationLinkBuilder(m, o).setReturnType(ObjectBugPlugin.RETURN_TYPE_JSON).build();
+        if (canInvoke) invokable.url = new InvokationLinkBuilder(m, o).setReturnType(ObjectBugPlugin.RETURN_TYPE_JSON).setPredefined(predefined).build();
         invokable.addBraces();
         invokable.add(BugText.INVOKER);
         json.add(invokable);

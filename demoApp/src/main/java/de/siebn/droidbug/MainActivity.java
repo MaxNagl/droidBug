@@ -1,24 +1,22 @@
-package de.desiebn.droidbug;
+package de.siebn.droidbug;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
+import net.bytebuddy.android.AndroidClassLoadingStrategy;
+
+import java.net.*;
 import java.util.*;
 
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.NanoHTTPD.AsyncRunner;
-import de.siebn.javaBug.android.LayoutParameterOutput;
-import de.siebn.javaBug.android.ViewBugPlugin;
-import de.siebn.javaBug.android.ViewShotOutput;
+import de.siebn.javaBug.android.*;
+import de.siebn.javaBug.util.BugByteCodeUtil;
 
 
 public class MainActivity extends Activity {
@@ -39,6 +37,14 @@ public class MainActivity extends Activity {
         jb.addPlugin(new LayoutParameterOutput(jb));
 
         jb.getObjectBug().addRootObject("DroidBug", jb);
+        try {
+            BugByteCodeUtil.CLASS_LOADING_STRATEGY = new AndroidClassLoadingStrategy.Wrapping(getCacheDir());
+            jb.getObjectBug().addRootObject("Test", BugByteCodeUtil.bugClass(Point.class).newInstance());
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        }
 
         jb.tryToStart();
 

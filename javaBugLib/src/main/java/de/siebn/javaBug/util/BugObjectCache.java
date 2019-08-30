@@ -9,6 +9,7 @@ public class BugObjectCache {
     public static String getReference(Object o) {
         if (o == null) return null;
         String clazz = o.getClass().getSimpleName();
+        if (clazz.length() == 0) clazz = "object";
         String hash = Integer.toHexString(System.identityHashCode(o));
         HashMap<String, WeakReference<Object>> clazzRefs = references.get(clazz);
         if (clazzRefs == null) references.put(clazz, clazzRefs = new HashMap<>());
@@ -31,8 +32,10 @@ public class BugObjectCache {
     public static Object get(String reference) {
         if (reference == null) return null;
         int uscroe = reference.indexOf('_');
-        if (uscroe <= 0) return null;
-        HashMap<String, WeakReference<Object>> clazzRefs = references.get(reference.substring(0, uscroe));
+        if (uscroe < 0) return null;
+        String clazz = reference.substring(0, uscroe);
+        if (clazz.length() == 0) clazz = "object";
+        HashMap<String, WeakReference<Object>> clazzRefs = references.get(clazz);
         if (clazzRefs == null) return null;
         WeakReference<Object> ref = clazzRefs.get(reference.substring(uscroe + 1));
         if (ref == null) return null;

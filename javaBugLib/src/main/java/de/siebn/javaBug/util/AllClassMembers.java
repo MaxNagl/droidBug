@@ -1,7 +1,5 @@
 package de.siebn.javaBug.util;
 
-import de.siebn.javaBug.plugins.ObjectBugPlugin;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -32,7 +30,10 @@ public class AllClassMembers {
             f.setAccessible(true);
             fields.add(f);
         }
-        for (Method m : clazz.getDeclaredMethods()) {
+        m: for (Method m : clazz.getDeclaredMethods()) {
+            for (Method om : methods) {
+                if (om.getName().equals(m.getName()) && om.getReturnType().equals(m.getReturnType()) && Arrays.equals(m.getParameterTypes(), om.getParameterTypes())) continue m;
+            }
             m.setAccessible(true);
             methods.add(m);
             if (!clazz.equals(Object.class) && m.getName().length() > 3) {

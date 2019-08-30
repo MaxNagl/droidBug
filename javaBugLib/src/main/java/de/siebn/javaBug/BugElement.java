@@ -123,6 +123,11 @@ public abstract class BugElement {
         public BugEntry setExpandInclude(String url) {
             return setExpand(new BugInclude(url));
         }
+
+        public BugEntry setAutoExpand(boolean autoExpand) {
+            this.autoExpand = autoExpand;
+            return this;
+        }
     }
 
     public static class BugInputElement extends BugElement {
@@ -170,6 +175,7 @@ public abstract class BugElement {
         public static BugText getForValue(Object val) {
             BugText text = new BugText(val == null ? "null" : TypeAdapters.toString(val));
             text.format(val == null ? BugFormat.nul : BugFormat.value);
+            text.setReference(BugObjectCache.getReference(val));
             return text;
         }
 

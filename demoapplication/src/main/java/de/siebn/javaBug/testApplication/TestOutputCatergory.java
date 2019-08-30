@@ -37,6 +37,6 @@ public class TestOutputCatergory extends AbstractOutputCategory {
 
     @Override
     public boolean canOutputClass(Class<?> clazz) {
-        return clazz.equals(TestClass.class);
+        return TestClass.class.isAssignableFrom(clazz);
     }
 }

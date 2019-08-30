@@ -136,6 +136,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
     }
 
     public BugElement getBugObjectFor(Object o) {
+        if (o instanceof BugElement) return (BugElement) o;
         BugEntry e = new BugEntry();
         if (o != null) {
             e.elements.add(new BugText(o.getClass().getName()).format(BugFormat.clazz).setOnClick(BugText.ON_CLICK_EXPAND));
@@ -314,6 +315,12 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         public InvokationLinkBuilder setPredefined(int param, Object value) {
             setParameter("p" + param, BugObjectCache.getReference(value));
             return setParameter("p" + param + "-type", "ref");
+        }
+
+        public InvokationLinkBuilder setPredefined(Object[] predefined) {
+            if (predefined == null) return this;
+            for (int i = 0; i < predefined.length; i++) setPredefined(i, predefined[i]);
+            return this;
         }
 
         public InvokationLinkBuilder setTypeAdapter(int param, TypeAdapter<?> typeAdapter) {

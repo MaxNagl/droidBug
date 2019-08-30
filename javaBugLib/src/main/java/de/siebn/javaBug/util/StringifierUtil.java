@@ -9,7 +9,7 @@ import java.util.Map;
  * Created by Sieben on 13.03.2015.
  */
 public class StringifierUtil {
-    public final static String[] timeUnits = {"ns", "µs", "ms", "s"};
+    public final static String[] timeUnits = {"ns", "\u00B5s", "ms", "s"};
     public final static Map<Integer, String> modifierNames = getModifierMap();
 
     public static String nanoSecondsToString(long ns) {

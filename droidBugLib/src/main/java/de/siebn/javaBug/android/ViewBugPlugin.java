@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream;
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.plugins.RootBugPlugin;
+import de.siebn.javaBug.util.BugObjectCache;
 import de.siebn.javaBug.util.XML;
 
 /**
@@ -85,7 +86,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     private void addViewTree(BugGroup parent, View view) {
         BugEntry entry = new BugEntry();
-        entry.hoverGroup = javaBug.getObjectBug().getObjectReference(view);
+        entry.hoverGroup = BugObjectCache.getReference(view);
         entry.autoExpand = true;
         BugElement title = new BugText(view.toString()).setClazz("title");
         setLoadDetailsOnClick(title, view);
@@ -116,7 +117,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     private void addViewDivTree(BugGroup parent, View view) {
         BugDiv div = new BugDiv();
-        div.hoverGroup = javaBug.getObjectBug().getObjectReference(view);
+        div.hoverGroup = BugObjectCache.getReference(view);
         setLoadDetailsOnClick(div, view);
         setPositionStyle(div, view);
         div.setStyle("position", "absolute");

@@ -4,6 +4,7 @@ package de.siebn.javaBug.testApplication;
 import java.util.*;
 
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.util.BugByteCodeUtil;
 import de.siebn.javaBug.util.BugObjectCache;
 
 /**
@@ -14,11 +15,14 @@ public class JavaBugDemoApplication {
     public static void main(String[] args) {
         JavaBug jb = new JavaBug(7777);
         jb.addDefaultPlugins();
+        jb.addPlugin(new RecursiveOutputCatergory(jb));
         jb.addPlugin(new TestPropertyCategory(jb));
         jb.addPlugin(new TestOutputCatergory(jb));
 
-        TestClass test = new TestClass();
-        jb.getObjectBug().addRootObject("Test", test);
+        TestClass test = null;//new TestClass();
+        jb.getObjectBug().addRootObject("Test", new TestClass());
+        jb.getObjectBug().addRootObject("TestWrapped", test = BugByteCodeUtil.getBuggedInstance(TestClass.class));
+        jb.getObjectBug().addRootObject("Recursion", RecursiveTestClass.getBuggedTestHierarchy());
         jb.getObjectBug().addRootObject("JavaBug", jb);
         jb.getObjectBug().addRootObject("Formats", new BugFormatTest());
         jb.getObjectBug().addRootObject("Array", new String[]{"Eins", "Zwei", "Drei"});
@@ -35,6 +39,7 @@ public class JavaBugDemoApplication {
 
         System.out.println("javaBug startet. Open your browser at: " + jb.getIPAddresses(true));
         System.out.println("Test Object " + BugObjectCache.getReference(test));
+
 
         while (true) {
             try {
