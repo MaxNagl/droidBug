@@ -2,11 +2,8 @@ package de.siebn.javaBug;
 
 import com.google.gson.Gson;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.Map.Entry;
 
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
@@ -172,11 +169,31 @@ public abstract class BugElement {
             return text;
         }
 
+        public static BugText getForMethod(Method method) {
+            BugText text = new BugText(method.getName());
+            text.setTooltip(method.toString());
+            text.format(BugFormat.method);
+            return text;
+        }
+
         public static BugText getForValue(Object val) {
             BugText text = new BugText(val == null ? "null" : TypeAdapters.toString(val));
-            text.format(val == null ? BugFormat.nul : BugFormat.value);
             text.setReference(BugObjectCache.getReference(val));
+            text.hoverGroup = BugObjectCache.getReference(val);
+            if (val != null) text.setTooltip(val.getClass().getName());
             return text;
+        }
+
+        public static BugText getForValueFormated(Object val) {
+            return getForValueFormated(val, BugFormat.value, BugFormat.nul);
+        }
+
+        public static BugText getForValueFormated(Object val, BugFormat format) {
+            return (BugText) getForValue(val).format(format);
+        }
+
+        public static BugText getForValueFormated(Object val, BugFormat format, BugFormat nullFormat) {
+            return (BugText) getForValue(val).format(val == null ? nullFormat : format);
         }
 
         public static BugText getForByteSize(long size) {

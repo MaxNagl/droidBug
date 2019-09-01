@@ -24,7 +24,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(BugLayoutInflaterFactory.wrapInflater(getLayoutInflater()).inflate(R.layout.activity_main, null));
 
         JavaBug jb = new JavaBug(7778);
         jb.addDefaultPlugins();
@@ -34,6 +34,7 @@ public class MainActivity extends Activity {
 
         jb.addPlugin(new ViewBugPlugin(jb, this));
         jb.addPlugin(new ViewShotOutput(jb));
+        jb.addPlugin(new ViewProfilingOutput(jb));
         jb.addPlugin(new LayoutParameterOutput(jb));
 
         jb.getObjectBug().addRootObject("DroidBug", jb);
@@ -57,7 +58,7 @@ public class MainActivity extends Activity {
 
         LinearLayout lin = (LinearLayout) findViewById(R.id.browserAdresses);
         for (String ipAdress : getIPAddresses()) {
-            TextView tv = new TextView(this);
+            TextView tv = BugByteCodeUtil.getBuggedInstance(TextView.class, this);
             String httpAdress = "http://";
             httpAdress += isIPv4Address(ipAdress) ? ipAdress : ("[" + ipAdress + "]");
             httpAdress += ":" + jb.getListeningPort();

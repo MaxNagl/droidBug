@@ -244,7 +244,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
             entry.add(new BugText(category).setOnClick(BugElement.ON_CLICK_EXPAND).format(BugFormat.category));
             entry.add(BugText.VALUE_SEPARATOR);
         }
-        entry.add(BugText.getForValue(value).setOnClick(BugElement.ON_CLICK_EXPAND).setReference(BugObjectCache.getReference(value)));
+        entry.add(BugText.getForValueFormated(value).setOnClick(BugElement.ON_CLICK_EXPAND));
         return entry;
     }
 

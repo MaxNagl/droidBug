@@ -1,10 +1,14 @@
 package de.siebn.javaBug.android;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.view.View;
-import android.view.ViewGroup;
+import android.util.AttributeSet;
+import android.view.*;
+import android.view.LayoutInflater.Factory2;
+
+import net.bytebuddy.android.AndroidClassLoadingStrategy;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,8 +16,7 @@ import java.io.ByteArrayOutputStream;
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.plugins.RootBugPlugin;
-import de.siebn.javaBug.util.BugObjectCache;
-import de.siebn.javaBug.util.XML;
+import de.siebn.javaBug.util.*;
 
 /**
  * Created by Sieben on 04.03.2015.
@@ -63,7 +66,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugSplit horizontal = new BugSplit(BugSplit.ORIENTATION_HORIZONTAL);
         BugSplit vertical = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
         horizontal.add(new BugSplitElement(vertical));
-        horizontal.add(new BugSplitElement(new BugDiv().setId("VuewBugDetails").format(BugFormat.paddingNormal)));
+        horizontal.add(new BugSplitElement(new BugDiv().setId("ViewBugDetails").format(BugFormat.paddingNormal)));
         vertical.add(new BugSplitElement(new BugInclude("/viewTreeDivsJson")).format(BugFormat.paddingNormal));
         vertical.add(new BugSplitElement(new BugInclude("/viewTreeJson")).format(BugFormat.paddingNormal));
         return horizontal;
@@ -130,8 +133,8 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     private void setLoadDetailsOnClick(BugElement element, View view) {
-        String details = javaBug.getObjectBug().getObjectDetailsLink(view);
-        element.setOnClick("$('#VuewBugDetails').loadBugElement('" + details + "');");
+        BugInclude include = new BugInclude(javaBug.getObjectBug().getObjectDetailsLink(view));
+        element.setOnClick("$('#ViewBugDetails').loadContent('" + include.toJson() + "', 'application/json');");
     }
 
     private void setPositionStyle(BugElement element, View view) {
@@ -173,7 +176,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         XML li = ul.add("li").setClass("object");
         li.setAttr("onClick", "loadGet('#viewDetails', '" + javaBug.getObjectBug().getObjectDetailsLink(view) + "', true)");
         li.appendText(view.toString());
-        li.setAttr("hoverGroup", Integer.toHexString(System.identityHashCode(view)));
+        li.setAttr("hoverGroup", BugObjectCache.getReference(view));
         if (view instanceof ViewGroup) {
             XML cul = li.add("ul").setClass("expand");
             li.setAttr("expand", "true");
@@ -189,7 +192,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         XML vDiv = div.add("div");
         vDiv.setAttr("style", "position:absolute;left:" + view.getLeft() + "px;width:" + view.getWidth() + "px;top:" + view.getTop() + "px;height:" + view.getHeight() + "px");
         vDiv.setClass("viewRect");
-        vDiv.setAttr("hoverGroup", Integer.toHexString(System.identityHashCode(view)));
+        vDiv.setAttr("hoverGroup", BugObjectCache.getReference(view));
         if (view instanceof ViewGroup) {
             ViewGroup vg = (ViewGroup) view;
             for (int i = 0; i < vg.getChildCount(); i++)

@@ -15,6 +15,7 @@ sourceSets {
 
 dependencies {
     compileOnly 'com.google.android:android:4.1.1.4'
+    compileOnly 'net.bytebuddy:byte-buddy-android:1.10.1'
     compile project(':javaBugLib')
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }

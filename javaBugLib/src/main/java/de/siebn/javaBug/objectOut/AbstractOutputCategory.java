@@ -13,11 +13,10 @@ import de.siebn.javaBug.plugins.ObjectBugPlugin.InvokationLinkBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeSelectionAdapter;
-import de.siebn.javaBug.util.AllClassMembers;
-import de.siebn.javaBug.util.StringifierUtil;
+import de.siebn.javaBug.util.*;
+import de.siebn.javaBug.util.BugByteCodeUtil.MethodCall;
 
 import static de.siebn.javaBug.BugFormat.field;
-import static de.siebn.javaBug.BugFormat.method;
 
 public abstract class AbstractOutputCategory implements OutputCategory {
     private final static Object[] empty = new Object[0];
@@ -160,13 +159,13 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         json.addClazz(StringifierUtil.modifiersToString(m.getModifiers(), "mod", true));
         json.add(BugText.getForModifier(m.getModifiers())).addSpace();
         json.add(BugText.getForClass(m.getReturnType())).addSpace();
-        json.add(new BugText(m.getName()).format(method).setOnClick(BugText.ON_CLICK_EXPAND));
+        json.add(BugText.getForMethod(m).setOnClick(BugText.ON_CLICK_EXPAND));
 
         BugInvokable invokable = new BugInvokable(BugInvokable.ACTION_EXPAND_RESULT);
         boolean firstParameter = true;
         for (int i = 0; i < parameterTypes.length; i++) {
             if (predefined.length > i && predefined[i] != null) continue;
-            if (firstParameter) invokable.add(new BugText(", "));
+            if (!firstParameter) invokable.add(new BugText(", "));
             invokable.add(BugText.getForClass(parameterTypes[i])).addSpace();
             invokable.add(new BugInputText("p" + i, preset.length > i ? TypeAdapters.toString(preset[i]) : null));
             firstParameter = false;
@@ -232,5 +231,32 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         json.add(BugText.VALUE_SEPARATOR);
         json.add(BugText.getForValue(val));
         return json;
+    }
+
+    public BugElement getProfileElement(List<MethodCall> calls) {
+        BugList list = new BugList();
+        for (MethodCall call : calls) addMethodCall(list, call);
+        return list;
+    }
+
+    public void addMethodCall(BugGroup group, MethodCall methodCall) {
+        BugEntry entry = new BugEntry().setAutoExpand(true);
+        entry.add(BugText.getForValueFormated(methodCall.object, BugFormat.colorPrimary));
+        entry.addText(".").add(BugText.getForMethod(methodCall.method));
+        entry.addText("(");
+        boolean firstArg = true;
+        for (Object arg : methodCall.arguments) {
+            if (!firstArg) entry.addText(", ");
+            entry.add(BugText.getForValue(arg));
+            firstArg = false;
+        }
+        entry.addText(") -> ");
+        entry.add(BugText.getForValueFormated(methodCall.returnValue));
+        entry.addText(" (" + StringifierUtil.nanoSecondsToString(methodCall.timeNs) + ")");
+        BugList children = new BugList();
+        for (MethodCall call : methodCall.calls)
+            addMethodCall(children, call);
+        entry.setExpand(children);
+        group.add(entry);
     }
 }
