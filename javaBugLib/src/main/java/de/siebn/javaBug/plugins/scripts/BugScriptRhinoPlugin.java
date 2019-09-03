@@ -2,10 +2,10 @@ package de.siebn.javaBug.plugins.scripts;
 
 import org.mozilla.javascript.*;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.util.AllClassMembers;
 
 public class BugScriptRhinoPlugin implements BugScriptEnginePlugin {
     private final JavaBug javaBug;
@@ -56,13 +56,13 @@ public class BugScriptRhinoPlugin implements BugScriptEnginePlugin {
 
                         @Override
                         public boolean has(String name, Scriptable start) {
-                            Object o = javaBug.resolveReference(name);
+                            Object o = resolve(name);
                             return o != null || super.has(name, start);
                         }
 
                         @Override
                         public Object get(String name, Scriptable start) {
-                            Object o = javaBug.resolveReference(name);
+                            Object o = resolve(name);
                             return o != null ? o : super.get(name, start);
                         }
                     };
@@ -75,7 +75,7 @@ public class BugScriptRhinoPlugin implements BugScriptEnginePlugin {
         }
 
         @Override
-        public Object eval(String script) throws Throwable {
+        public Object eval(String script) {
             Context context = getContext();
             return context.evaluateString(scope, script, "console", 1, null);
         }
@@ -89,4 +89,15 @@ public class BugScriptRhinoPlugin implements BugScriptEnginePlugin {
         public String getNameShort() {
             return "js";
         }
-    }}
+
+        private Object resolve(String name) {
+            Object o = javaBug.resolveReference(name);
+            if (o == null) {
+                if (AllClassMembers.topPackageExists(name)) {
+                    o = eval("Packages." + name);
+                }
+            }
+            return o;
+        }
+    }
+}

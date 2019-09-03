@@ -8,6 +8,7 @@ import javax.script.*;
 import de.siebn.javaBug.BugFormat;
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.plugins.StreamBugPlugin.BugStream;
+import de.siebn.javaBug.util.AllClassMembers;
 
 public class BugScriptJsr223Plugin implements BugScriptEnginePlugin {
     private final static String[] DEFAULT_FACTORY_CLASSES = {
@@ -52,6 +53,7 @@ public class BugScriptJsr223Plugin implements BugScriptEnginePlugin {
     public class BugScriptEngineJsr223 implements BugScriptEngine {
         private ScriptEngineFactory factory;
         private ScriptEngine engine;
+        private boolean isJs;
 
         public BugScriptEngineJsr223(ScriptEngineFactory factory) {
             this.factory = factory;
@@ -59,13 +61,13 @@ public class BugScriptJsr223Plugin implements BugScriptEnginePlugin {
             engine.setBindings(new SimpleBindings() {
                 @Override
                 public boolean containsKey(Object key) {
-                    Object o = key instanceof String ? javaBug.resolveReference((String) key) : null;
+                    Object o = resolve(key);
                     return o != null || super.containsKey(key);
                 }
 
                 @Override
                 public Object get(Object key) {
-                    Object o = key instanceof String ? javaBug.resolveReference((String) key) : null;
+                    Object o = resolve(key);
                     return o != null ? o : super.get(key);
                 }
             }, ScriptContext.GLOBAL_SCOPE);
@@ -73,6 +75,7 @@ public class BugScriptJsr223Plugin implements BugScriptEnginePlugin {
             BugStream consoleStream = javaBug.getStreamBugPlugin().getConsoleStream();
             context.setWriter(new OutputStreamWriter(consoleStream.createOutputStream()));
             context.setErrorWriter(new OutputStreamWriter(consoleStream.createOutputStreamWithClazz(BugFormat.colorError.clazzes)));
+            isJs = factory.getExtensions().contains("js");
         }
 
         @Override
@@ -90,6 +93,21 @@ public class BugScriptJsr223Plugin implements BugScriptEnginePlugin {
             List<String> extensions = factory.getExtensions();
             if (extensions == null || extensions.isEmpty()) return factory.getEngineName();
             return extensions.get(0);
+        }
+
+        private Object resolve(Object key) {
+            if (!(key instanceof String)) return null;
+            String name = (String) key;
+            Object o = javaBug.resolveReference(name);
+            if (o == null && isJs) {
+                if (AllClassMembers.topPackageExists(name)) {
+                    try {
+                        o = eval("Packages." + name);
+                    } catch (Throwable ignore) {
+                    }
+                }
+            }
+            return o;
         }
     }
 }

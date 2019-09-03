@@ -1,14 +1,18 @@
 package de.siebn.javaBug.util;
 
 import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.TypeCache;
 import net.bytebuddy.description.method.MethodDescription;
+import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType.Loaded;
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
+import net.bytebuddy.dynamic.loading.ByteArrayClassLoader;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.dynamic.scaffold.TypeValidation;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.*;
 import net.bytebuddy.matcher.ElementMatcher;
+import net.bytebuddy.pool.TypePool;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -148,7 +152,6 @@ public class BugByteCodeUtil {
                     .method(new ElementMatcher<MethodDescription>() {
                         @Override
                         public boolean matches(MethodDescription target) {
-                            System.out.println(target.getName());
                             return target.getName().equals("onMeasure") || target.getName().equals("setMeasuredDimension") || target.getName().equals("getTotalValue");
                         }
                     })

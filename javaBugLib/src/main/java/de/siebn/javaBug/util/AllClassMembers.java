@@ -9,6 +9,7 @@ import java.util.*;
  */
 public class AllClassMembers {
     private static final HashMap<Class<?>, AllClassMembers> allMembersMap = new HashMap<>();
+    public static final Map<String, Boolean> topPackages = new HashMap<>();
 
     public final ArrayList<Field> fields = new ArrayList<>();
     public final ArrayList<Method> methods = new ArrayList<>();
@@ -87,4 +88,20 @@ public class AllClassMembers {
         return allMembers;
     }
 
+    public static boolean topPackageExists(String name) {
+        if (!name.endsWith(".")) name += ".";
+        Boolean exists = topPackages.get(name);
+        if (exists == null) {
+            exists = false;
+            for (Package p : Package.getPackages()) {
+                if (p.getName().startsWith(name)) {
+                    exists = true;
+                    break;
+                }
+            }
+            topPackages.put(name, exists);
+        }
+
+        return exists;
+    }
 }

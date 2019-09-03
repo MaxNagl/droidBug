@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
 
         jb.getFileBug().addRoot("files", getFilesDir());
         jb.getFileBug().addRoot("external files", getExternalFilesDir(null));
+        jb.getFileBug().addRoot("cache", getCacheDir());
 
         jb.addPlugin(new ViewBugPlugin(jb, this));
         jb.addPlugin(new ViewShotOutput(jb));
@@ -38,14 +39,8 @@ public class MainActivity extends Activity {
         jb.addPlugin(new LayoutParameterOutput(jb));
 
         jb.getObjectBug().addRootObject("DroidBug", jb);
-        try {
-            BugByteCodeUtil.CLASS_LOADING_STRATEGY = new AndroidClassLoadingStrategy.Wrapping(getCacheDir());
-            jb.getObjectBug().addRootObject("Test", BugByteCodeUtil.bugClass(Point.class).newInstance());
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        }
+        BugByteCodeUtil.CLASS_LOADING_STRATEGY = new AndroidClassLoadingStrategy.Wrapping(getCacheDir());
+        jb.getObjectBug().addRootObject("Test", BugByteCodeUtil.getBuggedInstance(Point.class));
 
         jb.tryToStart();
 
