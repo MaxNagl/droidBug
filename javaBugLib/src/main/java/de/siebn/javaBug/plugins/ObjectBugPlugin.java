@@ -7,12 +7,13 @@ import java.util.Map.Entry;
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.JavaBug.BugEvaluator;
+import de.siebn.javaBug.JavaBug.BugReferenceResolver;
 import de.siebn.javaBug.objectOut.*;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 import de.siebn.javaBug.util.*;
 
-public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluator {
+public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluator, BugReferenceResolver {
     private HashMap<String, RootObject> rootObjects = new LinkedHashMap<>();
 
     public static class RootObject {
@@ -351,4 +352,11 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         if (clazz != null) return TypeAdapters.getTypeAdapter(clazz).parse(clazz, text);
         throw new IllegalArgumentException("Either class of adapter must not me null.");
     }
+
+    @Override
+    public Object resolve(String reference) {
+        RootObject ro = rootObjects.get(reference);
+        return ro == null ? null : ro.value;
+    }
+
 }

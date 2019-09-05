@@ -4,9 +4,6 @@ import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.BugElement.BugTabs.BugTab;
 import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.NanoHTTPD.Response;
-import de.siebn.javaBug.util.HtmlPage;
-import de.siebn.javaBug.util.StringifierUtil;
 import de.siebn.javaBug.util.XML;
 import de.siebn.javaBug.util.XML.HTML;
 
@@ -29,6 +26,7 @@ public class RootBugPlugin implements BugPlugin {
 
     public interface MainBugPlugin extends BugPlugin {
         String getTabName();
+
         BugElement getContent();
     }
 

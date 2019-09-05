@@ -210,6 +210,7 @@ public class TypeAdapters {
 
         @Override
         public String toString(Object object) {
+            if (object == null) return null;
             return object.getClass().getComponentType().getSimpleName() + "[" + Array.getLength(object) + "]";
         }
     }

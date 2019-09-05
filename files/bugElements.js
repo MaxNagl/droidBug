@@ -305,10 +305,7 @@ class BugInputText extends BugText {
         if (mode == 'ref') prefix = '@';
         this.view.attr('prefix', prefix);
         if (prefix != null) {
-            var measure = $('<span class="measurePre">').append(prefix);
-            $('html').append(measure);
-            this.view.css('padding-left', measure.width() + 12);
-            measure.remove();
+            this.view.css('padding-left', getTextWidth(prefix) + 12);
         } else {
             this.view.css('padding-left', '');
         }
@@ -573,6 +570,17 @@ class BugSplitElement extends BugElement {
             this.view.append(model.view);
         }.bind(this))
     }
+}
+
+var textWidthCache = {}
+function getTextWidth(text) {
+    if (textWidthCache[text] == null) {
+        var measure = $('<span class="measurePre">').append(text);
+        $('html').append(measure);
+        textWidthCache[text] = measure.width();
+        measure.remove();
+    }
+    return textWidthCache[text];
 }
 
 function viewAdded(view) {

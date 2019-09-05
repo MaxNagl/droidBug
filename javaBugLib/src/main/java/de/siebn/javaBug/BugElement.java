@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.util.*;
+import de.siebn.javaBug.util.BugJsonWriter.BugJsonElement;
 
 public abstract class BugElement {
     public static String ON_CLICK_INVOKE = "invoke";
@@ -66,7 +67,19 @@ public abstract class BugElement {
     }
 
     public String toJson() {
-        return new Gson().toJson(this);
+        return new BugJsonWriter(false).writeObject(this).getString();
+    }
+
+    public byte[] toGzipJson() {
+        return new BugJsonWriter(true).writeObject(this).getBytes();
+    }
+
+    public void writeJsonFields(BugJsonWriter writer) {
+        writer.wrtieField("id", id);
+        writer.wrtieField("clazz", clazz);
+        writer.wrtieField("onClick", onClick);
+        writer.wrtieField("hoverGroup", hoverGroup);
+        writer.wrtieField("reference", reference);
     }
 
     public static class BugInclude extends BugElement {
@@ -79,6 +92,12 @@ public abstract class BugElement {
         public BugInclude setUrl(String url) {
             this.url = url;
             return this;
+        }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("url", url);
         }
     }
 
@@ -96,6 +115,12 @@ public abstract class BugElement {
 
         public BugGroup addSpace() {
             return add(BugText.SPACE);
+        }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("elements", elements);
         }
     }
 
@@ -125,6 +150,13 @@ public abstract class BugElement {
             this.autoExpand = autoExpand;
             return this;
         }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("expand", expand);
+            writer.wrtieField("autoExpand", autoExpand);
+        }
     }
 
     public static class BugInputElement extends BugElement {
@@ -135,6 +167,14 @@ public abstract class BugElement {
         public BugInputElement setRefreshUrl(String refreshUrl) {
             this.refreshUrl = refreshUrl;
             return this;
+        }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("refreshUrl", refreshUrl);
+            writer.wrtieField("callId", callId);
+            writer.wrtieField("enabled", enabled);
         }
     }
 
@@ -156,6 +196,13 @@ public abstract class BugElement {
             return this;
         }
 
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("text", text);
+            writer.wrtieField("tooltip", tooltip);
+        }
+
         public static BugText getForClass(Class<?> clazz) {
             BugText text = new BugText(clazz.getSimpleName());
             text.setTooltip(clazz.getName());
@@ -163,9 +210,14 @@ public abstract class BugElement {
             return text;
         }
 
+        private final static HashMap<Integer, BugText> modifierCache = new HashMap<>();
         public static BugText getForModifier(int modifier) {
-            BugText text = new BugText(StringifierUtil.modifiersToString(modifier, null, false));
-            text.format(BugFormat.modifier);
+            BugText text = modifierCache.get(modifier);
+            if (text == null) {
+                text = new BugText(StringifierUtil.modifiersToString(modifier, null, false));
+                text.format(BugFormat.modifier);
+                modifierCache.put(modifier, text);
+            }
             return text;
         }
 
@@ -210,6 +262,12 @@ public abstract class BugElement {
         public BugPre(String text) {
             super(text);
         }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("stream", stream);
+        }
     }
 
     public static class BugLink extends BugText {
@@ -222,6 +280,12 @@ public abstract class BugElement {
         public BugLink setUrl(String url) {
             this.url = url;
             return this;
+        }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("url", url);
         }
     }
 
@@ -236,6 +300,16 @@ public abstract class BugElement {
             super(text);
             this.callId = callId;
         }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("nullable", nullable);
+            writer.wrtieField("scriptable", scriptable);
+            writer.wrtieField("referenceable", referenceable);
+            writer.wrtieField("textable", textable);
+            writer.wrtieField("mode", mode);
+        }
     }
 
     public static class BugImg extends BugGroup {
@@ -244,6 +318,12 @@ public abstract class BugElement {
         public BugImg setSrc(String src) {
             this.src = src;
             return this;
+        }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("src", src);
         }
     }
 
@@ -262,7 +342,7 @@ public abstract class BugElement {
             }
         }
 
-        public static class Option {
+        public static class Option implements BugJsonElement {
             public String id;
             public String text;
 
@@ -270,6 +350,19 @@ public abstract class BugElement {
                 this.id = id;
                 this.text = text;
             }
+
+            @Override
+            public void writeJsonFields(BugJsonWriter writer) {
+                writer.wrtieField("id", id);
+                writer.wrtieField("text", text);
+            }
+        }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("text", options);
+            writer.wrtieField("options", options);
         }
     }
 
@@ -291,6 +384,14 @@ public abstract class BugElement {
         public BugInputCheckbox setChecked(boolean checked) {
             this.checked = checked;
             return this;
+        }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("text", text);
+            writer.wrtieField("options", onChange);
+            writer.wrtieField("options", checked);
         }
     }
 
@@ -319,14 +420,33 @@ public abstract class BugElement {
             invokable.clazz = "hideCollapsed";
             return invokable;
         }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("action", action);
+            writer.wrtieField("url", url);
+        }
     }
 
     public static class BugTabs extends BugElement {
         public List<BugTab> tabs = new ArrayList<>();
 
-        public static class BugTab {
+        public static class BugTab implements BugJsonElement {
             public String title;
             public BugElement content;
+
+            @Override
+            public void writeJsonFields(BugJsonWriter writer) {
+                writer.wrtieField("title", title);
+                writer.wrtieField("content", content);
+            }
+        }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("tabs", tabs);
         }
     }
 
@@ -339,6 +459,11 @@ public abstract class BugElement {
             this.orientation = orientation;
         }
 
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("orientation", orientation);
+        }
     }
 
     public static class BugSplitElement extends BugElement {
@@ -363,6 +488,14 @@ public abstract class BugElement {
         public BugSplitElement setContent(BugElement content) {
             this.content = content;
             return this;
+        }
+
+        @Override
+        public void writeJsonFields(BugJsonWriter writer) {
+            super.writeJsonFields(writer);
+            writer.wrtieField("weight", weight);
+            writer.wrtieField("fixed", fixed);
+            writer.wrtieField("content", content);
         }
     }
 }
