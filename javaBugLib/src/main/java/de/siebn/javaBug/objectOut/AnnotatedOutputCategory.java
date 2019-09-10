@@ -21,11 +21,6 @@ public class AnnotatedOutputCategory implements OutputCategory {
     }
 
     @Override
-    public String getId() {
-        return method.getName();
-    }
-
-    @Override
     public BugElement get(Object o) {
         try {
             return (BugElement) method.invoke(o);

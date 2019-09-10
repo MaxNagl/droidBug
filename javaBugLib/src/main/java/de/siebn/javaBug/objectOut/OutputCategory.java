@@ -13,8 +13,6 @@ import de.siebn.javaBug.util.XML;
 public interface OutputCategory extends JavaBug.BugPlugin {
     BugElement get(Object o);
 
-    String getId();
-
     String getType();
 
     String getName(Object o);

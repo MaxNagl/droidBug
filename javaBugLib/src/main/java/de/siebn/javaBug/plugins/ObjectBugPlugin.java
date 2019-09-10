@@ -110,7 +110,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
             if (name != null) {
                 BugEntry c = new BugEntry();
                 c.elements.add(new BugText(name).setOnClick(BugText.ON_CLICK_EXPAND).format(BugFormat.category));
-                String expandUrl = "/objects/" + BugObjectCache.getReference(o) + "/details/" + cat.getId();
+                String expandUrl = "/objects/" + BugObjectCache.getReference(o) + "/details/" + cat.getType();
                 c.setExpandInclude(expandUrl);
                 c.elements.add(BugText.NBSP);
                 c.elements.add(BugInvokable.getExpandRefresh(expandUrl));
@@ -129,7 +129,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         Object o = BugObjectCache.get(params[1]);
         String category = params[2];
         for (OutputCategory cat : getOutputCategories(o.getClass())) {
-            if (cat.getId().equals(category)) {
+            if (cat.getType().equals(category)) {
                 return cat.get(o);
             }
         }

@@ -34,7 +34,8 @@ public class MainActivity extends Activity {
         jb.getFileBug().addRoot("cache", getCacheDir());
 
         jb.addPlugin(new ViewBugPlugin(jb, this));
-        jb.addPlugin(new ViewShotOutput(jb));
+        jb.addPlugin(new ViewShotOutput(jb, false));
+        jb.addPlugin(new ViewShotOutput(jb, true));
         jb.addPlugin(new ViewProfilingOutput(jb));
         jb.addPlugin(new LayoutParameterOutput(jb));
 

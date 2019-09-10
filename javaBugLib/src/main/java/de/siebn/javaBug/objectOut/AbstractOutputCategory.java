@@ -47,11 +47,6 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     }
 
     @Override
-    public String getId() {
-        return getClass().getSimpleName();
-    }
-
-    @Override
     public String getType() {
         return type;
     }

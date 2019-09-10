@@ -80,6 +80,7 @@ public abstract class BugElement {
         writer.wrtieField("onClick", onClick);
         writer.wrtieField("hoverGroup", hoverGroup);
         writer.wrtieField("reference", reference);
+        writer.wrtieField("styles", styles);
     }
 
     public static class BugInclude extends BugElement {

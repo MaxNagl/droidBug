@@ -585,7 +585,7 @@ function getTextWidth(text) {
 
 function viewAdded(view) {
     if (document.contains(view[0])) {
-        autoScale(null, view);
+        autoScale(null, view.parent());
     }
 }
 
