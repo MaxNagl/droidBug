@@ -129,6 +129,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
 
         BugDiv treeHolder = new BugDiv();
         setPositionStyle(treeHolder, decorView, 0, 0);
+        treeHolder.addClazz("root3d");
         treeHolder.setStyle("transform", "rotateY(45deg)");
         treeHolder.setStyle("transform-style", "preserve-3d");
         addViewDivTree(treeHolder, decorView, true, 0);
@@ -140,11 +141,15 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugDiv div = new BugDiv();
         div.hoverGroup = BugObjectCache.getReference(view);
         setLoadDetailsOnClick(div, view);
-        setPositionStyle(div, view, 0, 0);//-depth * 10, depth * 10);
-        div.addClazz("layer3d");
-        int color = Color.HSVToColor(new float[]{(depth * 77) % 360, 1, 1});
-        div.setStyle("background", "rgba(" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color) + ", 0.25) url(\"" + getLinkToViewShot(view) + "?noChildren\")");
-        div.setStyle("border", "1px solid rgba(" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color) + ", 0.5)");
+        setPositionStyle(div, view, 0, 0);
+        if (images) {
+            div.addClazz("layer3d");
+            int color = Color.HSVToColor(new float[]{(depth * 77) % 360, 1, 1});
+            div.setStyle("background", "rgba(" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color) + ", 0.25) url(\"" + getLinkToViewShot(view) + "?noChildren\")");
+            div.setStyle("border", "1px solid rgba(" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color) + ", 0.5)");
+        } else {
+            div.setStyle("position", "absolute");
+        }
         parent.add(div);
         if (view instanceof ViewGroup) {
             ViewGroup vg = (ViewGroup) view;
@@ -178,6 +183,6 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @Override
     public int getOrder() {
-        return 0;
+        return -2000;
     }
 }

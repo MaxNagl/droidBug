@@ -94,8 +94,10 @@ class BugElement {
             if (this.data.reference != null) {
                 this.view.attr({ draggable: "true" });
                 this.view.on('dragstart', function (e) {
-                    e.originalEvent.dataTransfer.setData("ref", this.data.reference);
-                    event.stopPropagation();
+                    if (!e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+                        e.originalEvent.dataTransfer.setData("ref", this.data.reference);
+                        event.stopPropagation();
+                    }
                 }.bind(this));
             }
         }
@@ -586,27 +588,97 @@ function getTextWidth(text) {
 function viewAdded(view) {
     if (document.contains(view[0])) {
         autoScale(null, view.parent());
+        rotate3d(null, view.parent());
     }
+}
+
+function rotate3d(e, parent) {
+    $('.root3d', parent).each(function () {
+        var v = $(this);
+        if (v.data('root3d') != null) return;
+        var data = { x: 0, y: 0, rotateY: 45, rotateX: 0, translateZ: 100};
+        v.data('root3d', data);
+        var p = v.parent().parent();
+        p.on('mousemove', function(e) {
+            if (e.buttons != 0) {
+                if (e.shiftKey) {
+                    data.rotateY += e.pageX - data.x;
+                    data.rotateX -= e.pageY - data.y;
+                    v.css("transform", "rotateY(" + data.rotateY + "deg) rotateX(" + data.rotateX + "deg)");
+                    e.stopPropagation();
+                }
+            }
+            data.x = e.pageX;
+            data.y = e.pageY;
+        });
+        p.bind('mousewheel', function(e) {
+            if (e.shiftKey) {
+                data.translateZ += e.originalEvent.wheelDelta / 10;
+                $('.layer3d', v).each(function() {
+                    $(this).css('transform', 'translateZ(' + data.translateZ + 'px)');
+                });
+            }
+        });
+    });
 }
 
 function autoScale(event, parent) {
     if (parent == null) parent = $('body');
     $('.autoScale', parent).each(function () {
         var v = $(this);
-        v.css('margin', '0px');
-        var h = v.outerHeight(), w = v.outerWidth();
-        var ph = v.parent().height(), pw = v.parent().width();
-        var l = 0, t = 0;
-        var scale = Math.min(1, Math.min(ph / h, pw / w));
-        if (v.hasClass('autoScaleCenter')) {
-            l = (pw - w * scale) / 2;
-            t = (ph - h * scale) / 2;
+        if (v.data('autoscale') != null) {
+            if (v.data('reset') != null) v.data('reset')();
+            return;
         }
-        v.css('transform', 'scale(' + scale + "," + scale + ')');
-        v.css('margin-left', l);
-        v.css('margin-top', t);
-        v.css('margin-right', Math.min(0, w * scale - w - l));
-        v.css('margin-bottom', Math.min(0, h * scale - h - t));
+        var p = v.parent();
+        var data = { x: 0, y: 0, rotateY: 45, translateY: 0, scale: 1};
+        var update = function() {
+            v.css("transform", "scale(" + data.scale + "," + data.scale + ") translate(" + data.translateX + "px, " + data.translateY +"px)");
+        };
+        var reset = function() {
+            v.css({'width': '', 'height': '', 'transform': ''});
+            var h = v.outerHeight(), w = v.outerWidth();
+            var ph = v.parent().height(), pw = v.parent().width();
+            data.scale = Math.min(1, Math.min(ph / h, pw / w));
+            if (v.hasClass('autoScaleCenter')) {
+                data.translateX = (pw / data.scale - w) / 2;
+                data.translateY = (ph / data.scale - h) / 2;
+            }
+            update();
+            v.css('width', pw);
+            v.css('height', ph);
+        };
+        reset();
+        p.css('overflow', 'hidden');
+        p.on('mousemove', function(e) {
+            if (e.buttons != 0) {
+                if (!e.shiftKey) {
+                    data.translateX += (e.pageX - data.x) / data.scale;
+                    data.translateY += (e.pageY - data.y) / data.scale;
+                    v.data('reset', null);
+                    update();
+                    e.stopPropagation();
+                }
+            }
+            data.x = e.pageX;
+            data.y = e.pageY;
+        });
+        p.bind('mousewheel', function(e) {
+            if (!e.shiftKey) {
+                var oldScale = data.scale;
+                data.scale = data.scale * (1000 + e.originalEvent.wheelDelta) / 1000;
+                var x = e.pageX - p.offset().left;
+                var y = e.pageY - p.offset().top;
+                data.translateY -= y / oldScale - y / data.scale;
+                data.translateX -= x / oldScale - x / data.scale;
+                console.log(e);
+                v.data('reset', null);
+                update();
+                e.stopPropagation();
+            }
+        });
+        v.data('autoscale', data);
+        v.data('reset', reset);
     });
 }
 
