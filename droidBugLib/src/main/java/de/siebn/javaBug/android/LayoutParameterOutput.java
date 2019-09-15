@@ -7,14 +7,14 @@ import android.widget.LinearLayout;
 
 import java.lang.reflect.Method;
 
-import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.android.TypeAdapters.DpDimensionAdapter;
 import de.siebn.javaBug.android.TypeAdapters.LayoutSizeDimensionAdapter;
 import de.siebn.javaBug.android.TypeAdapters.PxDimensionAdapter;
 import de.siebn.javaBug.objectOut.AbstractOutputCategory;
 
 public class LayoutParameterOutput extends AbstractOutputCategory {
-    public LayoutParameterOutput(JavaBug javaBug) {
+    public LayoutParameterOutput(JavaBugCore javaBug) {
         super(javaBug, "layoutparams", "Layout Params", 100);
     }
 

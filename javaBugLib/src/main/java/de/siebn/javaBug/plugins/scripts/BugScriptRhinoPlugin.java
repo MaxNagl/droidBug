@@ -4,13 +4,13 @@ import org.mozilla.javascript.*;
 
 import java.util.*;
 
-import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.util.AllClassMembers;
 
 public class BugScriptRhinoPlugin implements BugScriptEnginePlugin {
-    private final JavaBug javaBug;
+    private final JavaBugCore javaBug;
 
-    public BugScriptRhinoPlugin(JavaBug javaBug) {
+    public BugScriptRhinoPlugin(JavaBugCore javaBug) {
         this.javaBug = javaBug;
     }
 
@@ -51,7 +51,7 @@ public class BugScriptRhinoPlugin implements BugScriptEnginePlugin {
                     scope = new ScriptableObject() {
                         @Override
                         public String getClassName() {
-                            return "JavaBug";
+                            return "JavaBugCore";
                         }
 
                         @Override

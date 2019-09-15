@@ -3,19 +3,17 @@ package de.siebn.javaBug.testApplication;
 import java.lang.reflect.Method;
 
 import de.siebn.javaBug.BugElement;
-import de.siebn.javaBug.BugElement.BugGroup;
 import de.siebn.javaBug.BugElement.BugList;
-import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.objectOut.AbstractOutputCategory;
 import de.siebn.javaBug.util.AllClassMembers;
-import de.siebn.javaBug.util.XML;
 
 /**
  * Created by Sieben on 20.03.2015.
  */
 public class TestOutputCatergory extends AbstractOutputCategory {
 
-    public TestOutputCatergory(JavaBug javaBug) {
+    public TestOutputCatergory(JavaBugCore javaBug) {
         super(javaBug, "test", "Test", 0);
     }
 

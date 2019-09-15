@@ -20,7 +20,7 @@ import static de.siebn.javaBug.BugFormat.field;
 
 public abstract class AbstractOutputCategory implements OutputCategory {
     private final static Object[] empty = new Object[0];
-    protected final JavaBug javaBug;
+    protected final JavaBugCore javaBug;
     protected final String type;
     protected final String name;
     protected int order;
@@ -39,7 +39,7 @@ public abstract class AbstractOutputCategory implements OutputCategory {
         Class<?>[] typeAdapters() default {};
     }
 
-    public AbstractOutputCategory(JavaBug javaBug, String type, String name, int order) {
+    public AbstractOutputCategory(JavaBugCore javaBug, String type, String name, int order) {
         this.javaBug = javaBug;
         this.type = type;
         this.name = name;

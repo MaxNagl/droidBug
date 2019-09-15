@@ -4,12 +4,12 @@ import java.lang.reflect.Field;
 
 import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.BugList;
-import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.util.AllClassMembers;
 
 public class FieldsOutput extends AbstractOutputCategory {
 
-    public FieldsOutput(JavaBug javaBug) {
+    public FieldsOutput(JavaBugCore javaBug) {
         super(javaBug, "fields", "Fields", 2000);
     }
 

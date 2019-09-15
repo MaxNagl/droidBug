@@ -15,7 +15,7 @@ public class StringifierUtil {
     public static String nanoSecondsToString(long ns) {
         float d = ns;
         int unit = 0;
-        while (unit < timeUnits.length && d > 1000) {
+        while (unit < (timeUnits.length - 1) && d > 1000) {
             d /= 1000;
             unit++;
         }

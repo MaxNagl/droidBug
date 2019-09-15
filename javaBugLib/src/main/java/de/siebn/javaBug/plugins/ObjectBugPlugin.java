@@ -6,8 +6,8 @@ import java.util.Map.Entry;
 
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
-import de.siebn.javaBug.JavaBug.BugEvaluator;
-import de.siebn.javaBug.JavaBug.BugReferenceResolver;
+import de.siebn.javaBug.JavaBugCore.BugEvaluator;
+import de.siebn.javaBug.JavaBugCore.BugReferenceResolver;
 import de.siebn.javaBug.objectOut.*;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
@@ -21,9 +21,9 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         public Object value;
     }
 
-    private JavaBug javaBug;
+    private JavaBugCore javaBug;
 
-    public ObjectBugPlugin(JavaBug javaBug) {
+    public ObjectBugPlugin(JavaBugCore javaBug) {
         this.javaBug = javaBug;
     }
 
@@ -75,7 +75,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
 
     public static int visibleModifiers = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL | Modifier.SYNCHRONIZED | Modifier.STATIC | Modifier.VOLATILE | Modifier.INTERFACE | Modifier.VOLATILE;
 
-    @JavaBug.Serve("^/objects/")
+    @JavaBugCore.Serve("^/objects/")
     public BugElement serveObjectsRoot(String[] params) {
         BugSplit split = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
         BugList list = new BugList();
@@ -99,7 +99,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         return split;
     }
 
-    @JavaBug.Serve("^/objects/([^/]*)/details/")
+    @JavaBugCore.Serve("^/objects/([^/]*)/details/")
     public BugElement serveObjectsDetails(String[] params) {
         Object o = BugObjectCache.get(params[1]);
         BugList list = new BugList();
@@ -124,7 +124,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         return list;
     }
 
-    @JavaBug.Serve("^/objects/([^/]*)/details/([^/]+)")
+    @JavaBugCore.Serve("^/objects/([^/]*)/details/([^/]+)")
     public BugElement serveObjectsDetailsCategory(String[] params) {
         Object o = BugObjectCache.get(params[1]);
         String category = params[2];
@@ -167,7 +167,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         return "/objectEdit?object=" + BugObjectCache.getReference(o) + "&field=" + allMembers.getFieldIdentifier(f);
     }
 
-    @JavaBug.Serve("^/objectGet")
+    @JavaBugCore.Serve("^/objectGet")
     public String serveObjectGet(NanoHTTPD.IHTTPSession session) throws Exception {
         Map<String, String> parms = session.getParms();
         Object o = BugObjectCache.get(parms.get("object"));
@@ -180,7 +180,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         throw new IllegalArgumentException();
     }
 
-    @JavaBug.Serve("^/objectEdit")
+    @JavaBugCore.Serve("^/objectEdit")
     public String serveObjectEdit(NanoHTTPD.IHTTPSession session) throws Exception {
         Map<String, String> parms = session.getParms();
         Object o = BugObjectCache.get(parms.get("object"));
@@ -190,13 +190,13 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         if (f != null) {
             TypeAdapters.TypeAdapter<?> adapter = TypeAdapters.getTypeAdapter(f.getType());
             if (adapter == null)
-                throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No TypeAdapter found!");
+                throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No TypeAdapter found!");
             Object val;
             String v = session.getParms().get("value");
             try {
                 val = adapter.parse((Class) f.getType(), v == null ? null : v);
             } catch (Exception e) {
-                throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Could not parse \"" + session.getParms().get("value") + "\"");
+                throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Could not parse \"" + session.getParms().get("value") + "\"");
             }
             f.set(o, val);
             return TypeAdapters.toString(f.get(o));
@@ -207,7 +207,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
     public static String RETURN_TYPE_STRING = "string";
     public static String RETURN_TYPE_JSON = "json";
 
-    @JavaBug.Serve(value = "^/invoke", requiredParameters = {"method"})
+    @JavaBugCore.Serve(value = "^/invoke", requiredParameters = {"method"})
     public Object serveInvoke(NanoHTTPD.IHTTPSession session) throws Exception {
         Map<String, String> parms = session.getParms();
         Object o = BugObjectCache.get(parms.get("object"));
@@ -253,7 +253,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         return "/pojo?object=" + BugObjectCache.getReference(o) + "&field=" + field;
     }
 
-    @JavaBug.Serve(value = "^/pojo", requiredParameters = {"object", "field"})
+    @JavaBugCore.Serve(value = "^/pojo", requiredParameters = {"object", "field"})
     public String servePojo(NanoHTTPD.IHTTPSession session) throws Exception {
         Map<String, String> parms = session.getParms();
         Object o = BugObjectCache.get(parms.get("object"));
@@ -261,33 +261,33 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         AllClassMembers.POJO pojo = allMembers.pojos.get(fieldName);
         if (pojo == null)
-            throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Pojo not found!");
+            throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Pojo not found!");
         if (session.getMethod() == NanoHTTPD.Method.GET) {
             if (pojo.getter == null)
-                throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Getter found!");
+                throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Getter found!");
             return TypeAdapters.toString(pojo.getter.invoke(o));
         }
         if (session.getMethod() == NanoHTTPD.Method.POST) {
             if (pojo.setter == null)
-                throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No setter found!");
+                throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No setter found!");
             Method f = pojo.setter;
             Class type = f.getParameterTypes()[0];
             TypeAdapters.TypeAdapter<?> adapter = TypeAdapters.getTypeAdapter(type);
             if (adapter == null)
-                throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No TypeAdapter found!");
+                throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No TypeAdapter found!");
             Object val;
             String v = parms.get("value");
             try {
                 val = adapter.parse(type, v == null ? null : v);
             } catch (Exception e) {
-                throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Could not parse \"" + v + "\"");
+                throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Could not parse \"" + v + "\"");
             }
             f.invoke(o, val);
             if (pojo.getter != null)
                 return TypeAdapters.toString(pojo.getter.invoke(o));
             return TypeAdapters.toString(val);
         }
-        throw new JavaBug.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "ERROR");
+        throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "ERROR");
     }
 
     public static class InvokationLinkBuilder extends BugLinkBuilder {

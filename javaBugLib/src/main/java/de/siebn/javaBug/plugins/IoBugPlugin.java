@@ -13,16 +13,16 @@ import de.siebn.javaBug.objectOut.OutputMethod;
  */
 
 public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
-    private final JavaBug javaBug;
+    private final JavaBugCore javaBug;
 
     private ArrayList<MonitoredIo> monitoredIos = new ArrayList<>();
     private HashMap<Object, MonitoredIo> monitoredIosMap = new HashMap<>();
 
-    public IoBugPlugin(JavaBug javaBug) {
+    public IoBugPlugin(JavaBugCore javaBug) {
         this.javaBug = javaBug;
     }
 
-    @JavaBug.Serve("^/io/")
+    @JavaBugCore.Serve("^/io/")
     public synchronized BugElement serveIos() {
         BugList list = new BugList();
         for (MonitoredIo mio : monitoredIos) {

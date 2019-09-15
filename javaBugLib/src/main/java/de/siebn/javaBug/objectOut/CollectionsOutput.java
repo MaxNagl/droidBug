@@ -3,7 +3,7 @@ package de.siebn.javaBug.objectOut;
 import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.BugFormat;
-import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.util.UnicodeCharacters;
 
 import java.lang.reflect.Array;
@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public class CollectionsOutput extends AbstractOutputCategory {
 
-    public CollectionsOutput(JavaBug javaBug) {
+    public CollectionsOutput(JavaBugCore javaBug) {
         super(javaBug, "array", "Array", 500);
     }
 

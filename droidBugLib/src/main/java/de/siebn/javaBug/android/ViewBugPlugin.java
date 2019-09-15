@@ -18,11 +18,15 @@ import de.siebn.javaBug.util.BugObjectCache;
  * Created by Sieben on 04.03.2015.
  */
 public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
-    private final JavaBug javaBug;
-    private final Activity activity;
+    private final JavaBugCore javaBug;
+    private Activity activity;
 
-    public ViewBugPlugin(JavaBug javaBug, Activity activity) {
+    public ViewBugPlugin(JavaBugCore javaBug, Activity activity) {
         this.javaBug = javaBug;
+        this.activity = activity;
+    }
+
+    public void setActivity(Activity activity) {
         this.activity = activity;
     }
 
@@ -39,13 +43,14 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         return null;
     }
 
-    @JavaBug.Serve("^/viewShot/([^/]*)")
+    @JavaBugCore.Serve("^/viewShot/([^/]*)")
     public NanoHTTPD.Response serveViewShot(String[] params, NanoHTTPD.IHTTPSession session) {
         boolean noChildren = session.getParms().get("noChildren") != null;
         int hash = Integer.parseInt(params[1], 16);
         View view = findView(activity.getWindow().getDecorView(), hash);
         if (view != null) {
-            Bitmap bmp = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
+            int width = view.getWidth(), height = view.getHeight();
+            Bitmap bmp = Bitmap.createBitmap(Math.max(width, 1), Math.max(height, 1), Bitmap.Config.ARGB_8888);
             if (noChildren && view instanceof ViewGroup) {
                 ViewGroup vg = (ViewGroup) view;
                 HashSet<View> visibles = new HashSet<>();
@@ -72,7 +77,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         return "/viewShot/" + Integer.toHexString(System.identityHashCode(view));
     }
 
-    @JavaBug.Serve("^/views")
+    @JavaBugCore.Serve("^/views")
     public BugElement serveViews() {
         BugSplit horizontal = new BugSplit(BugSplit.ORIENTATION_HORIZONTAL);
         BugSplit vertical = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
@@ -83,7 +88,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         return horizontal;
     }
 
-    @JavaBug.Serve("^/viewTree")
+    @JavaBugCore.Serve("^/viewTree")
     public BugElement serveViewsTree() {
         BugList list = new BugList();
         addViewTree(list, activity.getWindow().getDecorView());
@@ -107,7 +112,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         parent.add(entry);
     }
 
-    @JavaBug.Serve("^/viewTreeLayers")
+    @JavaBugCore.Serve("^/viewTreeLayers")
     public BugElement serveViewTreeLayers() {
         View decorView = activity.getWindow().getDecorView();
         BugDiv div = new BugDiv();
@@ -121,7 +126,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         return div.format(BugFormat.autoScale, BugFormat.autoScaleCenter);
     }
 
-    @JavaBug.Serve("^/viewTreeImageLayers")
+    @JavaBugCore.Serve("^/viewTreeImageLayers")
     public BugElement serveViewTreeImageLayers() {
         View decorView = activity.getWindow().getDecorView();
         BugDiv div = new BugDiv();

@@ -2,115 +2,84 @@ package de.siebn.droidbug;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.*;
 
-import net.bytebuddy.android.AndroidClassLoadingStrategy;
+import java.net.URISyntaxException;
 
-import java.net.*;
-import java.util.*;
-
-import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.NanoHTTPD.AsyncRunner;
-import de.siebn.javaBug.android.*;
+import de.siebn.javaBug.DroidBug;
+import de.siebn.javaBug.android.BugLayoutInflaterFactory;
 import de.siebn.javaBug.util.BugByteCodeUtil;
 
 
 public class MainActivity extends Activity {
+    private Button startBtn;
+    private LinearLayout browserAddresses;
+    private View started;
+    private CheckBox autoStart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(BugLayoutInflaterFactory.wrapInflater(getLayoutInflater()).inflate(R.layout.activity_main, null));
 
-        JavaBug jb = new JavaBug(7778);
-        jb.addDefaultPlugins();
+        DroidBug.setApplication(getApplication());
+        DroidBug.addRootObject("DroidBug", DroidBug.getCore());
+        DroidBug.addRootObject("BuggedPoint", BugByteCodeUtil.getBuggedInstance(Point.class));
 
-        jb.getFileBug().addRoot("files", getFilesDir());
-        jb.getFileBug().addRoot("external files", getExternalFilesDir(null));
-        jb.getFileBug().addRoot("cache", getCacheDir());
+        browserAddresses = findViewById(R.id.browserAddresses);
+        startBtn = findViewById(R.id.start);
+        started = findViewById(R.id.started);
+        autoStart = findViewById(R.id.autoStart);
 
-        jb.addPlugin(new ViewBugPlugin(jb, this));
-        jb.addPlugin(new ViewShotOutput(jb, false));
-        jb.addPlugin(new ViewShotOutput(jb, true));
-        jb.addPlugin(new ViewProfilingOutput(jb));
-        jb.addPlugin(new LayoutParameterOutput(jb));
-
-        jb.getObjectBug().addRootObject("DroidBug", jb);
-        BugByteCodeUtil.CLASS_LOADING_STRATEGY = new AndroidClassLoadingStrategy.Wrapping(getCacheDir());
-        jb.getObjectBug().addRootObject("Test", BugByteCodeUtil.getBuggedInstance(Point.class));
-
-        jb.tryToStart();
-
-        jb.setInvocationRunner(new AsyncRunner() {
-            @Override
-            public void exec(Runnable code) {
-                runOnUiThread(code);
+        startBtn.setOnClickListener(v -> {
+            if (DroidBug.isStarted()) {
+                stopDroidBug();
+            } else {
+                startDroidBug();
             }
         });
 
-        LinearLayout lin = (LinearLayout) findViewById(R.id.browserAdresses);
-        for (String ipAdress : getIPAddresses()) {
+        if (getPreferences(MODE_PRIVATE).getBoolean("autoStart", false)) {
+            autoStart.setChecked(true);
+            startDroidBug();
+        }
+
+        autoStart.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            getPreferences(MODE_PRIVATE).edit().putBoolean("autoStart", isChecked).apply();
+        });
+    }
+
+    public void startDroidBug() {
+        DroidBug.start();
+        startBtn.setText(R.string.stop);
+
+        for (String ipAddress : DroidBug.getIPAddresses(false)) {
             TextView tv = BugByteCodeUtil.getBuggedInstance(TextView.class, this);
-            String httpAdress = "http://";
-            httpAdress += isIPv4Address(ipAdress) ? ipAdress : ("[" + ipAdress + "]");
-            httpAdress += ":" + jb.getListeningPort();
-            tv.setText(httpAdress);
+            tv.setText(ipAddress);
             tv.setTextAppearance(this, android.R.style.TextAppearance_DeviceDefault_Medium);
-            final String finalHttpAdress = httpAdress;
-            tv.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        startActivity(Intent.parseUri(finalHttpAdress, 0));
-                    } catch (URISyntaxException e) {
-                        e.printStackTrace();
-                    }
+            tv.setTextColor(Color.BLACK);
+            tv.setPadding(0, 0, 0, getResources().getDimensionPixelSize(R.dimen.margin_half));
+            final String finalHttpAdress = ipAddress;
+            tv.setOnClickListener(v -> {
+                try {
+                    startActivity(Intent.parseUri(finalHttpAdress, 0));
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
                 }
             });
-            lin.addView(tv);
+            browserAddresses.addView(tv);
+            started.setVisibility(View.VISIBLE);
         }
     }
 
-    /**
-     * Get IP address from first non-localhost interface
-     *
-     * @return address or empty string
-     */
-    public static ArrayList<String> getIPAddresses() {
-        ArrayList<String> adresses = new ArrayList<>();
-        try {
-            for (NetworkInterface intf : Collections.list(NetworkInterface.getNetworkInterfaces())) {
-                for (InetAddress addr : Collections.list(intf.getInetAddresses())) {
-                    if (!addr.isLoopbackAddress()) {
-                        String sAddr = addr.getHostAddress().toUpperCase();
-                        adresses.add(sAddr.split("%")[0]);
-                    }
-                }
-            }
-        } catch (Exception ex) {
-        } // for now eat exceptions
-        Collections.sort(adresses, new Comparator<String>() {
-            @Override
-            public int compare(String lhs, String rhs) {
-                boolean l = isIPv4Address(lhs);
-                boolean r = isIPv4Address(lhs);
-                if (l && !r) return -1;
-                if (!l && r) return 1;
-                return lhs.compareTo(rhs);
-            }
-        });
-        return adresses;
-    }
-
-    private static boolean isIPv4Address(String addr) {
-        try {
-            return InetAddress.getByName(addr) instanceof Inet4Address;
-        } catch (UnknownHostException e) {
-            return false;
-        }
+    public void stopDroidBug() {
+        DroidBug.stop();
+        startBtn.setText(R.string.start);
+        browserAddresses.removeAllViews();
+        started.setVisibility(View.GONE);
     }
 }

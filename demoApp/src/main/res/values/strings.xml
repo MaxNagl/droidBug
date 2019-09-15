@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">droidBug Demo App</string>
-    <string name="welcome">Welcome to the droidBug Demo App</string>
-    <string name="connectBrowser">Connect you browser to one of these adresses:</string>
+    <string name="welcome">Welcome to the\n<b>droidBug</b>\nDemo App</string>
+    <string name="open_browser"><b>droidBug started.</b>\nOpen your one of these addresses in your browser:</string>
+    <string name="start">Start droidBug</string>
+    <string name="stop">Stop droidBug</string>
+    <string name="autoStart">Autostart droidBug</string>
+    <string name="warning"><b>Warning:</b>\nBy starting droidBug you open a webserver to which everybody in your local network can connect.\nThis webserver can be used to access your files, run scripts and many more dangerous things.\n<b>Only start droidBug in a secure Network.</b></string>
 </resources>

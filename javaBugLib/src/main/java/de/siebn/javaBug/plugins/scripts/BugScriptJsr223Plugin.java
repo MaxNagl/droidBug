@@ -6,7 +6,7 @@ import java.util.*;
 import javax.script.*;
 
 import de.siebn.javaBug.BugFormat;
-import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.plugins.StreamBugPlugin.BugStream;
 import de.siebn.javaBug.util.AllClassMembers;
 
@@ -16,9 +16,9 @@ public class BugScriptJsr223Plugin implements BugScriptEnginePlugin {
             "org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngineFactory"
     };
 
-    private final JavaBug javaBug;
+    private final JavaBugCore javaBug;
 
-    public BugScriptJsr223Plugin(JavaBug javaBug) {
+    public BugScriptJsr223Plugin(JavaBugCore javaBug) {
         this.javaBug = javaBug;
     }
 

@@ -5,7 +5,6 @@ import java.util.*;
 
 import de.siebn.javaBug.JavaBug;
 import de.siebn.javaBug.util.BugByteCodeUtil;
-import de.siebn.javaBug.util.BugObjectCache;
 
 /**
  * Created by Sieben on 16.03.2015.
@@ -13,32 +12,26 @@ import de.siebn.javaBug.util.BugObjectCache;
 public class JavaBugDemoApplication {
 
     public static void main(String[] args) {
-        JavaBug jb = new JavaBug(7777);
-        jb.addDefaultPlugins();
-        jb.addPlugin(new RecursiveOutputCatergory(jb));
-        jb.addPlugin(new TestPropertyCategory(jb));
-        jb.addPlugin(new TestOutputCatergory(jb));
+        JavaBug.addPlugin(new RecursiveOutputCatergory(JavaBug.getCore()));
+        JavaBug.addPlugin(new TestPropertyCategory(JavaBug.getCore()));
+        JavaBug.addPlugin(new TestOutputCatergory(JavaBug.getCore()));
 
-        TestClass test = null;//new TestClass();
-        jb.getObjectBug().addRootObject("Test", new TestClass());
-        jb.getObjectBug().addRootObject("TestWrapped", test = BugByteCodeUtil.getBuggedInstance(TestClass.class));
-        jb.getObjectBug().addRootObject("Recursion", RecursiveTestClass.getBuggedTestHierarchy());
-        jb.getObjectBug().addRootObject("JavaBug", jb);
-        jb.getObjectBug().addRootObject("Formats", new BugFormatTest());
-        jb.getObjectBug().addRootObject("Array", new String[]{"Eins", "Zwei", "Drei"});
-        jb.getObjectBug().addRootObject("List", Arrays.asList("One", "Two", "Three"));
+        JavaBug.addRootObject("Test", new TestClass());
+        JavaBug.addRootObject("TestWrapped", BugByteCodeUtil.getBuggedInstance(TestClass.class));
+        JavaBug.addRootObject("Recursion", RecursiveTestClass.getBuggedTestHierarchy());
+        JavaBug.addRootObject("JavaBugCore", JavaBug.getCore());
+        JavaBug.addRootObject("Formats", new BugFormatTest());
+        JavaBug.addRootObject("Array", new String[]{"Eins", "Zwei", "Drei"});
+        JavaBug.addRootObject("List", Arrays.asList("One", "Two", "Three"));
         HashMap<String, String> map = new LinkedHashMap<>();
         map.put("One", "Eins");
         map.put("Two", "Zwei");
         map.put("Three", "Drei");
-        jb.getObjectBug().addRootObject("Map", map);
+        JavaBug.addRootObject("Map", map);
         for (int i = 0; i < 100; i++)
-            jb.getObjectBug().addRootObject("Integer " + i, i);
-
-        jb.tryToStart();
-
-        System.out.println("javaBug startet. Open your browser at: " + jb.getIPAddresses(true));
-        System.out.println("Test Object " + BugObjectCache.getReference(test));
+            JavaBug.addRootObject("Integer " + i, i);
+        JavaBug.start();
+        System.out.println("javaBug startet. Open your browser at: " + JavaBug.getIPAddresses(true));
 
 
         while (true) {

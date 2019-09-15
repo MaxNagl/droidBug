@@ -5,7 +5,7 @@ import java.util.Map;
 
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
-import de.siebn.javaBug.JavaBug.BugReferenceResolver;
+import de.siebn.javaBug.JavaBugCore.BugReferenceResolver;
 import de.siebn.javaBug.plugins.scripts.BugScriptEnginePlugin.BugScriptEngine;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.util.BugObjectCache;
@@ -14,14 +14,14 @@ import de.siebn.javaBug.util.BugObjectCache;
  * Created by Sieben on 05.03.2015.
  */
 public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin, BugReferenceResolver {
-    private final JavaBug javaBug;
+    private final JavaBugCore javaBug;
     private ScriptConsole scriptConsole = new ScriptConsole();
 
-    public ConsoleBugPlugin(JavaBug javaBug) {
+    public ConsoleBugPlugin(JavaBugCore javaBug) {
         this.javaBug = javaBug;
     }
 
-    @JavaBug.Serve("^/console/")
+    @JavaBugCore.Serve("^/console/")
     public BugElement serveConsole() {
         BugSplit split = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
 
@@ -44,7 +44,7 @@ public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin, BugReferen
         return split;
     }
 
-    @JavaBug.Serve("^/exec/")
+    @JavaBugCore.Serve("^/exec/")
     public Object exec(NanoHTTPD.IHTTPSession session) {
         Map<String, String> parms = session.getParms();
         String script = parms.get("script").trim();

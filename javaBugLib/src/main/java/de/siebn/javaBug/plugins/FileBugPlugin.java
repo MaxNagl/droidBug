@@ -32,7 +32,7 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         return 1000;
     }
 
-    @JavaBug.Serve("^/files/(.*)")
+    @JavaBugCore.Serve("^/files/(.*)")
     public BugElement serverFiles(String[] param) {
         BugList list = new BugList();
         String path = param[1];
@@ -77,7 +77,7 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         });
     }
 
-    @JavaBug.Serve("^/file/(.*)")
+    @JavaBugCore.Serve("^/file/(.*)")
     public NanoHTTPD.Response serverFile(String[] param, NanoHTTPD.IHTTPSession session) throws IOException {
         String mimeType = URLConnection.guessContentTypeFromName(param[1]);
         InputStream in = openStream(param[1]);
@@ -120,6 +120,6 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
         URL url = getClass().getClassLoader().getResource(fname);
         if (url != null)
             return url.openStream();
-        throw new JavaBug.ExceptionResult(Status.NOT_FOUND, "File not found");
+        throw new JavaBugCore.ExceptionResult(Status.NOT_FOUND, "File not found");
     }
 }

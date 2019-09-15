@@ -7,24 +7,24 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import de.siebn.javaBug.BugElement.BugText;
-import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.JavaBug.BugPlugin;
+import de.siebn.javaBug.JavaBugCore;
+import de.siebn.javaBug.JavaBugCore.BugPlugin;
 import de.siebn.javaBug.NanoHTTPD;
 
 /**
  * Created by Sieben on 05.03.2015.
  */
 public class StreamBugPlugin implements BugPlugin {
-    private final JavaBug javaBug;
+    private final JavaBugCore javaBug;
 
     private BugStream console = new BugStream();
 
-    public StreamBugPlugin(JavaBug javaBug) {
+    public StreamBugPlugin(JavaBugCore javaBug) {
         this.javaBug = javaBug;
     }
 
-    @JavaBug.Serve("^/stream/")
-    @JavaBug.ServeAsync
+    @JavaBugCore.Serve("^/stream/")
+    @JavaBugCore.ServeAsync
     public Object getStream(NanoHTTPD.IHTTPSession session) {
         Object token = new Object();
         try {

@@ -3,14 +3,14 @@ package de.siebn.javaBug.plugins.scripts;
 import java.util.List;
 import java.util.Set;
 
-import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JavaBugCore;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 
 public class BugScriptGroovyPlugin implements BugScriptEnginePlugin {
-    private final JavaBug javaBug;
+    private final JavaBugCore javaBug;
 
-    public BugScriptGroovyPlugin(JavaBug javaBug) {
+    public BugScriptGroovyPlugin(JavaBugCore javaBug) {
         this.javaBug = javaBug;
     }
 

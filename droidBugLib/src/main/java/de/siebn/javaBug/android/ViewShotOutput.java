@@ -7,15 +7,14 @@ import java.util.List;
 
 import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.BugImg;
-import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.objectOut.AbstractOutputCategory;
 import de.siebn.javaBug.objectOut.OutputCategory;
-import de.siebn.javaBug.util.XML;
 
 public class ViewShotOutput extends AbstractOutputCategory {
     private final boolean noChildren;
 
-    public ViewShotOutput(JavaBug javaBug, boolean noChildren) {
+    public ViewShotOutput(JavaBugCore javaBug, boolean noChildren) {
         super(javaBug, "viewShot" + (noChildren ? "noChildren" : ""), "View Shot " + (noChildren ? " (no children)" : ""), 100);
         this.noChildren = noChildren;
     }

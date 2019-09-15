@@ -3,19 +3,19 @@ package de.siebn.javaBug.plugins;
 import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.BugElement.BugTabs.BugTab;
-import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.util.XML;
 import de.siebn.javaBug.util.XML.HTML;
 
-import static de.siebn.javaBug.JavaBug.BugPlugin;
+import static de.siebn.javaBug.JavaBugCore.BugPlugin;
 
 /**
  * Created by Sieben on 09.03.2015.
  */
 public class RootBugPlugin implements BugPlugin {
-    private final JavaBug jb;
+    private final JavaBugCore jb;
 
-    public RootBugPlugin(JavaBug jb) {
+    public RootBugPlugin(JavaBugCore jb) {
         this.jb = jb;
     }
 
@@ -30,7 +30,7 @@ public class RootBugPlugin implements BugPlugin {
         BugElement getContent();
     }
 
-    @JavaBug.Serve("/")
+    @JavaBugCore.Serve("/")
     public XML serveRoot() {
         XML xhtml = new HTML();
 
@@ -47,7 +47,7 @@ public class RootBugPlugin implements BugPlugin {
         return xhtml;
     }
 
-    @JavaBug.Serve("/start/")
+    @JavaBugCore.Serve("/start/")
     public BugElement serveStart() {
         BugTabs tabs = new BugTabs();
         for (MainBugPlugin plugin : jb.getPlugins(MainBugPlugin.class)) {

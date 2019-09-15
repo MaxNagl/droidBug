@@ -1,40 +1,64 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/margin_normal"
+    android:gravity="center"
+    android:orientation="vertical">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
         android:gravity="center"
         android:text="@string/welcome"
-        android:textAppearance="@android:style/TextAppearance.Large"/>
+        android:textAppearance="@android:style/TextAppearance.Large" />
+
+    <Button
+        android:id="@+id/start"
+        android:text="@string/start"
+        android:layout_marginTop="@dimen/margin_half"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <CheckBox
+        android:id="@+id/autoStart"
+        android:text="@string/autoStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="0px"
+        android:fillViewport="true"
+        android:layout_weight="1">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/started"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="@dimen/margin_normal"
                 android:gravity="center"
-                android:text="@string/connectBrowser"
-                android:textAppearance="@android:style/TextAppearance.Medium"/>
+                android:visibility="gone"
+                android:text="@string/open_browser"
+                android:textAppearance="@android:style/TextAppearance.Medium" />
 
             <LinearLayout
-                android:id="@+id/browserAdresses"
+                android:id="@+id/browserAddresses"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:orientation="vertical"/>
+                android:orientation="vertical" />
         </LinearLayout>
     </ScrollView>
 
+    <TextView
+        android:text="@string/warning"
+        android:textColor="@android:color/holo_red_dark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 </LinearLayout>

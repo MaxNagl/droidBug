@@ -1,7 +1,7 @@
 package de.siebn.javaBug.testApplication;
 
 import de.siebn.javaBug.BugElement;
-import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.objectOut.AbstractOutputCategory;
 import de.siebn.javaBug.util.BugByteCodeUtil;
 
@@ -10,7 +10,7 @@ import de.siebn.javaBug.util.BugByteCodeUtil;
  */
 public class RecursiveOutputCatergory extends AbstractOutputCategory {
 
-    public RecursiveOutputCatergory(JavaBug javaBug) {
+    public RecursiveOutputCatergory(JavaBugCore javaBug) {
         super(javaBug, "recursion", "Recursion", 0);
     }
 

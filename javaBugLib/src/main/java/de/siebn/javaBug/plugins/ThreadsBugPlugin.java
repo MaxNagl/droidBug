@@ -9,13 +9,13 @@ import de.siebn.javaBug.BugElement.*;
  * Created by Sieben on 05.03.2015.
  */
 public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
-    private final JavaBug javaBug;
+    private final JavaBugCore javaBug;
 
-    public ThreadsBugPlugin(JavaBug javaBug) {
+    public ThreadsBugPlugin(JavaBugCore javaBug) {
         this.javaBug = javaBug;
     }
 
-    @JavaBug.Serve("^/threads/")
+    @JavaBugCore.Serve("^/threads/")
     public BugElement serveThreadsJson() {
         BugList list = new BugList();
         Set<Thread> threadSet = Thread.getAllStackTraces().keySet();

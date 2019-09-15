@@ -9,7 +9,7 @@ import de.siebn.javaBug.util.UnicodeCharacters;
  */
 public class StackTraceOutput extends AbstractOutputCategory {
 
-    public StackTraceOutput(JavaBug javaBug) {
+    public StackTraceOutput(JavaBugCore javaBug) {
         super(javaBug, "stacktrace", "Stacktrace", 500);
     }
 

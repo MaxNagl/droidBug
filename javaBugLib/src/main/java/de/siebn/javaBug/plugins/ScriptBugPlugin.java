@@ -2,19 +2,19 @@ package de.siebn.javaBug.plugins;
 
 import java.util.*;
 
-import de.siebn.javaBug.JavaBug;
-import de.siebn.javaBug.JavaBug.BugEvaluator;
-import de.siebn.javaBug.JavaBug.BugPlugin;
+import de.siebn.javaBug.JavaBugCore;
+import de.siebn.javaBug.JavaBugCore.BugEvaluator;
+import de.siebn.javaBug.JavaBugCore.BugPlugin;
 import de.siebn.javaBug.plugins.scripts.BugScriptEnginePlugin;
 import de.siebn.javaBug.plugins.scripts.BugScriptEnginePlugin.BugScriptEngine;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 
 public class ScriptBugPlugin implements BugPlugin, BugEvaluator {
-    private final JavaBug javaBug;
+    private final JavaBugCore javaBug;
     private List<BugScriptEngine> scriptEngines;
     private Map<String, BugScriptEngine> scriptEngineMap;
 
-    public ScriptBugPlugin(JavaBug javaBug) {
+    public ScriptBugPlugin(JavaBugCore javaBug) {
         this.javaBug = javaBug;
     }
 

@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import java.util.List;
 
 import de.siebn.javaBug.BugElement;
-import de.siebn.javaBug.JavaBug;
+import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.objectOut.AbstractOutputCategory;
 import de.siebn.javaBug.objectOut.OutputCategory;
 import de.siebn.javaBug.util.BugByteCodeUtil;
@@ -15,7 +15,7 @@ import de.siebn.javaBug.util.BugByteCodeUtil.MethodCall;
 import de.siebn.javaBug.util.BugByteCodeUtil.ProfileCallback;
 
 public class ViewProfilingOutput extends AbstractOutputCategory {
-    public ViewProfilingOutput(JavaBug javaBug) {
+    public ViewProfilingOutput(JavaBugCore javaBug) {
         super(javaBug, "viewProfile", "View Profiling", 200);
     }
 
