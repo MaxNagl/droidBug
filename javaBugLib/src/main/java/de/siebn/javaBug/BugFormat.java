@@ -29,6 +29,8 @@ public enum BugFormat {
     value(colorTernary),
     nul(colorTernaryLight),
 
+    button,
+
     autoScale,
     autoScaleCenter,
 

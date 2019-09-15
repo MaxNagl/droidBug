@@ -22,7 +22,7 @@ public class ViewShotOutput extends AbstractOutputCategory {
     @Override
     public BugElement get(Object o) {
         ViewBugPlugin viewBug = javaBug.getPlugin(ViewBugPlugin.class);
-        return new BugImg().setSrc(viewBug.getLinkToViewShot((View) o) + (noChildren ? "?noChildren" : ""));
+        return new BugImg().setSrc(viewBug.getLinkToViewShot((View) o, noChildren));
     }
 
     @Override

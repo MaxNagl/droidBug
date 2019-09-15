@@ -73,19 +73,35 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         return null;
     }
 
-    public String getLinkToViewShot(View view) {
-        return "/viewShot/" + Integer.toHexString(System.identityHashCode(view));
+    public String getLinkToViewShot(View view, boolean noChildren) {
+        String link = "/viewShot/" + Integer.toHexString(System.identityHashCode(view)) + "?" + System.currentTimeMillis();
+        if (noChildren) link += "&noChildren";
+        return link;
     }
 
     @JavaBugCore.Serve("^/views")
     public BugElement serveViews() {
         BugSplit horizontal = new BugSplit(BugSplit.ORIENTATION_HORIZONTAL);
-        BugSplit vertical = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
-        horizontal.add(new BugSplitElement(vertical));
-        horizontal.add(new BugSplitElement(new BugDiv().setId("ViewBugDetails").format(BugFormat.paddingNormal)));
-        vertical.add(new BugSplitElement(new BugInclude("/viewTreeImageLayers")).format(BugFormat.paddingNormal));
-        vertical.add(new BugSplitElement(new BugInclude("/viewTree")).format(BugFormat.paddingNormal));
+        BugSplit left = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
+        BugSplit right = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
+        horizontal.add(new BugSplitElement(left));
+        horizontal.add(new BugSplitElement(right));
+        left.add(new BugSplitElement(getControlElements()).setWeight("0").setFixed("auto").format(BugFormat.paddingNormal));
+        left.add(new BugSplitElement(new BugInclude("/viewTreeLayers")).setId("ViewBugViewTreeLayers").format(BugFormat.paddingNormal));
+        right.add(new BugSplitElement(new BugInclude("/viewTree")).setId("ViewBugViewTree").format(BugFormat.paddingNormal));
+        right.add(new BugSplitElement(new BugDiv().setId("ViewBugDetails").format(BugFormat.paddingNormal)));
         return horizontal;
+    }
+
+    public BugElement getControlElements() {
+        BugList list = new BugList();
+        String reloadViewTree = "$('#ViewBugViewTree').loadContent(" + new BugInclude("/viewTree").toJson() + ", 'application/json');";
+        String reloadViewTreeLayersInclude = "$('#ViewBugViewTreeLayers').loadContent(" + new BugInclude("/viewTreeLayers").toJson() + ", 'application/json');";
+        String reloadViewTreeImageLayersInclude = "$('#ViewBugViewTreeLayers').loadContent(" + new BugInclude("/viewTreeImageLayers").toJson() + ", 'application/json');";
+        list.add(new BugText("Refresh 2D").format(BugFormat.button).setOnClick(reloadViewTree + reloadViewTreeLayersInclude));
+        list.add(new BugText("Refresh 3D").format(BugFormat.button).setOnClick(reloadViewTree + reloadViewTreeImageLayersInclude));
+        list.setStyle("text-align", "center");
+        return list;
     }
 
     @JavaBugCore.Serve("^/viewTree")
@@ -119,7 +135,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
 
         BugImg img = new BugImg();
         setPositionStyle(img, decorView, 0, 0);
-        img.setSrc(getLinkToViewShot(decorView));
+        img.setSrc(getLinkToViewShot(decorView, false));
         div.add(img);
 
         addViewDivTree(div, decorView, false, 0);
@@ -150,7 +166,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         if (images) {
             div.addClazz("layer3d");
             int color = Color.HSVToColor(new float[]{(depth * 77) % 360, 1, 1});
-            div.setStyle("background", "rgba(" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color) + ", 0.25) url(\"" + getLinkToViewShot(view) + "?noChildren\")");
+            div.setStyle("background", "rgba(" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color) + ", 0.25) url(\"" + getLinkToViewShot(view, true) + "\")");
             div.setStyle("border", "1px solid rgba(" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color) + ", 0.5)");
         } else {
             div.setStyle("position", "absolute");
