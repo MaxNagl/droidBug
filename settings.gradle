@@ -1,1 +1,1 @@
-include ':demoApp', ':droidBugLib', ':demoapplication', 'javaBugLib'
+include ':demoApp', ':droidBugLib', ':demoapplication', 'javaBugLib', 'javaBugDummyLib'

@@ -3,6 +3,7 @@
 /.idea/workspace.xml
 /.idea/libraries
 .DS_Store
+.settings
 /build
 
 #built application files

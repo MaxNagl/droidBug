@@ -1,0 +1,19 @@
+URLEncoder.encode(pValue, "UTF-8")
+
+* HTML: widthGroups
+* HTML: Overview mode with collapsed single categories
+* HTML: Slider for BugSplit
+* BugInputText: units
+
+* Tabs: Save Opened
+
+* References: Resolve . seperated chain
+
+* ConsoleBugPlugin: Show always on bottom
+* ConsoleBugPlugin: Stash
+* ConsoleBugPlugin: History
+
+* StreamBugPlugin: multiple streams
+* StreamBugPlugin: from position
+
+* ViewBugPlugin: Hide/Show layer background
