@@ -15,7 +15,11 @@ sourceSets {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compileOnly 'com.google.android:android:4.1.1.4'
+
+    Properties localProps = new Properties()
+    localProps.load(project.rootProject.file('local.properties').newDataInputStream())
+    compileOnly files("${localProps.getProperty('sdk.dir')}/platforms/android-29/android.jar")
+
     compileOnly 'net.bytebuddy:byte-buddy-android:1.10.1'
     compile project(':javaBugLib')
 }

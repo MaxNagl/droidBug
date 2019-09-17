@@ -2,12 +2,12 @@ package de.siebn.javaBug.android;
 
 import android.app.Activity;
 import android.graphics.*;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.HashSet;
+import java.util.Map;
 
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
@@ -45,12 +45,27 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
 
     @JavaBugCore.Serve("^/viewShot/([^/]*)")
     public NanoHTTPD.Response serveViewShot(String[] params, NanoHTTPD.IHTTPSession session) {
-        boolean noChildren = session.getParms().get("noChildren") != null;
+        Map<String, String> parms = session.getParms();
+        boolean noChildren = parms.get("noChildren") != null;
+        boolean cropVisible = parms.get("cropVisible") != null;
         int hash = Integer.parseInt(params[1], 16);
         View view = findView(activity.getWindow().getDecorView(), hash);
         if (view != null) {
             int width = view.getWidth(), height = view.getHeight();
+            int left = 0, top = 0;
+            if (cropVisible) {
+                Rect visible = new Rect();
+                Point offset = new Point();
+                if (view.getGlobalVisibleRect(visible, offset)) {
+                    width = visible.width();
+                    height = visible.height();
+                    left = visible.left - offset.x;
+                    top = visible.top - offset.y;
+                }
+            }
             Bitmap bmp = Bitmap.createBitmap(Math.max(width, 1), Math.max(height, 1), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bmp);
+            canvas.translate(-left, -top);
             if (noChildren && view instanceof ViewGroup) {
                 ViewGroup vg = (ViewGroup) view;
                 HashSet<View> visibles = new HashSet<>();
@@ -61,10 +76,10 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
                         visibles.add(child);
                     }
                 }
-                view.draw(new Canvas(bmp));
+                view.draw(canvas);
                 for (View child : visibles) child.setVisibility(View.VISIBLE);
             } else {
-                view.draw(new Canvas(bmp));
+                view.draw(canvas);
             }
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             bmp.compress(Bitmap.CompressFormat.PNG, 90, bout);
@@ -73,9 +88,10 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         return null;
     }
 
-    public String getLinkToViewShot(View view, boolean noChildren) {
+    public String getLinkToViewShot(View view, boolean noChildren, boolean cropVisible) {
         String link = "/viewShot/" + Integer.toHexString(System.identityHashCode(view)) + "?" + System.currentTimeMillis();
         if (noChildren) link += "&noChildren";
+        if (cropVisible) link += "&cropVisible";
         return link;
     }
 
@@ -97,9 +113,11 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugList list = new BugList();
         String reloadViewTree = "$('#ViewBugViewTree').loadContent(" + new BugInclude("/viewTree").toJson() + ", 'application/json');";
         String reloadViewTreeLayersInclude = "$('#ViewBugViewTreeLayers').loadContent(" + new BugInclude("/viewTreeLayers").toJson() + ", 'application/json');";
-        String reloadViewTreeImageLayersInclude = "$('#ViewBugViewTreeLayers').loadContent(" + new BugInclude("/viewTreeImageLayers").toJson() + ", 'application/json');";
+        String reloadViewTree3dLayersInclude = "$('#ViewBugViewTreeLayers').loadContent(" + new BugInclude("/viewTreeLayers?layers3d").toJson() + ", 'application/json');";
+        String reloadViewTree3dCroppedLayersInclude = "$('#ViewBugViewTreeLayers').loadContent(" + new BugInclude("/viewTreeLayers?layers3d&cropVisible").toJson() + ", 'application/json');";
         list.add(new BugText("Refresh 2D").format(BugFormat.button).setOnClick(reloadViewTree + reloadViewTreeLayersInclude));
-        list.add(new BugText("Refresh 3D").format(BugFormat.button).setOnClick(reloadViewTree + reloadViewTreeImageLayersInclude));
+        list.add(new BugText("Refresh 3D").format(BugFormat.button).setOnClick(reloadViewTree + reloadViewTree3dCroppedLayersInclude));
+        list.add(new BugText("Refresh 3D full views").format(BugFormat.button).setOnClick(reloadViewTree + reloadViewTree3dLayersInclude));
         list.setStyle("text-align", "center");
         return list;
     }
@@ -129,53 +147,52 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @JavaBugCore.Serve("^/viewTreeLayers")
-    public BugElement serveViewTreeLayers() {
+    public BugElement serveViewTreeLayers(NanoHTTPD.IHTTPSession session) {
+        Map<String, String> parms = session.getParms();
+        boolean layers3d = parms.get("layers3d") != null;
+        boolean cropVisible = parms.get("cropVisible") != null;
+
         View decorView = activity.getWindow().getDecorView();
         BugDiv div = new BugDiv();
 
-        BugImg img = new BugImg();
-        setPositionStyle(img, decorView, 0, 0);
-        img.setSrc(getLinkToViewShot(decorView, false));
-        div.add(img);
+        if (layers3d) {
+            BugDiv treeHolder = new BugDiv();
+            setPositionStyle(treeHolder, decorView, false);
+            treeHolder.addClazz("root3d");
+            treeHolder.setStyle("transform", "rotateY(45deg)");
+            treeHolder.setStyle("transform-style", "preserve-3d");
+            addViewDivTree(treeHolder, decorView, true, cropVisible, 0);
+            div.add(treeHolder);
+            div.setStyle("perspective", "10000px");
+        } else {
+            BugImg img = new BugImg();
+            setPositionStyle(img, decorView, false);
+            img.setSrc(getLinkToViewShot(decorView, false, false));
+            div.add(img);
+            addViewDivTree(div, decorView, false, false, 0);
+        }
 
-        addViewDivTree(div, decorView, false, 0);
         return div.format(BugFormat.autoScale, BugFormat.autoScaleCenter);
     }
 
-    @JavaBugCore.Serve("^/viewTreeImageLayers")
-    public BugElement serveViewTreeImageLayers() {
-        View decorView = activity.getWindow().getDecorView();
-        BugDiv div = new BugDiv();
-        div.setStyle("perspective", "10000px");
-
-        BugDiv treeHolder = new BugDiv();
-        setPositionStyle(treeHolder, decorView, 0, 0);
-        treeHolder.addClazz("root3d");
-        treeHolder.setStyle("transform", "rotateY(45deg)");
-        treeHolder.setStyle("transform-style", "preserve-3d");
-        addViewDivTree(treeHolder, decorView, true, 0);
-        div.add(treeHolder);
-        return div.format(BugFormat.autoScale, BugFormat.autoScaleCenter);
-    }
-
-    private BugDiv addViewDivTree(BugGroup parent, View view, boolean images, int depth) {
+    private BugDiv addViewDivTree(BugGroup bugGroup, View view, boolean images, boolean cropVisible, int depth) {
         BugDiv div = new BugDiv();
         div.hoverGroup = BugObjectCache.getReference(view);
         setLoadDetailsOnClick(div, view);
-        setPositionStyle(div, view, 0, 0);
+        setPositionStyle(div, view, cropVisible);
         if (images) {
             div.addClazz("layer3d");
             int color = Color.HSVToColor(new float[]{(depth * 77) % 360, 1, 1});
-            div.setStyle("background", "rgba(" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color) + ", 0.25) url(\"" + getLinkToViewShot(view, true) + "\")");
+            div.setStyle("background", "rgba(" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color) + ", 0.25) url(\"" + getLinkToViewShot(view, true, cropVisible) + "\")");
             div.setStyle("border", "1px solid rgba(" + Color.red(color) + ", " + Color.green(color) + ", " + Color.blue(color) + ", 0.5)");
         } else {
             div.setStyle("position", "absolute");
         }
-        parent.add(div);
+        bugGroup.add(div);
         if (view instanceof ViewGroup) {
             ViewGroup vg = (ViewGroup) view;
-            for (int i = 0; i < vg.getChildCount(); i++)
-                addViewDivTree(div, vg.getChildAt(i), images, depth + 1);
+            for (View v : BugViewHelper.getSortedChildren(vg))
+                addViewDivTree(div, v, images, cropVisible, depth + 1);
         }
         return div;
     }
@@ -185,11 +202,37 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         element.setOnClick("$('#ViewBugDetails').loadContent('" + include.toJson() + "', 'application/json');");
     }
 
-    private void setPositionStyle(BugElement element, View view, int offsetLeft, int offsetTop) {
-        element.setStyle("left", (offsetLeft + view.getLeft()) + "px");
-        element.setStyle("top", (offsetTop + view.getTop()) + "px");
-        element.setStyle("width", view.getWidth() + "px");
-        element.setStyle("height", view.getHeight() + "px");
+    private void setPositionStyle(BugElement element, View view, boolean cropped) {
+        int left = view.getLeft();
+        int top = view.getTop();
+        int width = view.getWidth();
+        int height = view.getHeight();
+        Rect visible = new Rect();
+        Rect parentVisible = new Rect();
+        ViewParent parent = view.getParent();
+        boolean isVisible = view.getGlobalVisibleRect(visible);
+        if (parent instanceof View) {
+            if (cropped && isVisible && ((View) parent).getGlobalVisibleRect(parentVisible)) {
+                left = visible.left - parentVisible.left;
+                top = visible.top - parentVisible.top;
+            } else {
+                left -= ((View) parent).getScrollX();
+                top -= ((View) parent).getScrollY();
+            }
+        }
+        if (cropped) {
+            if (isVisible) {
+                width = visible.width();
+                height = visible.height();
+            } else {
+                width = 0;
+                height = 0;
+            }
+        }
+        element.setStyle("left", left + "px");
+        element.setStyle("top", top + "px");
+        element.setStyle("width", width + "px");
+        element.setStyle("height", height + "px");
     }
 
     @Override
