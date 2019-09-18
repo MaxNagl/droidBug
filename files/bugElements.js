@@ -560,6 +560,14 @@ class BugSplit extends BugGroup {
         if (data.orientation == 'vertical') this.view.css('flex-direction', 'column');
         if (data.orientation == 'horizontal') this.view.css({ 'flex-direction': 'row', 'height': '100%' });
         this.extractElements(this.view, data.elements, this.elements);
+        var last;
+        this.elements.forEach(function(model) {
+            if (model.data.splitType == 'resizeHandle') {
+                makeResizable(last.view, model.view, data.orientation == 'vertical');
+                model.view.addClass(data.orientation);
+            }
+            last = model;
+        })
     }
 }
 
@@ -568,11 +576,30 @@ class BugSplitElement extends BugElement {
         super(parent, data, $('<div>'));
         if (data.weight != null) this.view.css('flex-grow', data.weight);
         if (data.fixed != null) this.view.css('flex-basis', data.fixed);
-        loadModel(this, data.content, function (model) {
-            this.view.append(model.view);
-        }.bind(this))
+        if (data.content != null) {
+            loadModel(this, data.content, function (model) {
+                this.view.append(model.view);
+            }.bind(this))
+        }
     }
 }
+
+function makeResizable(element, handle, resizeHeight) {
+	handle.bind('mousedown.resize', function(e) {
+		var start = { x: e.clientX, y: e.clientY, width: parseInt(element.width(), 10), height: parseInt(element.height(), 10) };
+		$(document).bind('mousemove.resize', function(e) {
+            element.css('flex-grow', '0')
+            element.css('flex-basis', resizeHeight ? (start.height + e.clientY - start.y) : (start.width + e.clientX - start.x) + 'px')
+        });
+		$(document).bind('mouseup.resize', function(e) {
+            $(document).unbind('mousemove.resize mouseup.resize selectstart.resize');
+        });
+		$(document).bind('selectstart.resize', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+        });
+	});
+};
 
 var textWidthCache = {}
 function getTextWidth(text) {
@@ -596,24 +623,33 @@ function rotate3d(e, parent) {
     $('.root3d', parent).each(function () {
         var v = $(this);
         if (v.data('root3d') != null) return;
-        var data = { x: 0, y: 0, rotateY: 45, rotateX: 0, translateZ: 100};
+        var data = { rotateY: 45, rotateX: 0, translateZ: 100};
         v.data('root3d', data);
         var p = v.parent().parent();
-        p.on('mousemove', function(e) {
-            if (e.buttons != 0) {
+        p.bind('mousedown.rotate3d', function(e) {
+            var x = e.pageX, y = e.pageY;
+            $(document).bind('mousemove.rotate3d', function(e) {
                 if (e.shiftKey) {
-                    data.rotateY += e.pageX - data.x;
-                    data.rotateX -= e.pageY - data.y;
+                    data.rotateY += e.pageX - x;
+                    data.rotateX -= e.pageY - y;
                     v.css("transform", "rotateY(" + data.rotateY + "deg) rotateX(" + data.rotateX + "deg)");
-                    e.stopPropagation();
                 }
-            }
-            data.x = e.pageX;
-            data.y = e.pageY;
+                x = e.pageX;
+                y = e.pageY;
+            });
+            $(document).bind('mouseup.rotate3d', function(e) {
+                $(document).unbind('mousemove.rotate3d mouseup.rotate3d selectstart.rotate3d');
+            });
+            $(document).bind('selectstart.rotate3d', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+            });
         });
         p.bind('mousewheel', function(e) {
             if (e.shiftKey) {
+                var sign = Math.sign(data.translateZ);
                 data.translateZ += e.originalEvent.wheelDelta / 10;
+                if (sign != 0 && sign != Math.sign(data.translateZ)) data.translateZ = 0;
                 $('.layer3d', v).each(function() {
                     $(this).css('transform', 'translateZ(' + data.translateZ + 'px)');
                 });
@@ -631,7 +667,7 @@ function autoScale(event, parent) {
             return;
         }
         var p = v.parent();
-        var data = { x: 0, y: 0, rotateY: 45, translateY: 0, scale: 1};
+        var data = { rotateY: 45, translateY: 0, scale: 1};
         var update = function() {
             v.css("transform", "scale(" + data.scale + "," + data.scale + ") translate(" + data.translateX + "px, " + data.translateY +"px)");
         };
@@ -650,18 +686,28 @@ function autoScale(event, parent) {
         };
         reset();
         p.css('overflow', 'hidden');
-        p.on('mousemove', function(e) {
-            if (e.buttons != 0) {
-                if (!e.shiftKey) {
-                    data.translateX += (e.pageX - data.x) / data.scale;
-                    data.translateY += (e.pageY - data.y) / data.scale;
-                    v.data('reset', null);
-                    update();
-                    e.stopPropagation();
+        p.bind('mousedown.autoscale', function(e) {
+            var x = e.pageX, y = e.pageY;
+            $(document).bind('mousemove.autoscale', function(e) {
+                if (e.buttons != 0) {
+                    if (!e.shiftKey) {
+                        data.translateX += (e.pageX - x) / data.scale;
+                        data.translateY += (e.pageY - y) / data.scale;
+                        v.data('reset', null);
+                        update();
+                        e.stopPropagation();
+                    }
                 }
-            }
-            data.x = e.pageX;
-            data.y = e.pageY;
+                x = e.pageX;
+                y = e.pageY;
+            });
+            $(document).bind('mouseup.autoscale', function(e) {
+                $(document).unbind('mousemove.autoscale mouseup.autoscale selectstart.autoscale');
+            });
+            $(document).bind('selectstart.autoscale', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+            });
         });
         p.bind('mousewheel', function(e) {
             if (!e.shiftKey) {

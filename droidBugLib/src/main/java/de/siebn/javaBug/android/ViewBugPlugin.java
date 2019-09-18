@@ -101,10 +101,12 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugSplit left = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
         BugSplit right = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
         horizontal.add(new BugSplitElement(left));
+        horizontal.add(BugSplitElement.RESIZE_HANDLE);
         horizontal.add(new BugSplitElement(right));
         left.add(new BugSplitElement(getControlElements()).setWeight("0").setFixed("auto").format(BugFormat.paddingNormal));
         left.add(new BugSplitElement(new BugInclude("/viewTreeLayers")).setId("ViewBugViewTreeLayers").format(BugFormat.paddingNormal));
         right.add(new BugSplitElement(new BugInclude("/viewTree")).setId("ViewBugViewTree").format(BugFormat.paddingNormal));
+        right.add(BugSplitElement.RESIZE_HANDLE);
         right.add(new BugSplitElement(new BugDiv().setId("ViewBugDetails").format(BugFormat.paddingNormal)));
         return horizontal;
     }

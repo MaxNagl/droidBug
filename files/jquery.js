@@ -10596,3 +10596,31 @@ if ( !noGlobal ) {
 
 return jQuery;
 } );
+
+
+
+function resize(element, handle, resizeHeight) {
+	handle.bind('mousedown.resize', startDragging);
+	var start;
+
+	function noop(e) {
+		e.stopPropagation();
+		e.preventDefault();
+	};
+	
+	function startDragging(e) {
+		start = { x: e.clientX, y: e.clientY, width: parseInt(element.width(), 10), height: parseInt(element.height(), 10) };
+		$(document).bind('mousemove.resize', doDrag);
+		$(document).bind('mouseup.resize', stopDragging);
+		$(document).bind('selectstart.resize', noop);
+	}
+
+	function doDrag(e) {                
+		element.css('flex-grow', '0')
+		element.css('flex-basis', resizeHeight ? (start.height + e.clientY - start.y) : (start.width + e.clientX - start.x) + 'px')
+	}
+
+	function stopDragging(e) {
+		$(document).unbind('mousemove.resize mouseup.resize selectstart.resize');
+	}
+};

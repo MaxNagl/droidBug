@@ -218,9 +218,20 @@ a {
   border-radius:4px;
 }
 
-.button:hover{
+.button:hover {
   color:#000000;
   background-color:#AAA;
+}
+
+.resizeHandle {
+  min-width: 4px;
+  min-height: 4px;
+  background-color: #666;
+  touch-action: none;
+  cursor: ew-resize;
+  &.vertical {
+    cursor: ns-resize;
+  }
 }
 
 pre.console {

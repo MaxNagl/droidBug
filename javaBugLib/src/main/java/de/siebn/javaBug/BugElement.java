@@ -1,7 +1,5 @@
 package de.siebn.javaBug;
 
-import com.google.gson.Gson;
-
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
@@ -468,12 +466,21 @@ public abstract class BugElement {
     }
 
     public static class BugSplitElement extends BugElement {
+        public static final BugSplitElement RESIZE_HANDLE = (BugSplitElement) new BugSplitElement(null).setSplitType(BugSplitElement.TYPE_RESIZE_HANDLE).setFixed("auto").setWeight("0").format(BugFormat.resizeHandle);
+        public static final String TYPE_RESIZE_HANDLE = "resizeHandle";
+
         public String weight = "1";
         public String fixed = "0";
+        public String splitType;
         public BugElement content;
 
         public BugSplitElement(BugElement content) {
             this.content = content;
+        }
+
+        public BugSplitElement setSplitType(String splitType) {
+            this.splitType = splitType;
+            return this;
         }
 
         public BugSplitElement setWeight(String weight) {
@@ -497,6 +504,7 @@ public abstract class BugElement {
             writer.wrtieField("weight", weight);
             writer.wrtieField("fixed", fixed);
             writer.wrtieField("content", content);
+            writer.wrtieField("splitType", splitType);
         }
     }
 }

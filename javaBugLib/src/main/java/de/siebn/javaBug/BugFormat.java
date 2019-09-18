@@ -33,6 +33,7 @@ public enum BugFormat {
 
     autoScale,
     autoScaleCenter,
+    resizeHandle,
 
     ;
 
