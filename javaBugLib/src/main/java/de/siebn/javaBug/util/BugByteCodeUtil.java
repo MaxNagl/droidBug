@@ -2,25 +2,35 @@ package de.siebn.javaBug.util;
 
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.method.MethodDescription;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.description.type.TypeDescription.Generic.OfNonGenericType;
 import net.bytebuddy.dynamic.DynamicType.Loaded;
 import net.bytebuddy.dynamic.DynamicType.Unloaded;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
+import net.bytebuddy.dynamic.scaffold.InstrumentedType;
 import net.bytebuddy.dynamic.scaffold.TypeValidation;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.*;
 import net.bytebuddy.matcher.ElementMatcher;
 
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.regex.Pattern;
 
 import de.siebn.javaBug.objectOut.AbstractOutputCategory.OutputMethod;
 
 @SuppressWarnings("unchecked")
 public class BugByteCodeUtil {
-    public static ClassLoadingStrategy CLASS_LOADING_STRATEGY;
+    public static ClassLoadingStrategy CLASS_LOADING_STRATEGY = ClassLoadingStrategy.Default.WRAPPER;
+    public static File CACHE_FILE;
+    public static final List<Pattern> buggedMethods = new ArrayList<>();
+
+    private static boolean cacheLoaded;
     private static Boolean available;
     private static HashMap<Class, Class> buggedClasses = new HashMap<>();
 
@@ -28,6 +38,7 @@ public class BugByteCodeUtil {
 
     public interface MethodListener {
         void methodCall(Object object, Method method, Object[] arguments);
+
         void methodCalled(Object object, Method method, Object[] arguments, Object returnValue, long timeNs);
     }
 
@@ -141,19 +152,26 @@ public class BugByteCodeUtil {
     }
 
     public static <T> Class<T> bugClass(Class<T> clazz) {
+        if (!cacheLoaded) loadCache();
         Class c = buggedClasses.get(clazz);
         if (c == null) {
+            String className = clazz.getName() + "$Bugged";
             Unloaded<T> unloaded = new ByteBuddy().with(TypeValidation.DISABLED).subclass(clazz)
-                    .name(clazz.getName() + "$Bugged")
+                    .name(className)
                     .method(new ElementMatcher<MethodDescription>() {
                         @Override
                         public boolean matches(MethodDescription target) {
-                            return target.getName().equals("onMeasure") || target.getName().equals("setMeasuredDimension") || target.getName().equals("getTotalValue");
+                            String name = target.getName();
+                            for (Pattern pattern : buggedMethods) {
+                                if (pattern.matcher(name).matches()) return true;
+                            }
+                            return false;
                         }
                     })
                     .intercept(MethodDelegation.to(BugInterceptor.class))
                     .make();
-            Loaded<T> loaded = CLASS_LOADING_STRATEGY == null ? unloaded.load(BugByteCodeUtil.class.getClassLoader()) : unloaded.load(BugByteCodeUtil.class.getClassLoader(), CLASS_LOADING_STRATEGY);
+            saveUnloaded(unloaded);
+            Loaded<T> loaded = unloaded.load(BugByteCodeUtil.class.getClassLoader(), CLASS_LOADING_STRATEGY);
             buggedClasses.put(clazz, c = loaded.getLoaded());
         }
         return c;
@@ -173,5 +191,73 @@ public class BugByteCodeUtil {
             throw new RuntimeException(e);
         }
         throw new IllegalArgumentException("Could not create instance of " + clazz.getName() + " with parameters: " + Arrays.toString(params));
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void loadCache() {
+        cacheLoaded = true;
+        if (CACHE_FILE != null && CACHE_FILE.exists()) {
+            DataInputStream in = null;
+            try {
+                Map<TypeDescription, byte[]> types = new HashMap<>();
+                in = new DataInputStream(new FileInputStream(CACHE_FILE));
+                if (in.readInt() != 0 || !in.readUTF().equals(getBuggedMethodsString())) {
+                    in.close();
+                    CACHE_FILE.delete();
+                    return;
+                }
+                try {
+                    while (true) {
+                        String clazz = in.readUTF();
+                        Class<?> superClazz = Class.forName(in.readUTF());
+                        byte[] bytes = new byte[in.readInt()];
+                        in.readFully(bytes);
+                        types.put(InstrumentedType.Default.of(clazz, new OfNonGenericType.ForLoadedType(superClazz), superClazz.getModifiers()), bytes);
+                    }
+                } catch (EOFException ignored) {
+                }
+                in.close();
+                Map<TypeDescription, Class<?>> load = CLASS_LOADING_STRATEGY.load(BugByteCodeUtil.class.getClassLoader(), types);
+                for (Entry<TypeDescription, Class<?>> e : load.entrySet()) {
+                    buggedClasses.put(Class.forName(e.getKey().getSuperClass().getTypeName()), e.getValue());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                try {
+                    in.close();
+                } catch (Exception ignored) {
+                }
+                CACHE_FILE.delete();
+            }
+        }
+    }
+
+    private static <T> void saveUnloaded(Unloaded<T> unloaded) {
+        if (CACHE_FILE != null) {
+            boolean exists = CACHE_FILE.exists();
+            try {
+                DataOutputStream out = new DataOutputStream(new FileOutputStream(CACHE_FILE, true));
+                if (!exists) {
+                    out.writeInt(0);
+                    out.writeUTF(getBuggedMethodsString());
+                }
+                for (Entry<TypeDescription, byte[]> e : unloaded.getAllTypes().entrySet()) {
+                    out.writeUTF(e.getKey().getName());
+                    out.writeUTF(e.getKey().getSuperClass().getTypeName());
+                    out.writeInt(e.getValue().length);
+                    out.write(e.getValue());
+                }
+                out.flush();
+                out.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static String getBuggedMethodsString() {
+        StringBuilder sb = new StringBuilder();
+        for (Pattern m : buggedMethods) sb.append(m.pattern());
+        return sb.toString();
     }
 }

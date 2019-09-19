@@ -6,6 +6,9 @@ import android.os.Looper;
 
 import net.bytebuddy.android.AndroidClassLoadingStrategy;
 
+import java.io.File;
+import java.util.regex.Pattern;
+
 import de.siebn.javaBug.NanoHTTPD.AsyncRunner;
 import de.siebn.javaBug.android.*;
 import de.siebn.javaBug.util.BugByteCodeUtil;
@@ -49,6 +52,10 @@ public class DroidBug extends JavaBug {
             addFileRoot("cacheDir", app.getCacheDir());
             try {
                 BugByteCodeUtil.CLASS_LOADING_STRATEGY = new AndroidClassLoadingStrategy.Wrapping(app.getCacheDir());
+                BugByteCodeUtil.CACHE_FILE = new File(app.getCacheDir(), "BugByteCodeUtil.cache");
+                BugByteCodeUtil.buggedMethods.add(Pattern.compile("onMeasure"));
+                BugByteCodeUtil.buggedMethods.add(Pattern.compile("setMeasuredDimension"));
+                BugByteCodeUtil.buggedMethods.add(Pattern.compile("getTotalValue"));
             } catch (Throwable t) {
                 // Ignore. Bytebuddy probably not available.
             }

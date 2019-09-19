@@ -1,9 +1,8 @@
 package de.siebn.javaBug.plugins;
 
-import de.siebn.javaBug.BugElement;
+import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.BugElement.BugTabs.BugTab;
-import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.util.XML;
 import de.siebn.javaBug.util.XML.HTML;
 
@@ -49,13 +48,22 @@ public class RootBugPlugin implements BugPlugin {
 
     @JavaBugCore.Serve("/start/")
     public BugElement serveStart() {
+        BugSplit split = new BugSplit(BugSplit.ORIENTATION_VERTICAL);
         BugTabs tabs = new BugTabs();
+        split.add(new BugSplitElement(tabs).setWeight("4"));
         for (MainBugPlugin plugin : jb.getPlugins(MainBugPlugin.class)) {
-            BugTab tab = new BugTab();
-            tab.title = plugin.getTabName();
-            tab.content = plugin.getContent();
-            tabs.tabs.add(tab);
+            if (plugin instanceof ConsoleBugPlugin) {
+                BugSplitElement resizeHandle = new BugSplitElement(null).setSplitType(BugSplitElement.TYPE_RESIZE_HANDLE).setFixed("auto").setWeight("0");
+                resizeHandle.setContent(new BugList().add(new BugText("Console")));
+                split.add(resizeHandle.format(BugFormat.resizeHandle));
+                split.add(new BugSplitElement(plugin.getContent()));
+            } else {
+                BugTab tab = new BugTab();
+                tab.title = plugin.getTabName();
+                tab.content = plugin.getContent();
+                tabs.tabs.add(tab);
+            }
         }
-        return tabs;
+        return split;
     }
 }

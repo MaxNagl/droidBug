@@ -135,7 +135,7 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
         BugEntry entry = new BugEntry();
         entry.hoverGroup = BugObjectCache.getReference(view);
         entry.autoExpand = true;
-        BugElement title = new BugText(view.toString()).setClazz("title");
+        BugElement title = BugText.getForValueFormated(view);
         setLoadDetailsOnClick(title, view);
         entry.add(title);
         if (view instanceof ViewGroup) {

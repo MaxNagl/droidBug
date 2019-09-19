@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
 
 import de.siebn.javaBug.DroidBug;
 import de.siebn.javaBug.android.BugLayoutInflaterFactory;
-import de.siebn.javaBug.util.BugByteCodeUtil;
+import de.siebn.javaBug.util.*;
 
 
 public class MainActivity extends Activity {
@@ -24,11 +24,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(BugLayoutInflaterFactory.wrapInflater(getLayoutInflater()).inflate(R.layout.activity_main, null));
 
         DroidBug.setApplication(getApplication());
         DroidBug.addRootObject("DroidBug", DroidBug.getCore());
         DroidBug.addRootObject("BuggedPoint", BugByteCodeUtil.getBuggedInstance(Point.class));
+
+        setContentView(BugLayoutInflaterFactory.wrapInflater(getLayoutInflater()).inflate(R.layout.activity_main, null));
 
         browserAddresses = findViewById(R.id.browserAddresses);
         startBtn = findViewById(R.id.start);
