@@ -5,16 +5,20 @@ import android.app.Application;
 import android.app.Application.ActivityLifecycleCallbacks;
 import android.os.Bundle;
 
+import java.lang.ref.WeakReference;
+
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
+import de.siebn.javaBug.JavaBugCore.BugReferenceResolver;
 import de.siebn.javaBug.plugins.RootBugPlugin;
 
 /**
  * Created by Sieben on 04.03.2015.
  */
-public class AndroidBugPlugin implements RootBugPlugin.MainBugPlugin {
+public class AndroidBugPlugin implements RootBugPlugin.MainBugPlugin, BugReferenceResolver {
     private final JavaBugCore javaBug;
     private Application app;
+    private WeakReference<Activity> activity;
 
     private ActivityLifecycleCallbacks lifecycleCallback = new ActivityLifecycleCallbacks() {
         @Override
@@ -28,6 +32,7 @@ public class AndroidBugPlugin implements RootBugPlugin.MainBugPlugin {
         @Override
         public void onActivityResumed(Activity activity) {
             javaBug.getPlugin(ViewBugPlugin.class).setActivity(activity);
+            AndroidBugPlugin.this.activity = new WeakReference<>(activity);
         }
 
         @Override
@@ -75,5 +80,16 @@ public class AndroidBugPlugin implements RootBugPlugin.MainBugPlugin {
     @Override
     public int getOrder() {
         return 3000;
+    }
+
+    @Override
+    public Object resolve(String reference) {
+        if ("app".equals(reference)) return app;
+        if ("activity".equals(reference)) {
+            WeakReference<Activity> ref = activity;
+            if (ref != null) return ref.get();
+        }
+        if ("res".equals(reference)) return app.getResources();
+        return null;
     }
 }

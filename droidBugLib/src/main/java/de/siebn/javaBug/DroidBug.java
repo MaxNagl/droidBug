@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import de.siebn.javaBug.NanoHTTPD.AsyncRunner;
 import de.siebn.javaBug.android.*;
 import de.siebn.javaBug.util.BugByteCodeUtil;
+import de.siebn.javaBug.util.BugThreadUtil;
 
 public class DroidBug extends JavaBug {
     private static boolean inited = false;
@@ -45,6 +46,7 @@ public class DroidBug extends JavaBug {
     public static void setApplication(final Application app) {
         if (!isAppSet) {
             ensureInit();
+            BugThreadUtil.INSTANCE = new BugThreadAndroidUtil();
             getCore().getPlugin(AndroidBugPlugin.class).setApplication(app);
             addFileRoot("filesDir", app.getFilesDir());
             addFileRoot("externalCacheDir", app.getExternalCacheDir());

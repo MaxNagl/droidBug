@@ -355,6 +355,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
 
     @Override
     public Object resolve(String reference) {
+        if ("runOn".equals(reference) || "runon".equals(reference)) return BugThreadUtil.INSTANCE;
         RootObject ro = rootObjects.get(reference);
         return ro == null ? null : ro.value;
     }
