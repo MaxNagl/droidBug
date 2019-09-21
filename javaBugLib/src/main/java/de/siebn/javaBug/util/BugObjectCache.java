@@ -1,9 +1,10 @@
 package de.siebn.javaBug.util;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
+import java.util.*;
 
 public class BugObjectCache {
+    private final static LinkedList<Object> keepFromGc = new LinkedList<>();
     private final static HashMap<String, HashMap<String, WeakReference<Object>>> references = new HashMap<>();
 
     public static String getReference(Object o) {
@@ -42,5 +43,19 @@ public class BugObjectCache {
         Object o = ref.get();
         if (o == null) throw new IllegalArgumentException("Refrence \"" + reference + "\" was destroyed.");
         return o;
+    }
+
+    public static synchronized void keepFromGc(Object object) {
+        keepFromGc.add(object);
+    }
+
+    public static synchronized void returnToGc(final Object object) {
+        Iterator<Object> it = keepFromGc.iterator();
+        while (it.hasNext()) {
+            if (it.next() == object) {
+                it.remove();
+                return;
+            }
+        }
     }
 }

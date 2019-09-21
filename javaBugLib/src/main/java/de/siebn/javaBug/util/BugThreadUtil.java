@@ -5,18 +5,22 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class BugThreadUtil {
-    public static BugThreadUtil INSTANCE = new BugThreadUtil();
+    public static BugThreadUtil runOn = new BugThreadUtil();
 
-    public final static RunOn worker = new RunOnScheduledExecutorService(Executors.newSingleThreadScheduledExecutor());
-    public final static RunOn pool = new RunOnScheduledExecutorService(Executors.newScheduledThreadPool(0));
-    public final static RunOn current = new RunOnCurrentThread();
+    public final RunOn worker = new RunOnScheduledExecutorService(Executors.newSingleThreadScheduledExecutor());
+    public final RunOn pool = new RunOnScheduledExecutorService(Executors.newScheduledThreadPool(0));
+    public final RunOn current = new RunOnCurrentThread();
 
-    interface RunnableWithParameter<T> {
+    public interface RunnableWithParameter<T> {
         void run(T parameter);
     }
 
-    interface Cancellable {
-        void cancel();
+    public static class Cancellable {
+        private volatile boolean canceled;
+
+        public void cancel() {
+            canceled = true;
+        }
     }
 
     public static abstract class RunOn {
@@ -29,73 +33,55 @@ public class BugThreadUtil {
         public abstract <T> T delayedSync(int delayMs, Callable<T> callable);
 
         public Cancellable repeat(long count, final int delay, final Runnable runnable) {
-            final AtomicLong c = new AtomicLong(0);
-            final long max = count == 0 ? Long.MAX_VALUE : count;
-            delayed(delay, new Runnable() {
+            return repeatIndexed(count, delay, new RunnableWithParameter<Long>() {
                 @Override
-                public void run() {
+                public void run(Long index) {
                     runnable.run();
-                    if (c.incrementAndGet() < max) {
-                        delayed(delay, this);
-                    }
                 }
             });
-            return getCancellable(c);
         }
 
-        public Cancellable repeatIndex(long count, final int delay, final RunnableWithParameter<Long> runnable) {
-            final AtomicLong c = new AtomicLong(0);
-            final long max = count == 0 ? Long.MAX_VALUE : count;
+        public Cancellable repeatIndexed(final long count, final int delay, final RunnableWithParameter<Long> runnable) {
+            final AtomicLong index = new AtomicLong(0);
+            final Cancellable canceled = new Cancellable() {
+                @SuppressWarnings("unused") public AtomicLong current = index; // For debugging.
+                @Override
+                public String toString() {
+                    return "{Repeat count: " + count + " delay: " + delay + " ms}";
+                }
+            };
+            final long max = count < 0 ? Long.MAX_VALUE : count;
             delayed(delay, new Runnable() {
                 @Override
                 public void run() {
-                    runnable.run(c.get());
-                    if (c.incrementAndGet() < max) {
-                        delayed(delay, this);
+                    if (!canceled.canceled) {
+                        runnable.run(index.get());
+                        if (index.incrementAndGet() < max) {
+                            delayed(delay, this);
+                        }
                     }
                 }
             });
-            return getCancellable(c);
+            return canceled;
         }
 
         public <T> Cancellable repeatRandom(long count, final int delay, final RunnableWithParameter<T> runnable, final T... values) {
-            final AtomicLong c = new AtomicLong(0);
-            final long max = count == 0 ? Long.MAX_VALUE : count;
             final Random r = new Random();
-            delayed(delay, new Runnable() {
+            return repeatIndexed(count, delay, new RunnableWithParameter<Long>() {
                 @Override
-                public void run() {
+                public void run(Long index) {
                     runnable.run(values[r.nextInt(values.length)]);
-                    if (c.incrementAndGet() < max) {
-                        delayed(delay, this);
-                    }
                 }
             });
-            return getCancellable(c);
         }
 
         public <T> Cancellable repeatCycle(long count, final int delay, final RunnableWithParameter<T> runnable, final T... values) {
-            final AtomicLong c = new AtomicLong(0);
-            final long max = count == 0 ? Long.MAX_VALUE : count;
-            delayed(delay, new Runnable() {
+            return repeatIndexed(count, delay, new RunnableWithParameter<Long>() {
                 @Override
-                public void run() {
-                    runnable.run(values[(int) (c.get() % values.length)]);
-                    if (c.incrementAndGet() < max) {
-                        delayed(delay, this);
-                    }
+                public void run(Long index) {
+                    runnable.run(values[(int) (index % (long) values.length)]);
                 }
             });
-            return getCancellable(c);
-        }
-
-        private Cancellable getCancellable(final AtomicLong ai) {
-            return new Cancellable() {
-                @Override
-                public void cancel() {
-                    ai.set(Long.MAX_VALUE);
-                }
-            };
         }
 
         protected static <T> T get(Future<T> future) {

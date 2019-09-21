@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 import de.siebn.javaBug.util.BugThreadUtil;
 
 public class BugThreadAndroidUtil extends BugThreadUtil {
-    public final static RunOn ui = new RunOnHandler(new Handler(Looper.getMainLooper()));
+    public final RunOn ui = new RunOnHandler(new Handler(Looper.getMainLooper()));
 
     private static class RunOnHandler extends RunOn {
         public final Handler handler;

@@ -46,7 +46,7 @@ public class DroidBug extends JavaBug {
     public static void setApplication(final Application app) {
         if (!isAppSet) {
             ensureInit();
-            BugThreadUtil.INSTANCE = new BugThreadAndroidUtil();
+            BugThreadUtil.runOn = new BugThreadAndroidUtil();
             getCore().getPlugin(AndroidBugPlugin.class).setApplication(app);
             addFileRoot("filesDir", app.getFilesDir());
             addFileRoot("externalCacheDir", app.getExternalCacheDir());
