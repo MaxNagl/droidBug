@@ -161,7 +161,7 @@ public abstract class BugElement {
     public static class BugInputElement extends BugElement {
         public String refreshUrl;
         public String callId;
-        public boolean enabled = true;
+        public Boolean enabled;
 
         public BugInputElement setRefreshUrl(String refreshUrl) {
             this.refreshUrl = refreshUrl;
@@ -298,6 +298,7 @@ public abstract class BugElement {
         public BugInputText(String callId, String text) {
             super(text);
             this.callId = callId;
+            enabled = true;
         }
 
         @Override
@@ -360,7 +361,7 @@ public abstract class BugElement {
         @Override
         public void writeJsonFields(BugJsonWriter writer) {
             super.writeJsonFields(writer);
-            writer.wrtieField("text", options);
+            writer.wrtieField("text", text);
             writer.wrtieField("options", options);
         }
     }
@@ -371,6 +372,7 @@ public abstract class BugElement {
         public boolean checked;
 
         public BugInputCheckbox(String callId, String text) {
+            enabled = true;
             this.callId = callId;
             this.text = text;
         }

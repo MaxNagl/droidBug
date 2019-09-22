@@ -1,5 +1,7 @@
 package de.siebn.javaBug.testApplication;
 
+import java.time.DayOfWeek;
+
 /**
  * Created by Sieben on 09.03.2015.
  */
@@ -23,6 +25,8 @@ public class TestClass extends TestBaseClass {
     private String getter = "G";
     private String setter = "S";
     private String getterAndSetter = "SG";
+
+    private DayOfWeek day = DayOfWeek.MONDAY;
 
     public String override = "";
 

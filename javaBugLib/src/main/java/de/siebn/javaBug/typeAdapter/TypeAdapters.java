@@ -1,15 +1,7 @@
 package de.siebn.javaBug.typeAdapter;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class TypeAdapters {
     private final static ArrayList<TypeAdapter<?>> adapters = new ArrayList<>();
@@ -19,14 +11,16 @@ public class TypeAdapters {
         addAdapter(new PrimitiveAdapter());
         addAdapter(new ObjectAdapter());
         addAdapter(new ArrayAdapter());
+        addAdapter(new EnumAdapter());
         addAdapter(new StringAdapter());
     }
 
 
-    private TypeAdapters() {}
+    private TypeAdapters() {
+    }
 
     @SuppressWarnings("unchecked")
-    public static<T> TypeAdapter<T> getTypeAdapter(Class clazz) {
+    public static <T> TypeAdapter<T> getTypeAdapter(Class clazz) {
         TypeAdapter<?> adapter = adapterMap.get(clazz);
         if (adapter != null) return (TypeAdapter<T>) adapter;
         for (TypeAdapter<?> t : adapters) {
@@ -35,12 +29,11 @@ public class TypeAdapters {
                 return (TypeAdapter<T>) t;
             }
         }
-        adapterMap.put(clazz, null);
-        return null;
+        throw new IllegalStateException();
     }
 
     @SuppressWarnings("unchecked")
-    public static<T> TypeAdapter<T> getTypeAdapterClass(Class<?> clazz) {
+    public static <T> TypeAdapter<T> getTypeAdapterClass(Class<?> clazz) {
         for (TypeAdapter t : adapters) {
             if (t.getClass().equals(clazz)) {
                 return t;
@@ -55,7 +48,7 @@ public class TypeAdapters {
     }
 
     @SuppressWarnings("unchecked")
-    public static<T> List<TypeAdapter<T>> getTypeAdapterClasses(Class[] classes) {
+    public static <T> List<TypeAdapter<T>> getTypeAdapterClasses(Class[] classes) {
         ArrayList<TypeAdapter<T>> list = new ArrayList<>();
         for (Class<?> clazz : classes) {
             list.add((TypeAdapter<T>) getTypeAdapterClass(clazz));
@@ -69,11 +62,11 @@ public class TypeAdapters {
     }
 
     public static String toString(Object o) {
-        return toString(o, null, 100);
+        return toString(o, null, 250);
     }
 
     public static String toString(Object o, TypeAdapter adapter) {
-        return toString(o, adapter, 100);
+        return toString(o, adapter, 250);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -98,15 +91,20 @@ public class TypeAdapters {
 
     public interface TypeAdapter<T> {
         T parse(Class<? extends T> clazz, String string);
+
         String toString(T object);
+
         boolean canAdapt(Class<?> clazz);
+
         boolean canParse(Class<?> clazz);
+
         int getProirity(); // Adapters with a high priority are prefered
+
         String getUnit();
     }
 
     public interface TypeSelectionAdapter<T> extends TypeAdapter<T> {
-        Map<String, String> getValues();
+        Map<String, String> getValues(Class clazz);
     }
 
     public static abstract class AbstractTypeAdapter<T> implements TypeAdapter<T> {
@@ -153,7 +151,7 @@ public class TypeAdapters {
     public static class PrimitiveAdapter extends AbstractTypeAdapter<Object> {
 
         public PrimitiveAdapter() {
-            super(Integer.MIN_VALUE + 2, true);
+            super(Integer.MIN_VALUE + 1, true);
             classes.add(Integer.class);
             classes.add(Long.class);
             classes.add(Boolean.class);
@@ -234,6 +232,39 @@ public class TypeAdapters {
                 string = string.substring(className.length() - object.getClass().getSimpleName().length());
             }
             return string;
+        }
+    }
+
+    public static class EnumAdapter extends AbstractTypeAdapter<Enum> implements TypeSelectionAdapter<Enum> {
+        public EnumAdapter() {
+            super(0, true);
+        }
+
+        @Override
+        public String toString(Enum e) {
+            return e.name();
+        }
+
+        @Override
+        public boolean canAdapt(Class<?> clazz) {
+            return clazz.isEnum();
+        }
+
+        @Override
+        public Enum parse(Class<? extends Enum> clazz, String string) {
+            for (Enum e : clazz.getEnumConstants()) {
+                if (e.name().equals(string)) return e;
+            }
+            return null;
+        }
+
+        @Override
+        public Map<String, String> getValues(Class clazz) {
+            LinkedHashMap<String, String> map = new LinkedHashMap<>();
+            for (Object e : clazz.getEnumConstants()) {
+                map.put(((Enum) e).name(), e.toString());
+            }
+            return map;
         }
     }
 }

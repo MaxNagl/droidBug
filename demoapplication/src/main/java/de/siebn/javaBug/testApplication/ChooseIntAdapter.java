@@ -22,7 +22,7 @@ public class ChooseIntAdapter extends AbstractTypeAdapter<Integer> implements Ty
     }
 
     @Override
-    public Map<String, String> getValues() {
+    public Map<String, String> getValues(Class clazz) {
         LinkedHashMap<String, String> map = new LinkedHashMap<>();
         map.put("", "");
         map.put("1", "One");

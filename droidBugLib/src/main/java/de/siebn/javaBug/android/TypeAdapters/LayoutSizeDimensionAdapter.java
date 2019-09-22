@@ -1,6 +1,5 @@
 package de.siebn.javaBug.android.TypeAdapters;
 
-import android.content.res.Resources;
 import android.view.ViewGroup.LayoutParams;
 
 import java.util.LinkedHashMap;
@@ -25,7 +24,7 @@ public class LayoutSizeDimensionAdapter extends AbstractTypeAdapter<Integer> imp
     }
 
     @Override
-    public Map<String, String> getValues() {
+    public Map<String, String> getValues(Class clazz) {
         LinkedHashMap<String, String> map = new LinkedHashMap<>();
         map.put(String.valueOf(LayoutParams.MATCH_PARENT), "MATCH_PARENT");
         map.put(String.valueOf(LayoutParams.WRAP_CONTENT), "WRAP_CONTENT");

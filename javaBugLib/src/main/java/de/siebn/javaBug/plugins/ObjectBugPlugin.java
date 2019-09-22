@@ -219,6 +219,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
             TypeAdapter adapter = (TypeAdapter) BugObjectCache.get(parms.get("p" + i + "-adapter"));
             String parameter = parms.get("p" + i);
             String parameterType = parms.get("p" + i + "-type");
+            String parameterClazz = parms.get("p" + i + "-clazz");
+            if (parameterClazz != null) c = Class.forName(parameterClazz);
             ps[i] = javaBug.eval(parameterType, parameter, c, adapter);
         }
         Object r = m.invoke(o, ps);
@@ -249,87 +251,58 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         return entry;
     }
 
-    public String getPojoLink(Object o, String field) {
-        return "/pojo?object=" + BugObjectCache.getReference(o) + "&field=" + field;
-    }
-
-    @JavaBugCore.Serve(value = "^/pojo", requiredParameters = {"object", "field"})
-    public String servePojo(NanoHTTPD.IHTTPSession session) throws Exception {
-        Map<String, String> parms = session.getParms();
-        Object o = BugObjectCache.get(parms.get("object"));
-        String fieldName = parms.get("field");
-        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        AllClassMembers.POJO pojo = allMembers.pojos.get(fieldName);
-        if (pojo == null)
-            throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Pojo not found!");
-        if (session.getMethod() == NanoHTTPD.Method.GET) {
-            if (pojo.getter == null)
-                throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Getter found!");
-            return TypeAdapters.toString(pojo.getter.invoke(o));
-        }
-        if (session.getMethod() == NanoHTTPD.Method.POST) {
-            if (pojo.setter == null)
-                throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No setter found!");
-            Method f = pojo.setter;
-            Class type = f.getParameterTypes()[0];
-            TypeAdapters.TypeAdapter<?> adapter = TypeAdapters.getTypeAdapter(type);
-            if (adapter == null)
-                throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No TypeAdapter found!");
-            Object val;
-            String v = parms.get("value");
-            try {
-                val = adapter.parse(type, v == null ? null : v);
-            } catch (Exception e) {
-                throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Could not parse \"" + v + "\"");
-            }
-            f.invoke(o, val);
-            if (pojo.getter != null)
-                return TypeAdapters.toString(pojo.getter.invoke(o));
-            return TypeAdapters.toString(val);
-        }
-        throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "ERROR");
-    }
-
-    public static class InvokationLinkBuilder extends BugLinkBuilder {
-        public InvokationLinkBuilder() {
+    public static class InvocationLinkBuilder extends BugLinkBuilder {
+        public InvocationLinkBuilder() {
             super("/invoke");
         }
 
-        public InvokationLinkBuilder(Method m, Object o) {
+        public InvocationLinkBuilder(Method m, Object o) {
             this();
             setMethod(m);
             if (!Modifier.isStatic(m.getModifiers())) setObject(o);
         }
 
-        public InvokationLinkBuilder setObject(Object object) {
+        public InvocationLinkBuilder setObject(Object object) {
             return setParameter("object", BugObjectCache.getReference(object));
         }
 
-        public InvokationLinkBuilder setMethod(Method method) {
+        public InvocationLinkBuilder setMethod(Method method) {
             return setParameter("method", BugObjectCache.getReference(method));
         }
 
-        public InvokationLinkBuilder setReturnType(String returnType) {
+        public InvocationLinkBuilder setReturnType(String returnType) {
             return setParameter("returnType", returnType);
         }
 
-        public InvokationLinkBuilder setPredefined(int param, Object value) {
+        public InvocationLinkBuilder setPredefined(int param, Object value) {
             setParameter("p" + param, BugObjectCache.getReference(value));
             return setParameter("p" + param + "-type", "ref");
         }
 
-        public InvokationLinkBuilder setPredefined(Object[] predefined) {
+        public InvocationLinkBuilder setPredefined(Object[] predefined) {
             if (predefined == null) return this;
             for (int i = 0; i < predefined.length; i++) setPredefined(i, predefined[i]);
             return this;
         }
 
-        public InvokationLinkBuilder setTypeAdapter(int param, TypeAdapter<?> typeAdapter) {
+        public InvocationLinkBuilder setTypeAdapter(int param, TypeAdapter<?> typeAdapter) {
             return setParameter("p" + param + "-adapter", BugObjectCache.getReference(typeAdapter));
         }
 
-        public InvokationLinkBuilder setReturTypeAdapter(TypeAdapter<?> typeAdapter) {
+        public InvocationLinkBuilder setParameterClazz(int param, Class clazz) {
+            return setParameter("p" + param + "-clazz", clazz.getName());
+        }
+
+        public InvocationLinkBuilder setReturnTypeAdapter(TypeAdapter<?> typeAdapter) {
             return setParameter("adapter", BugObjectCache.getReference(typeAdapter));
+        }
+
+        public static InvocationLinkBuilder getGetter(Object o, Field f) {
+            return new InvocationLinkBuilder(BugGenericUtils.getOrNullMethod, null).setPredefined(0, o).setPredefined(1, f).setParameterClazz(2, f.getType());
+        }
+
+        public static InvocationLinkBuilder getSetter(Object o, Field f) {
+            return new InvocationLinkBuilder(BugGenericUtils.setMethod, null).setPredefined(0, o).setPredefined(1, f).setParameterClazz(2, f.getType());
         }
     }
 
