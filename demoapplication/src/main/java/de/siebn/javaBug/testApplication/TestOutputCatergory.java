@@ -1,6 +1,7 @@
 package de.siebn.javaBug.testApplication;
 
 import java.lang.reflect.Method;
+import java.time.DayOfWeek;
 
 import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.BugList;
@@ -28,6 +29,11 @@ public class TestOutputCatergory extends AbstractOutputCategory {
                 list.add(getMethodInformation(o, m, null, new Object[]{1, 2}));
                 list.add(getMethodInformation(o, m, new Object[]{2}, null));
                 list.add(getMethodInformation(o, m, new Object[]{2}, new Object[]{1, 2}));
+            }
+            if (m.getName().equals("setDay")) {
+                list.add(getMethodInformation(o, m, null, null));
+                list.add(getMethodInformation(o, m, null, new Object[]{DayOfWeek.FRIDAY}));
+                list.add(getMethodInformation(o, m, new Object[]{DayOfWeek.WEDNESDAY}, null));
             }
         }
         return list;

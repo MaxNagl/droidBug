@@ -1,11 +1,14 @@
 package de.siebn.javaBug.util;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.BugFormat;
+import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
@@ -70,39 +73,63 @@ public class BugPropertyEntryBuilder {
 
         if (typeAdapters == null || typeAdapters.size() == 0) {
             typeAdapters = new ArrayList<>();
-            typeAdapters.add(TypeAdapters.getTypeAdapter(clazz));
+            typeAdapters.add(null);
         }
 
         for (TypeAdapter typeAdapter : typeAdapters) {
+            boolean defaultTypeAdapter = typeAdapter == null;
+            if (defaultTypeAdapter) typeAdapter = TypeAdapters.getTypeAdapter(clazz);
             BugInvokable invokable = new BugInvokable(BugInvokable.ACTION_REFRESH_ELEMENTS);
-            String text = typeAdapter.toString(value);
-            BugInputElement input;
-            if (typeAdapter instanceof TypeSelectionAdapter) {
-                BugInputList inputList = new BugInputList("p" + paramIndex, null);
-                inputList.addMap(((TypeSelectionAdapter) typeAdapter).getValues(clazz));
-                inputList.text = text;
-                input = inputList;
-            } else {
-                BugInputText bugInput = new BugInputText("p" + paramIndex, null);
-                bugInput.text = text;
-                input = bugInput;
-            }
+            BugInputElement input = BugInputElementBuilder.build(value, clazz, paramIndex, typeAdapter);
             invokable.add(input);
             if (setter != null && typeAdapter.canParse(clazz)) {
-                setter.setTypeAdapter(paramIndex, typeAdapter);
+                if (!defaultTypeAdapter) setter.setTypeAdapter(paramIndex, typeAdapter);
                 invokable.url = setter.build();
             } else {
                 input.enabled = false;
             }
             if (getter != null) {
-                getter.setReturnTypeAdapter(typeAdapter);
+                if (!defaultTypeAdapter) getter.setReturnTypeAdapter(typeAdapter);
                 input.setRefreshUrl(getter.build());
             }
             invokable.add(new BugText(typeAdapter.getUnit()));
             entry.add(BugText.NBSP);
             entry.add(invokable);
+            entry.setExpandInclude(ObjectBugPlugin.getObjectDetailsLink(value));
         }
 
         return entry;
+    }
+
+    public static BugPropertyEntryBuilder getForGetterSetter(String name, Object o, Method getterSetter, Object target, List<TypeAdapter<Object>> typeAdapters) {
+        return new BugPropertyEntryBuilder()
+                .setName(name)
+                .setValue(BugGenericUtils.invokeOrNull(o, getterSetter, target, null, false))
+                .setClazz(getterSetter.getReturnType())
+                .setParamIndex(1)
+                .setSetter(new InvocationLinkBuilder(getterSetter, o).setPredefined(0, target).setPredefined(2, true))
+                .setGetter(new InvocationLinkBuilder(getterSetter, o).setPredefined(0, target).setPredefined(2, false))
+                .setTypeAdapters(typeAdapters);
+    }
+
+    public static BugPropertyEntryBuilder getForField(Object o, Field f) {
+        return new BugPropertyEntryBuilder()
+                .setName(f.getName())
+                .setParamIndex(2)
+                .setClazz(f.getType())
+                .setValue(BugGenericUtils.getOrNull(o, f))
+                .setSetter(InvocationLinkBuilder.getSetter(o, f))
+                .setGetter(InvocationLinkBuilder.getGetter(o, f));
+    }
+
+    public static BugPropertyEntryBuilder getForPojo(Object o, String fieldName) {
+        AllClassMembers.POJO pojo = AllClassMembers.getForClass(o.getClass()).pojos.get(fieldName);
+        if (pojo == null || (pojo.getter == null && pojo.setter == null)) return null;
+        return new BugPropertyEntryBuilder()
+                .setName(fieldName)
+                .setClazz(pojo.getter == null ? pojo.setter.getParameterTypes()[0] : pojo.getter.getReturnType())
+                .setValue(pojo.getter == null ? null : BugGenericUtils.invokeOrNull(o, pojo.getter))
+                .setSetter(pojo.setter == null ? null : new InvocationLinkBuilder(pojo.setter, o))
+                .setGetter(pojo.getter == null ? null : new InvocationLinkBuilder(pojo.getter, o));
     }
 }

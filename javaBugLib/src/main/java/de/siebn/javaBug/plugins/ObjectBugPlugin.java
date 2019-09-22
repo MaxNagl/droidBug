@@ -148,7 +148,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         return e;
     }
 
-    public String getObjectDetailsLink(Object o) {
+    public static String getObjectDetailsLink(Object o) {
         if (o == null) return null;
         return "/objects/" + BugObjectCache.getReference(o) + "/details/";
     }
@@ -309,6 +309,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
     @Override
     public boolean canEvalType(String type) {
         if (type == null) return true;
+        if ("null".equals(type)) return true;
         if ("text".equals(type)) return true;
         return "ref".equals(type);
     }
@@ -316,6 +317,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
     @Override
     @SuppressWarnings({"unchecked", "ConstantConditions"})
     public Object eval(String type, String text, Class<?> clazz, TypeAdapter<?> adapter) {
+        if ("null".equals(type)) return null;
         if ("ref".equals(type)) {
             Object value = BugObjectCache.get(text);
             if (value == null) throw new IllegalArgumentException("Refrence \"" + text + "\" not found.");

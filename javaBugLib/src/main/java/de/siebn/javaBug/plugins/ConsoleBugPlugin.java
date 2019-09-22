@@ -85,7 +85,7 @@ public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin, BugReferen
             BugEntry entry = new BugEntry();
             entry.add(new BugText(o == null ? "null" : TypeAdapters.toString(o)).format(format).setOnClick(BugEntry.ON_CLICK_EXPAND));
             if (o != null && !o.getClass().isPrimitive() && !o.getClass().equals(String.class)) {
-                entry.setExpandInclude(javaBug.getObjectBug().getObjectDetailsLink(o)).setReference(BugObjectCache.getReference(o));
+                entry.setExpandInclude(ObjectBugPlugin.getObjectDetailsLink(o)).setReference(BugObjectCache.getReference(o));
             }
             javaBug.getStreamBugPlugin().getConsoleStream().send(entry);
         }

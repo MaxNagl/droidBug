@@ -6,6 +6,7 @@ import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.BugList;
 import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.util.AllClassMembers;
+import de.siebn.javaBug.util.BugPropertyEntryBuilder;
 
 public class FieldsOutput extends AbstractOutputCategory {
 
@@ -18,7 +19,7 @@ public class FieldsOutput extends AbstractOutputCategory {
         BugList list = new BugList();
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Field f : allMembers.fields) {
-            list.add(getFieldInformation(o, f));
+            list.add(BugPropertyEntryBuilder.getForField(o, f).build());
         }
         return list;
     }

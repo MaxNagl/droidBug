@@ -6,6 +6,7 @@ import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.BugList;
 import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.util.AllClassMembers;
+import de.siebn.javaBug.util.BugPropertyEntryBuilder;
 
 /**
  * Created by Sieben on 16.03.2015.
@@ -20,7 +21,8 @@ public class PojoOutput extends AbstractOutputCategory {
         BugList list = new BugList();
         AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
         for (Map.Entry<String, AllClassMembers.POJO> pojo : allMembers.pojos.entrySet()) {
-            list.add(getPojo(o, pojo.getKey()));
+            BugPropertyEntryBuilder builder = BugPropertyEntryBuilder.getForPojo(o, pojo.getKey());
+            if (builder != null) list.add(builder.build());
         }
         return list;
     }

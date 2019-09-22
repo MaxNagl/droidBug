@@ -50,6 +50,14 @@ public class TestClass extends TestBaseClass {
         this.setter = setter;
     }
 
+    public DayOfWeek getDay() {
+        return day;
+    }
+
+    public void setDay(DayOfWeek day) {
+        this.day = day;
+    }
+
     public String getGetterAndSetter() {
         return getterAndSetter;
     }

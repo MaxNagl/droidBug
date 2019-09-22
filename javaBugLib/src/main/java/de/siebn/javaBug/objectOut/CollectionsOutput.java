@@ -4,6 +4,7 @@ import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.BugFormat;
 import de.siebn.javaBug.JavaBugCore;
+import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.util.UnicodeCharacters;
 
 import java.lang.reflect.Array;
@@ -61,7 +62,7 @@ public class CollectionsOutput extends AbstractOutputCategory {
                 expand.add(javaBug.getObjectBug().getObjectElement(null, "Value", val));
                 entry.setExpand(expand);
             } else {
-                entry.setExpandInclude(javaBug.getObjectBug().getObjectDetailsLink(val));
+                entry.setExpandInclude(ObjectBugPlugin.getObjectDetailsLink(val));
             }
             list.add(entry);
         }

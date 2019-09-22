@@ -112,9 +112,9 @@ class BugElement {
             $.ajax({
                 type: "GET",
                 url: this.data.refreshUrl,
-                success: function (result) {
+                success: function (result, textStatus) {
                     this.setValue(result);
-                    if (this.setMode != null) this.setMode('text');
+                    if (this.setMode != null) this.setMode(textStatus == 'nocontent' ? 'null' : 'text');
                 }.bind(this),
                 error: function (result) {
                     alert(getError(result));
@@ -332,10 +332,10 @@ class BugInputText extends BugText {
 
     getAllModes() {
         var allModes = [];
-        if (this.data.nullable == true) allModes.push('null');
         if (this.data.textable == true) allModes.push('text');
         if (this.data.scriptable == true) allModes = allModes.concat(availableScripts);
         if (this.data.referenceable == true) allModes.push('ref');
+        if (this.data.nullable == true) allModes.push('null');
         return allModes;
     }
 

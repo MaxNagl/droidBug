@@ -142,6 +142,7 @@ public abstract class BugElement {
         }
 
         public BugEntry setExpandInclude(String url) {
+            if (url == null) return this;
             return setExpand(new BugInclude(url));
         }
 

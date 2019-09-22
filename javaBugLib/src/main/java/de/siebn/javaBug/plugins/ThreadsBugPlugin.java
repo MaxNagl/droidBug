@@ -22,7 +22,7 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
         for (Thread thread : threadSet) {
             BugEntry entry = new BugEntry();
             entry.add(new BugText(thread.getName()).format(BugFormat.title).setOnClick(BugElement.ON_CLICK_EXPAND).format(BugFormat.title));
-            entry.setExpandInclude(javaBug.getObjectBug().getObjectDetailsLink(thread));
+            entry.setExpandInclude(ObjectBugPlugin.getObjectDetailsLink(thread));
             list.add(entry);
         }
         return list;
