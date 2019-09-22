@@ -1,7 +1,6 @@
 package de.siebn.javaBug.util;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,12 +11,12 @@ import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
-import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeSelectionAdapter;
 
 public class BugPropertyEntryBuilder {
     private String name;
     private Object value;
     private Class clazz;
+    private int modifier;
     private int paramIndex;
     private InvocationLinkBuilder setter;
     private InvocationLinkBuilder getter;
@@ -53,6 +52,11 @@ public class BugPropertyEntryBuilder {
         return this;
     }
 
+    public BugPropertyEntryBuilder setModifier(int modifier) {
+        this.modifier = modifier;
+        return this;
+    }
+
     public BugPropertyEntryBuilder setTypeAdapter(TypeAdapter<Object> typeAdapter) {
         typeAdapters = new ArrayList<>();
         typeAdapters.add(typeAdapter);
@@ -68,6 +72,8 @@ public class BugPropertyEntryBuilder {
     public BugElement build() {
         BugEntry entry = new BugEntry();
 
+        if (modifier != 0) entry.add(BugText.getForModifier(modifier)).addSpace();
+        entry.add(BugText.getForClass(clazz)).addSpace();
         entry.add(new BugText(name).format(BugFormat.field).setOnClick(BugText.ON_CLICK_EXPAND));
         entry.add(BugText.VALUE_SEPARATOR);
 
@@ -117,6 +123,7 @@ public class BugPropertyEntryBuilder {
                 .setName(f.getName())
                 .setParamIndex(2)
                 .setClazz(f.getType())
+                .setModifier(f.getModifiers())
                 .setValue(BugGenericUtils.getOrNull(o, f))
                 .setSetter(InvocationLinkBuilder.getSetter(o, f))
                 .setGetter(InvocationLinkBuilder.getGetter(o, f));

@@ -15,9 +15,9 @@ import java.util.Map;
 /**
  * Created by Sieben on 16.03.2015.
  */
-public class CollectionsOutput extends AbstractOutputCategory {
+public class BugCollectionsOutputCategory extends BugAbstractOutputCategory {
 
-    public CollectionsOutput(JavaBugCore javaBug) {
+    public BugCollectionsOutputCategory(JavaBugCore javaBug) {
         super(javaBug, "array", "Array", 500);
     }
 

@@ -5,16 +5,13 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import de.siebn.javaBug.BugElement;
-import de.siebn.javaBug.BugElement.BugGroup;
-import de.siebn.javaBug.BugElement.BugList;
-import de.siebn.javaBug.util.XML;
 
-public class AnnotatedOutputCategory implements OutputCategory {
-    private final OutputMethod annotation;
+public class BugGenericOutputCategory implements BugOutputCategory {
+    private final BugOutputCategoryMethod annotation;
     private final Class<?> clazz;
     private final Method method;
 
-    public AnnotatedOutputCategory(OutputMethod annotation, Class<?> clazz, Method method) {
+    public BugGenericOutputCategory(BugOutputCategoryMethod annotation, Class<?> clazz, Method method) {
         this.annotation = annotation;
         this.clazz = clazz;
         this.method = method;
@@ -34,7 +31,7 @@ public class AnnotatedOutputCategory implements OutputCategory {
 
     @Override
     public String getType() {
-        return method.getName();
+        return method.getDeclaringClass().getName() + "." + method.getName();
     }
 
     @Override
@@ -48,7 +45,7 @@ public class AnnotatedOutputCategory implements OutputCategory {
     }
 
     @Override
-    public boolean opened(List<OutputCategory> others, boolean alreadyOpened) {
+    public boolean opened(List<BugOutputCategory> others, boolean alreadyOpened) {
         return !alreadyOpened;
     }
 

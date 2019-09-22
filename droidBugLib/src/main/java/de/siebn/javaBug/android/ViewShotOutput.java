@@ -8,10 +8,10 @@ import java.util.List;
 import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.BugImg;
 import de.siebn.javaBug.JavaBugCore;
-import de.siebn.javaBug.objectOut.AbstractOutputCategory;
-import de.siebn.javaBug.objectOut.OutputCategory;
+import de.siebn.javaBug.objectOut.BugAbstractOutputCategory;
+import de.siebn.javaBug.objectOut.BugOutputCategory;
 
-public class ViewShotOutput extends AbstractOutputCategory {
+public class ViewShotOutput extends BugAbstractOutputCategory {
     private final boolean noChildren;
 
     public ViewShotOutput(JavaBugCore javaBug, boolean noChildren) {
@@ -32,7 +32,7 @@ public class ViewShotOutput extends AbstractOutputCategory {
     }
 
     @Override
-    public boolean opened(List<OutputCategory> others, boolean alreadyOpened) {
+    public boolean opened(List<BugOutputCategory> others, boolean alreadyOpened) {
         return false;
     }
 }

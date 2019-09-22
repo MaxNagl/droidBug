@@ -7,9 +7,9 @@ import de.siebn.javaBug.util.UnicodeCharacters;
 /**
  * Created by Sieben on 16.03.2015.
  */
-public class StackTraceOutput extends AbstractOutputCategory {
+public class BugStackTraceOutputCategory extends BugAbstractOutputCategory {
 
-    public StackTraceOutput(JavaBugCore javaBug) {
+    public BugStackTraceOutputCategory(JavaBugCore javaBug) {
         super(javaBug, "stacktrace", "Stacktrace", 500);
     }
 

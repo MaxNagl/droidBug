@@ -4,7 +4,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-public @interface OutputMethod {
+public @interface BugOutputCategoryMethod {
     String value();
     int order() default 0;
 }

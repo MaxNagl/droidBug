@@ -11,8 +11,8 @@ import de.siebn.javaBug.util.BugPropertyEntryBuilder;
 /**
  * Created by Sieben on 16.03.2015.
  */
-public class PojoOutput extends AbstractOutputCategory {
-    public PojoOutput(JavaBugCore javaBug) {
+public class BugPojoOutputCategory extends BugAbstractOutputCategory {
+    public BugPojoOutputCategory(JavaBugCore javaBug) {
         super(javaBug, "pojo", "POJO", 1000);
     }
 

@@ -2,13 +2,15 @@ package de.siebn.javaBug.testApplication;
 
 import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.JavaBugCore;
-import de.siebn.javaBug.objectOut.AbstractOutputCategory;
+import de.siebn.javaBug.objectOut.BugAbstractOutputCategory;
+import de.siebn.javaBug.objectOut.BugAnnotatedOutputCategory;
+import de.siebn.javaBug.objectOut.BugAnnotatedOutputCategory.OutputMethod;
 import de.siebn.javaBug.util.BugByteCodeUtil;
 
 /**
  * Created by Sieben on 20.03.2015.
  */
-public class RecursiveOutputCatergory extends AbstractOutputCategory {
+public class RecursiveOutputCatergory extends BugAnnotatedOutputCategory {
 
     public RecursiveOutputCatergory(JavaBugCore javaBug) {
         super(javaBug, "recursion", "Recursion", 0);

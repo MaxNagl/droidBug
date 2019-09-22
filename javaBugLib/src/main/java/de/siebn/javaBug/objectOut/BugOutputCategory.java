@@ -8,7 +8,7 @@ import de.siebn.javaBug.JavaBugCore;
 /**
  * Created by Sieben on 16.03.2015.
  */
-public interface OutputCategory extends JavaBugCore.BugPlugin {
+public interface BugOutputCategory extends JavaBugCore.BugPlugin {
     BugElement get(Object o);
 
     String getType();
@@ -17,5 +17,5 @@ public interface OutputCategory extends JavaBugCore.BugPlugin {
 
     boolean canOutputClass(Class<?> clazz);
 
-    boolean opened(List<OutputCategory> others, boolean alreadyOpened);
+    boolean opened(List<BugOutputCategory> others, boolean alreadyOpened);
 }

@@ -22,7 +22,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
 
-import de.siebn.javaBug.objectOut.AbstractOutputCategory.OutputMethod;
+import de.siebn.javaBug.objectOut.BugAnnotatedOutputCategory.OutputMethod;
 
 @SuppressWarnings("unchecked")
 public class BugByteCodeUtil {

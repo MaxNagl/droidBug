@@ -6,16 +6,16 @@ import java.time.DayOfWeek;
 import de.siebn.javaBug.BugElement;
 import de.siebn.javaBug.BugElement.BugList;
 import de.siebn.javaBug.JavaBugCore;
-import de.siebn.javaBug.objectOut.AbstractOutputCategory;
+import de.siebn.javaBug.objectOut.BugAbstractOutputCategory;
 import de.siebn.javaBug.util.AllClassMembers;
 
 /**
  * Created by Sieben on 20.03.2015.
  */
-public class TestOutputCatergory extends AbstractOutputCategory {
+public class TestOutputCatergory extends BugAbstractOutputCategory {
 
     public TestOutputCatergory(JavaBugCore javaBug) {
-        super(javaBug, "test", "Test", 0);
+        super(javaBug, "testAbstract", "Test Abstract", 0);
     }
 
     @Override

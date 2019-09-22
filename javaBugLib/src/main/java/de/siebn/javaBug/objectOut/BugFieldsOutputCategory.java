@@ -8,9 +8,9 @@ import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.util.AllClassMembers;
 import de.siebn.javaBug.util.BugPropertyEntryBuilder;
 
-public class FieldsOutput extends AbstractOutputCategory {
+public class BugFieldsOutputCategory extends BugAbstractOutputCategory {
 
-    public FieldsOutput(JavaBugCore javaBug) {
+    public BugFieldsOutputCategory(JavaBugCore javaBug) {
         super(javaBug, "fields", "Fields", 2000);
     }
 

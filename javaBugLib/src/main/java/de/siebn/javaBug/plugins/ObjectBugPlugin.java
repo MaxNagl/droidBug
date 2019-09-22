@@ -27,20 +27,20 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         this.javaBug = javaBug;
     }
 
-    public List<OutputCategory> getOutputCategories(Class<?> clazz) {
-        ArrayList<OutputCategory> outputCategories = new ArrayList<>();
-        for (OutputCategory oc : javaBug.getPlugins(OutputCategory.class))
+    public List<BugOutputCategory> getOutputCategories(Class<?> clazz) {
+        ArrayList<BugOutputCategory> outputCategories = new ArrayList<>();
+        for (BugOutputCategory oc : javaBug.getPlugins(BugOutputCategory.class))
             if (oc.canOutputClass(clazz))
                 outputCategories.add(oc);
         for (Method method : AllClassMembers.getForClass(clazz).methods) {
-            OutputMethod output = method.getAnnotation(OutputMethod.class);
+            BugOutputCategoryMethod output = method.getAnnotation(BugOutputCategoryMethod.class);
             if (output != null) {
-                outputCategories.add(new AnnotatedOutputCategory(output, clazz, method));
+                outputCategories.add(new BugGenericOutputCategory(output, clazz, method));
             }
         }
-        Collections.sort(outputCategories, new Comparator<OutputCategory>() {
+        Collections.sort(outputCategories, new Comparator<BugOutputCategory>() {
             @Override
-            public int compare(OutputCategory o1, OutputCategory o2) {
+            public int compare(BugOutputCategory o1, BugOutputCategory o2) {
                 return o1.getOrder() - o2.getOrder();
             }
         });
@@ -104,8 +104,8 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         Object o = BugObjectCache.get(params[1]);
         BugList list = new BugList();
         boolean alreadyOpened = false;
-        List<OutputCategory> outputCategories = getOutputCategories(o.getClass());
-        for (OutputCategory cat : outputCategories) {
+        List<BugOutputCategory> outputCategories = getOutputCategories(o.getClass());
+        for (BugOutputCategory cat : outputCategories) {
             String name = cat.getName(o);
             if (name != null) {
                 BugEntry c = new BugEntry();
@@ -128,7 +128,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
     public BugElement serveObjectsDetailsCategory(String[] params) {
         Object o = BugObjectCache.get(params[1]);
         String category = params[2];
-        for (OutputCategory cat : getOutputCategories(o.getClass())) {
+        for (BugOutputCategory cat : getOutputCategories(o.getClass())) {
             if (cat.getType().equals(category)) {
                 return cat.get(o);
             }
@@ -220,9 +220,10 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
             String parameter = parms.get("p" + i);
             String parameterType = parms.get("p" + i + "-type");
             String parameterClazz = parms.get("p" + i + "-clazz");
-            if (parameterClazz != null) c = Class.forName(parameterClazz);
+            if (parameterClazz != null) c = (Class<?>) BugObjectCache.get(parameterClazz);
             ps[i] = javaBug.eval(parameterType, parameter, c, adapter);
         }
+        if (!m.isAccessible()) m.setAccessible(true);
         Object r = m.invoke(o, ps);
         String returnType = parms.get("returnType");
         if (RETURN_TYPE_STRING.equals(returnType)) {
@@ -290,7 +291,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         }
 
         public InvocationLinkBuilder setParameterClazz(int param, Class clazz) {
-            return setParameter("p" + param + "-clazz", clazz.getName());
+            return setParameter("p" + param + "-clazz", BugObjectCache.getReference(clazz));
         }
 
         public InvocationLinkBuilder setReturnTypeAdapter(TypeAdapter<?> typeAdapter) {

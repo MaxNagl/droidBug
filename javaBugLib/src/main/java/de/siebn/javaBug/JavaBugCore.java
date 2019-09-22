@@ -144,11 +144,11 @@ public class JavaBugCore extends NanoHTTPD {
         addPlugin(new IoBugPlugin(this));
         addPlugin(new ConsoleBugPlugin(this));
 
-        addPlugin(new CollectionsOutput(this));
-        addPlugin(new FieldsOutput(this));
-        addPlugin(new MethodsOutput(this));
-        addPlugin(new PojoOutput(this));
-        addPlugin(new StackTraceOutput(this));
+        addPlugin(new BugCollectionsOutputCategory(this));
+        addPlugin(new BugFieldsOutputCategory(this));
+        addPlugin(new BugMethodsOutputCategory(this));
+        addPlugin(new BugPojoOutputCategory(this));
+        addPlugin(new BugStackTraceOutputCategory(this));
     }
 
     public <T> List<T> getPlugins(Class<T> pluginClass) {

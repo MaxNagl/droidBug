@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
-import de.siebn.javaBug.objectOut.OutputMethod;
+import de.siebn.javaBug.objectOut.BugOutputCategoryMethod;
 
 /**
  * Created by Sieben on 16.11.2016.
@@ -84,7 +84,7 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         private MonitoredOutputStream out;
         private String title;
 
-        @OutputMethod("Overview")
+        @BugOutputCategoryMethod("Overview")
         public BugElement overview() {
             BugList list = new BugList();
             list.add(new BugEntry().add(new BugText("Input: ")).add(BugText.getForByteSize(in.bout.size())));
@@ -92,12 +92,12 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
             return list;
         }
 
-        @OutputMethod(value = "Input", order = 100)
+        @BugOutputCategoryMethod(value = "Input", order = 100)
         public BugElement input() {
             return new BugPre(new String(in.bout.toByteArray()));
         }
 
-        @OutputMethod(value = "Output", order = 200)
+        @BugOutputCategoryMethod(value = "Output", order = 200)
         public BugElement output() {
             return new BugPre(new String(out.bout.toByteArray()));
         }

@@ -15,6 +15,7 @@ public class JavaBugDemoApplication {
         JavaBug.addPlugin(new RecursiveOutputCatergory(JavaBug.getCore()));
         JavaBug.addPlugin(new TestPropertyCategory(JavaBug.getCore()));
         JavaBug.addPlugin(new TestOutputCatergory(JavaBug.getCore()));
+        JavaBug.addPlugin(new TestSimpleOutputCategory(JavaBug.getCore()));
 
         JavaBug.addRootObject("Test", new TestClass());
         JavaBug.addRootObject("TestWrapped", BugByteCodeUtil.getBuggedInstance(TestClass.class));

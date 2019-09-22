@@ -10,8 +10,8 @@ import de.siebn.javaBug.util.AllClassMembers;
 /**
  * Created by Sieben on 16.03.2015.
  */
-public class MethodsOutput extends AbstractOutputCategory {
-    public MethodsOutput(JavaBugCore javaBug) {
+public class BugMethodsOutputCategory extends BugAbstractOutputCategory {
+    public BugMethodsOutputCategory(JavaBugCore javaBug) {
         super(javaBug, "methods", "Methods", 3000);
     }
 

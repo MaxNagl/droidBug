@@ -1,8 +1,5 @@
 package de.siebn.javaBug.objectOut;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -11,30 +8,18 @@ import de.siebn.javaBug.BugElement.*;
 import de.siebn.javaBug.plugins.ObjectBugPlugin;
 import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
-import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
-import de.siebn.javaBug.util.*;
 import de.siebn.javaBug.util.BugByteCodeUtil.MethodCall;
+import de.siebn.javaBug.util.BugInputElementBuilder;
+import de.siebn.javaBug.util.StringifierUtil;
 
-public abstract class AbstractOutputCategory implements OutputCategory {
+public abstract class BugAbstractOutputCategory implements BugOutputCategory {
     private final static Object[] empty = new Object[0];
     protected final JavaBugCore javaBug;
     protected final String type;
     protected final String name;
     protected int order;
 
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface Property {
-        String value();
-
-        Class<?>[] typeAdapters() default {};
-    }
-
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface OutputMethod {
-        String value();
-    }
-
-    public AbstractOutputCategory(JavaBugCore javaBug, String type, String name, int order) {
+    public BugAbstractOutputCategory(JavaBugCore javaBug, String type, String name, int order) {
         this.javaBug = javaBug;
         this.type = type;
         this.name = name;
@@ -52,37 +37,13 @@ public abstract class AbstractOutputCategory implements OutputCategory {
     }
 
     @Override
-    public boolean opened(List<OutputCategory> others, boolean alreadyOpened) {
+    public boolean opened(List<BugOutputCategory> others, boolean alreadyOpened) {
         return !alreadyOpened;
     }
 
     @Override
     public int getOrder() {
         return order;
-    }
-
-    @Override
-    public BugElement get(Object o) {
-        BugList list = new BugList();
-        for (Method m : AllClassMembers.getForClass(getClass()).methods) {
-            Property getterSetter = m.getAnnotation(Property.class);
-            if (getterSetter != null && showGetterSetter(o, m)) {
-                list.add(BugPropertyEntryBuilder.getForGetterSetter(getterSetter.value(), this, m, o, TypeAdapters.getTypeAdapterClasses(getterSetter.typeAdapters())).build());
-            }
-            OutputMethod outputMethod = m.getAnnotation(OutputMethod.class);
-            if (outputMethod != null && showOutputMethod(o, m)) {
-                list.add(getMethodInformation(this, m, new Object[]{o}, null));
-            }
-        }
-        return list;
-    }
-
-    protected boolean showOutputMethod(Object o, Method method) {
-        return true;
-    }
-
-    protected boolean showGetterSetter(Object o, Method method) {
-        return true;
     }
 
     public BugElement getMethodInformation(Object o, Method m, Object[] predefined, Object[] preset) {

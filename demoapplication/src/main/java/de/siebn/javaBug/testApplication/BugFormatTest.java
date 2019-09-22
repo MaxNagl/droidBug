@@ -2,12 +2,10 @@ package de.siebn.javaBug.testApplication;
 
 import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.*;
-import de.siebn.javaBug.objectOut.AbstractOutputCategory;
-import de.siebn.javaBug.objectOut.OutputMethod;
-import de.siebn.javaBug.util.AllClassMembers;
+import de.siebn.javaBug.objectOut.BugOutputCategoryMethod;
 
 public class BugFormatTest {
-    @OutputMethod(value = "Formats", order = 100)
+    @BugOutputCategoryMethod(value = "Formats", order = 100)
     public BugElement formats() {
         BugList list = new BugList();
         for (BugFormat bugFormat : BugFormat.values()) {

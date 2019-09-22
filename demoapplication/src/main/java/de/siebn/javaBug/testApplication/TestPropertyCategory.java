@@ -1,13 +1,15 @@
 package de.siebn.javaBug.testApplication;
 
 import de.siebn.javaBug.JavaBugCore;
-import de.siebn.javaBug.objectOut.AbstractOutputCategory;
+import de.siebn.javaBug.objectOut.BugAbstractOutputCategory;
+import de.siebn.javaBug.objectOut.BugAnnotatedOutputCategory;
+import de.siebn.javaBug.objectOut.BugAnnotatedOutputCategory.Property;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 
 /**
  * Created by Sieben on 07.04.2015.
  */
-public class TestPropertyCategory extends AbstractOutputCategory {
+public class TestPropertyCategory extends BugAnnotatedOutputCategory {
     public TestPropertyCategory(JavaBugCore javaBug) {
         super(javaBug, "properties", "Properties", -1);
     }
