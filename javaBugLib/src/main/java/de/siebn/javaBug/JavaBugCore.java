@@ -6,6 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -243,33 +245,22 @@ public class JavaBugCore extends NanoHTTPD {
         if (runner == null) {
             return method.invoke(object, param);
         }
-        final AtomicReference<Object> response = new AtomicReference<>();
         final AtomicReference<Throwable> error = new AtomicReference<>();
-        runner.exec(new Runnable() {
+        final FutureTask<Object> response = new FutureTask<>(new Callable<Object>() {
             @Override
-            public void run() {
-                synchronized (response) {
-                    try {
-                        response.set(method.invoke(object, param));
-                    } catch (Throwable t) {
-                        error.set(t);
-                    }
-                    response.notifyAll();
+            public Object call() {
+                try {
+                    return method.invoke(object, param);
+                } catch (Throwable t) {
+                    error.set(t);
+                    return null;
                 }
             }
         });
-        synchronized (response) {
-            while (response.get() == null && error.get() == null) {
-                try {
-                    response.wait();
-                } catch (Exception e) {
-                }
-            }
-        }
-        if (error.get() != null) {
-            throw error.get();
-        }
-        return response.get();
+        runner.exec(response);
+        Object value = response.get();
+        if (error.get() != null) return error.get();
+        return value;
     }
 
     public void addServers(Server server) {

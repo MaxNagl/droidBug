@@ -3,7 +3,7 @@ package de.siebn.javaBug.util;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-public class BugGenericUtils {
+public class BugReflectionUtils {
     public static Object invokeOrNull(Object object, Method method, Object... args) {
         try {
             if (!method.isAccessible()) method.setAccessible(true);
@@ -31,6 +31,7 @@ public class BugGenericUtils {
 
     @SuppressWarnings("unchecked")
     public static Method getMethodOrNull(Class clazz, String name, Class<?>... parameterTypes) {
+        if (clazz == null) return null;
         try {
             return clazz.getDeclaredMethod(name, parameterTypes);
         } catch (Throwable t) {
@@ -40,6 +41,7 @@ public class BugGenericUtils {
 
     @SuppressWarnings("unchecked")
     public static Field getFieldOrNull(Class clazz, String name) {
+        if (clazz == null) return null;
         try {
             return clazz.getDeclaredField(name);
         } catch (Throwable t) {
@@ -49,6 +51,7 @@ public class BugGenericUtils {
 
     @SuppressWarnings("unchecked")
     public static Field getFieldOrThrow(Class clazz, String name) {
+        if (clazz == null) return null;
         try {
             return clazz.getDeclaredField(name);
         } catch (Throwable t) {
@@ -56,6 +59,6 @@ public class BugGenericUtils {
         }
     }
 
-    public static Method getOrNullMethod = getMethodOrNull(BugGenericUtils.class, "getOrNull", Object.class, Field.class);
-    public static Method setMethod = getMethodOrNull(BugGenericUtils.class, "set", Object.class, Field.class, Object.class);
+    public static Method getOrNullMethod = getMethodOrNull(BugReflectionUtils.class, "getOrNull", Object.class, Field.class);
+    public static Method setMethod = getMethodOrNull(BugReflectionUtils.class, "set", Object.class, Field.class, Object.class);
 }

@@ -10,7 +10,7 @@ import de.siebn.javaBug.BugElement.BugList;
 import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
-import de.siebn.javaBug.util.BugGenericUtils;
+import de.siebn.javaBug.util.BugReflectionUtils;
 import de.siebn.javaBug.util.BugPropertyEntryBuilder;
 
 public abstract class BugSimpleOutputCategory<T> extends BugAbstractOutputCategory {
@@ -100,17 +100,17 @@ public abstract class BugSimpleOutputCategory<T> extends BugAbstractOutputCatego
         }
 
         public FieldProperty(Class clazz, String fieldName) {
-            this(BugGenericUtils.getFieldOrThrow(clazz, fieldName));
+            this(BugReflectionUtils.getFieldOrThrow(clazz, fieldName));
         }
 
         @Override
         public Object getValue(Object object) {
-            return BugGenericUtils.getOrNull(object, field);
+            return BugReflectionUtils.getOrNull(object, field);
         }
 
         @Override
         public void setValue(Object object, Object value) {
-            BugGenericUtils.set(object, field, value);
+            BugReflectionUtils.set(object, field, value);
         }
     }
 
@@ -125,15 +125,15 @@ public abstract class BugSimpleOutputCategory<T> extends BugAbstractOutputCatego
         @Override
         public Object getValue(Object object) {
             for (Field field : fields)
-                object = BugGenericUtils.getOrNull(object, field);
+                object = BugReflectionUtils.getOrNull(object, field);
             return object;
         }
 
         @Override
         public void setValue(Object object, Object value) {
             for (int i = 0; i < fields.length - 1; i++)
-                object = BugGenericUtils.getOrNull(object, fields[i]);
-            BugGenericUtils.set(object, fields[fields.length - 1], value);
+                object = BugReflectionUtils.getOrNull(object, fields[i]);
+            BugReflectionUtils.set(object, fields[fields.length - 1], value);
         }
     }
 
@@ -152,7 +152,7 @@ public abstract class BugSimpleOutputCategory<T> extends BugAbstractOutputCatego
     protected abstract void addElements(BugGroup parent, T o);
 
     public void addProperty(BugGroup parent, T object, SimpleProperty property) {
-        Object value = BugGenericUtils.invokeOrNull(property, getValueMethod, object);
+        Object value = BugReflectionUtils.invokeOrNull(property, getValueMethod, object);
         parent.add(new BugPropertyEntryBuilder()
                 .setName(property.getName())
                 .setValue(value)
@@ -171,6 +171,6 @@ public abstract class BugSimpleOutputCategory<T> extends BugAbstractOutputCatego
     protected void setValue(T object, SimpleProperty property, Object value) {
     }
 
-    private static Method getValueMethod = BugGenericUtils.getMethodOrNull(SimpleProperty.class, "getValue", Object.class);
-    private static Method setValueMethod = BugGenericUtils.getMethodOrNull(SimpleProperty.class, "setValue", Object.class, Object.class);
+    private static Method getValueMethod = BugReflectionUtils.getMethodOrNull(SimpleProperty.class, "getValue", Object.class);
+    private static Method setValueMethod = BugReflectionUtils.getMethodOrNull(SimpleProperty.class, "setValue", Object.class, Object.class);
 }

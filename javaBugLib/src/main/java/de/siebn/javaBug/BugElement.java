@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
+import de.siebn.javaBug.typeAdapter.TypeAdapters.StringPair;
 import de.siebn.javaBug.util.*;
 import de.siebn.javaBug.util.BugJsonWriter.BugJsonElement;
 
@@ -337,9 +338,9 @@ public abstract class BugElement {
             this.text = text;
         }
 
-        public void addMap(Map<String, String> map) {
-            for (Entry<String, String> entry : map.entrySet()) {
-                options.add(new Option(entry.getKey(), entry.getValue()));
+        public void addList(List<StringPair> list) {
+            for (StringPair pair : list) {
+                options.add(new Option(pair.key, pair.value));
             }
         }
 

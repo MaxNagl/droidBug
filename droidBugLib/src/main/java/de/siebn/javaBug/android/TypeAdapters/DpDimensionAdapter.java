@@ -11,8 +11,7 @@ public class DpDimensionAdapter extends AbstractTypeAdapter<Integer> {
 
     @Override
     public String toString(Integer i) {
-        if (i < 0) return "";
-        return String.valueOf((int) (i / Resources.getSystem().getDisplayMetrics().density));
+        return String.valueOf(i / Resources.getSystem().getDisplayMetrics().density);
     }
 
     @Override

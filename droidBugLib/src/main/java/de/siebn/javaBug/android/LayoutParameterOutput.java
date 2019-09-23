@@ -12,7 +12,8 @@ import java.util.ArrayList;
 import de.siebn.javaBug.BugElement.BugGroup;
 import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.objectOut.BugSimpleOutputCategory;
-import de.siebn.javaBug.util.BugGenericUtils;
+import de.siebn.javaBug.typeAdapter.TypeAdapters;
+import de.siebn.javaBug.util.BugReflectionUtils;
 
 public class LayoutParameterOutput extends BugSimpleOutputCategory<View> {
     private final ArrayList<LayoutParamProperty> properties = new ArrayList<>();
@@ -22,21 +23,22 @@ public class LayoutParameterOutput extends BugSimpleOutputCategory<View> {
 
         public LayoutParamProperty(Class clazz, String fieldName) {
             super(null, null, true);
-            field = BugGenericUtils.getFieldOrThrow(clazz, fieldName);
+            field = BugReflectionUtils.getFieldOrThrow(clazz, fieldName);
             super.name = field.getName();
             super.clazz = field.getType();
+            setTypeAdapters(TypeAdapters.getTypeAdapters(field));
         }
 
         @Override
         public Object getValue(View view) {
             LayoutParams lp = view.getLayoutParams();
-            return BugGenericUtils.getOrNull(lp, field);
+            return BugReflectionUtils.getOrNull(lp, field);
         }
 
         @Override
         public void setValue(View view, Object value) {
             LayoutParams lp = view.getLayoutParams();
-            BugGenericUtils.set(lp, field, value);
+            BugReflectionUtils.set(lp, field, value);
             view.setLayoutParams(lp);
         }
     }

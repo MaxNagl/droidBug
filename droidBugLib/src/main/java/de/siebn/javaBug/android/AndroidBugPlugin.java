@@ -17,7 +17,7 @@ import de.siebn.javaBug.plugins.RootBugPlugin;
  */
 public class AndroidBugPlugin implements RootBugPlugin.MainBugPlugin, BugReferenceResolver {
     private final JavaBugCore javaBug;
-    private Application app;
+    private final Application app;
     private WeakReference<Activity> activity;
 
     private ActivityLifecycleCallbacks lifecycleCallback = new ActivityLifecycleCallbacks() {
@@ -52,11 +52,8 @@ public class AndroidBugPlugin implements RootBugPlugin.MainBugPlugin, BugReferen
         }
     };
 
-    public AndroidBugPlugin(JavaBugCore javaBug) {
+    public AndroidBugPlugin(JavaBugCore javaBug, Application app) {
         this.javaBug = javaBug;
-    }
-
-    public void setApplication(Application app) {
         this.app = app;
         app.registerActivityLifecycleCallbacks(lifecycleCallback);
     }

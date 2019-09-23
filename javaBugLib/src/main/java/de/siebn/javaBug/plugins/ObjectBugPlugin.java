@@ -299,11 +299,11 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         }
 
         public static InvocationLinkBuilder getGetter(Object o, Field f) {
-            return new InvocationLinkBuilder(BugGenericUtils.getOrNullMethod, null).setPredefined(0, o).setPredefined(1, f).setParameterClazz(2, f.getType());
+            return new InvocationLinkBuilder(BugReflectionUtils.getOrNullMethod, null).setPredefined(0, o).setPredefined(1, f).setParameterClazz(2, f.getType());
         }
 
         public static InvocationLinkBuilder getSetter(Object o, Field f) {
-            return new InvocationLinkBuilder(BugGenericUtils.setMethod, null).setPredefined(0, o).setPredefined(1, f).setParameterClazz(2, f.getType());
+            return new InvocationLinkBuilder(BugReflectionUtils.setMethod, null).setPredefined(0, o).setPredefined(1, f).setParameterClazz(2, f.getType());
         }
     }
 

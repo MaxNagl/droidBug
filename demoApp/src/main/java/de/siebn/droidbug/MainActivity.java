@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
 
 import de.siebn.javaBug.DroidBug;
 import de.siebn.javaBug.android.BugLayoutInflaterFactory;
-import de.siebn.javaBug.util.*;
+import de.siebn.javaBug.util.BugByteCodeUtil;
 
 
 public class MainActivity extends Activity {

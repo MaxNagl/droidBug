@@ -110,7 +110,7 @@ public class BugPropertyEntryBuilder {
     public static BugPropertyEntryBuilder getForGetterSetter(String name, Object o, Method getterSetter, Object target, List<TypeAdapter<Object>> typeAdapters) {
         return new BugPropertyEntryBuilder()
                 .setName(name)
-                .setValue(BugGenericUtils.invokeOrNull(o, getterSetter, target, null, false))
+                .setValue(BugReflectionUtils.invokeOrNull(o, getterSetter, target, null, false))
                 .setClazz(getterSetter.getReturnType())
                 .setParamIndex(1)
                 .setSetter(new InvocationLinkBuilder(getterSetter, o).setPredefined(0, target).setPredefined(2, true))
@@ -124,7 +124,7 @@ public class BugPropertyEntryBuilder {
                 .setParamIndex(2)
                 .setClazz(f.getType())
                 .setModifier(f.getModifiers())
-                .setValue(BugGenericUtils.getOrNull(o, f))
+                .setValue(BugReflectionUtils.getOrNull(o, f))
                 .setSetter(InvocationLinkBuilder.getSetter(o, f))
                 .setGetter(InvocationLinkBuilder.getGetter(o, f));
     }
@@ -135,7 +135,7 @@ public class BugPropertyEntryBuilder {
         return new BugPropertyEntryBuilder()
                 .setName(fieldName)
                 .setClazz(pojo.getter == null ? pojo.setter.getParameterTypes()[0] : pojo.getter.getReturnType())
-                .setValue(pojo.getter == null ? null : BugGenericUtils.invokeOrNull(o, pojo.getter))
+                .setValue(pojo.getter == null ? null : BugReflectionUtils.invokeOrNull(o, pojo.getter))
                 .setSetter(pojo.setter == null ? null : new InvocationLinkBuilder(pojo.setter, o))
                 .setGetter(pojo.getter == null ? null : new InvocationLinkBuilder(pojo.getter, o));
     }

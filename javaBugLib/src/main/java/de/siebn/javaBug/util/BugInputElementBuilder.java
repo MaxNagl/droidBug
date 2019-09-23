@@ -11,7 +11,7 @@ public class BugInputElementBuilder {
         String text = value == null ? null : typeAdapter.toString(value);
         if (typeAdapter instanceof TypeSelectionAdapter) {
             BugInputList inputList = new BugInputList("p" + paramIndex, null);
-            inputList.addMap(((TypeSelectionAdapter) typeAdapter).getValues(clazz));
+            inputList.addList(((TypeSelectionAdapter) typeAdapter).getValues(clazz));
             inputList.text = text;
             input = inputList;
         } else {

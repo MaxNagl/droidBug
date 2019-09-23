@@ -1,10 +1,12 @@
 package de.siebn.javaBug.typeAdapter;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.*;
 
 public class TypeAdapters {
     private final static ArrayList<TypeAdapter<?>> adapters = new ArrayList<>();
+    private final static ArrayList<TypeAdapterProvider> adapterProviders = new ArrayList<>();
     private final static Map<Class<?>, TypeAdapter> adapterMap = new HashMap<>();
 
     static {
@@ -30,6 +32,15 @@ public class TypeAdapters {
             }
         }
         throw new IllegalStateException();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> List<TypeAdapter<T>> getTypeAdapters(Field field) {
+        ArrayList adapters = new ArrayList();
+        for (TypeAdapterProvider adapterProvider : adapterProviders) {
+            adapterProvider.getForField(adapters, field);
+        }
+        return adapters;
     }
 
     @SuppressWarnings("unchecked")
@@ -83,10 +94,20 @@ public class TypeAdapters {
         Collections.sort(adapters, new Comparator<TypeAdapter<?>>() {
             @Override
             public int compare(TypeAdapter<?> o1, TypeAdapter<?> o2) {
-                return o2.getProirity() - o1.getProirity();
+                return o2.getPriority() - o1.getPriority();
             }
         });
         adapterMap.clear();
+    }
+
+    public static void addAdapterProvider(TypeAdapterProvider adapterProvider) {
+        adapterProviders.add(adapterProvider);
+        Collections.sort(adapterProviders, new Comparator<TypeAdapterProvider>() {
+            @Override
+            public int compare(TypeAdapterProvider o1, TypeAdapterProvider o2) {
+                return o2.getPriority() - o1.getPriority();
+            }
+        });
     }
 
     public interface TypeAdapter<T> {
@@ -98,13 +119,39 @@ public class TypeAdapters {
 
         boolean canParse(Class<?> clazz);
 
-        int getProirity(); // Adapters with a high priority are prefered
+        int getPriority(); // Adapters with a high priority are prefered
 
         String getUnit();
     }
 
+    public static class TypeAdapterProvider {
+        public void getForField(List<TypeAdapter> list, Field field) {
+        }
+
+        public int getPriority() {
+            return 0;
+        }
+    }
+
+    public class DefaultTypeAdapterProvider extends TypeAdapterProvider {
+        @Override
+        public void getForField(List<TypeAdapter> list, Field field) {
+            list.add(TypeAdapters.getTypeAdapter(field.getType()));
+        }
+    }
+
+    public static class StringPair {
+        public final String key;
+        public final String value;
+
+        public StringPair(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
+
     public interface TypeSelectionAdapter<T> extends TypeAdapter<T> {
-        Map<String, String> getValues(Class clazz);
+        List<StringPair> getValues(Class clazz);
     }
 
     public static abstract class AbstractTypeAdapter<T> implements TypeAdapter<T> {
@@ -118,7 +165,7 @@ public class TypeAdapters {
         }
 
         @Override
-        public int getProirity() {
+        public int getPriority() {
             return proirity;
         }
 
@@ -259,12 +306,12 @@ public class TypeAdapters {
         }
 
         @Override
-        public Map<String, String> getValues(Class clazz) {
-            LinkedHashMap<String, String> map = new LinkedHashMap<>();
+        public List<StringPair> getValues(Class clazz) {
+            ArrayList<StringPair> list = new ArrayList<>();
             for (Object e : clazz.getEnumConstants()) {
-                map.put(((Enum) e).name(), e.toString());
+                list.add(new StringPair(((Enum) e).name(), e.toString()));
             }
-            return map;
+            return list;
         }
     }
 }

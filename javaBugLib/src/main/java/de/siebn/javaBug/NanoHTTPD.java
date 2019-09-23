@@ -189,7 +189,7 @@ public abstract class NanoHTTPD {
                                     TempFileManager tempFileManager = tempFileManagerFactory.create();
                                     HTTPSession session = createHttpSession(outputStream, tempFileManager, inputStream, finalAccept);
                                     while (!finalAccept.isClosed()) {
-                                        session.execute();
+                                         session.execute();
                                     }
                                 } catch (Exception e) {
                                     // When the socket is closed by the client, we throw our own SocketException

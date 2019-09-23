@@ -11,15 +11,19 @@ import java.util.regex.Pattern;
 
 import de.siebn.javaBug.NanoHTTPD.AsyncRunner;
 import de.siebn.javaBug.android.*;
-import de.siebn.javaBug.util.BugByteCodeUtil;
-import de.siebn.javaBug.util.BugThreadUtil;
+import de.siebn.javaBug.android.TypeAdapters.AndroidTypeAdapterProvider;
+import de.siebn.javaBug.typeAdapter.TypeAdapters;
+import de.siebn.javaBug.util.*;
 
 public class DroidBug extends JavaBug {
     private static boolean inited = false;
     private static boolean isAppSet = false;
 
-    private static void ensureInit() {
-        if (!inited) {
+    public static void addAndroidPlugins() {
+    }
+
+    public static void setApplication(final Application app) {
+        if (!isAppSet) {
             JavaBugCore core = getCore();
             final Handler handler = new Handler(Looper.getMainLooper());
             core.setInvocationRunner(new AsyncRunner() {
@@ -28,30 +32,25 @@ public class DroidBug extends JavaBug {
                     handler.post(code);
                 }
             });
-            addAndroidPlugins();
-            inited = true;
-        }
-    }
-
-    public static void addAndroidPlugins() {
-        JavaBugCore jb = getCore();
-        jb.addPlugin(new AndroidBugPlugin(jb));
-        jb.addPlugin(new ViewBugPlugin(jb, null));
-        jb.addPlugin(new ViewShotOutput(jb, false));
-        jb.addPlugin(new ViewShotOutput(jb, true));
-        jb.addPlugin(new ViewProfilingOutput(jb));
-        jb.addPlugin(new LayoutParameterOutput(jb));
-    }
-
-    public static void setApplication(final Application app) {
-        if (!isAppSet) {
-            ensureInit();
             BugThreadUtil.runOn = new BugThreadAndroidUtil();
-            getCore().getPlugin(AndroidBugPlugin.class).setApplication(app);
+            BugResourcesUtil.setResources(app.getResources());
+            BugResourcesUtil.addPackage(app.getPackageName());
+
+            TypeAdapters.addAdapterProvider(new AndroidTypeAdapterProvider());
+
+            core.addPlugin(new AndroidBugPlugin(core, app));
+            core.addPlugin(new ViewBugPlugin(core, null));
+            core.addPlugin(new ViewShotOutput(core, false));
+            core.addPlugin(new ViewShotOutput(core, true));
+            core.addPlugin(new ViewProfilingOutput(core));
+            core.addPlugin(new LayoutParameterOutput(core));
+
+
             addFileRoot("filesDir", app.getFilesDir());
             addFileRoot("externalCacheDir", app.getExternalCacheDir());
             addFileRoot("externalFilesDir", app.getExternalFilesDir(null));
             addFileRoot("cacheDir", app.getCacheDir());
+
             try {
                 BugByteCodeUtil.CLASS_LOADING_STRATEGY = new AndroidClassLoadingStrategy.Wrapping(app.getCacheDir());
                 BugByteCodeUtil.CACHE_FILE = new File(app.getCacheDir(), "BugByteCodeUtil.cache");
