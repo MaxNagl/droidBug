@@ -1,10 +1,8 @@
 package de.siebn.javaBug.testApplication;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
-import de.siebn.javaBug.typeAdapter.TypeAdapters.AbstractTypeAdapter;
-import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeSelectionAdapter;
+import de.siebn.javaBug.typeAdapter.TypeAdapters.*;
 
 public class ChooseIntAdapter extends AbstractTypeAdapter<Integer> implements TypeSelectionAdapter<Integer> {
     public ChooseIntAdapter() {
@@ -22,11 +20,11 @@ public class ChooseIntAdapter extends AbstractTypeAdapter<Integer> implements Ty
     }
 
     @Override
-    public Map<String, String> getValues(Class clazz) {
-        LinkedHashMap<String, String> map = new LinkedHashMap<>();
-        map.put("", "");
-        map.put("1", "One");
-        map.put("2", "Two");
+    public List<StringPair> getValues(Class clazz) {
+        List<StringPair> map = new ArrayList<>();
+        map.add(new StringPair("", ""));
+        map.add(new StringPair("1", "One"));
+        map.add(new StringPair("2", "Two"));
         return map;
     }
 }
