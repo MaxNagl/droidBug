@@ -4,12 +4,13 @@ import de.siebn.javaBug.BugElement.BugGroup;
 import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.objectOut.BugSimpleOutputCategory;
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
+import de.siebn.javaBug.util.BugProperty.BugFieldProperty;
 
 public class TestSimpleOutputCategory extends BugSimpleOutputCategory<TestClass> {
     private SimpleProperty ArrayFirst = new DelegateProperty("ArrayFirst", String.class, true);
     private SimpleProperty ArraySecond = new DelegateProperty("ArraySecond", String.class, false);
     private SimpleProperty ArrayThird = new DelegateProperty("ArrayThird", String.class, true);
-    private SimpleProperty Value = new FieldProperty(TestClass.class, "primitiveInt").setTypeAdapters(new TypeAdapters.PrimitiveAdapter(), new DoubleIntAdapter(), new ChooseIntAdapter());
+    private SimpleProperty Value = new ReflectionProperty(BugFieldProperty.get(TestClass.class, "primitiveInt")).setTypeAdapters(new TypeAdapters.PrimitiveAdapter(), new DoubleIntAdapter(), new ChooseIntAdapter());
 
     public TestSimpleOutputCategory(JavaBugCore javaBug) {
         super(javaBug, "testSimple", "Test Simple", 0);

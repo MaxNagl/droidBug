@@ -10,8 +10,7 @@ import de.siebn.javaBug.BugElement.BugList;
 import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.plugins.ObjectBugPlugin.InvocationLinkBuilder;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
-import de.siebn.javaBug.util.BugReflectionUtils;
-import de.siebn.javaBug.util.BugPropertyEntryBuilder;
+import de.siebn.javaBug.util.*;
 
 public abstract class BugSimpleOutputCategory<T> extends BugAbstractOutputCategory {
 
@@ -44,6 +43,11 @@ public abstract class BugSimpleOutputCategory<T> extends BugAbstractOutputCatego
         @Override
         public String getName() {
             return name;
+        }
+
+        public AbstractProperty<O, V> setName(String name) {
+            this.name = name;
+            return this;
         }
 
         @Override
@@ -91,49 +95,45 @@ public abstract class BugSimpleOutputCategory<T> extends BugAbstractOutputCatego
         }
     }
 
-    public static class FieldProperty extends AbstractProperty {
-        private Field field;
+    public static class ReflectionProperty extends AbstractProperty {
+        private BugProperty property;
 
-        public FieldProperty(Field field) {
-            super(field.getName(), field.getType(), !Modifier.isFinal(field.getModifiers()));
-            this.field = field;
-        }
-
-        public FieldProperty(Class clazz, String fieldName) {
-            this(BugReflectionUtils.getFieldOrThrow(clazz, fieldName));
+        public ReflectionProperty(BugProperty property) {
+            super(property.getName(), property.getType(), property.isSettable());
+            this.property = property;
         }
 
         @Override
         public Object getValue(Object object) {
-            return BugReflectionUtils.getOrNull(object, field);
+            return property.getValue(object);
         }
 
         @Override
         public void setValue(Object object, Object value) {
-            BugReflectionUtils.set(object, field, value);
+            property.setValue(object, value);
         }
     }
 
-    public static class FieldsProperty extends AbstractProperty {
-        private Field[] fields;
+    public static class ReflectionChainProperty extends AbstractProperty {
+        private BugProperty[] properties;
 
-        public FieldsProperty(Field... fields) {
-            super(fields[fields.length - 1].getName(), fields[fields.length - 1].getType(), !Modifier.isFinal(fields[fields.length - 1].getModifiers()));
-            this.fields = fields;
+        public ReflectionChainProperty(BugProperty... properties) {
+            super(properties[properties.length - 1].getName(), properties[properties.length - 1].getType(), properties[properties.length - 1].isSettable());
+            this.properties = properties;
         }
 
         @Override
         public Object getValue(Object object) {
-            for (Field field : fields)
-                object = BugReflectionUtils.getOrNull(object, field);
+            for (BugProperty property : properties)
+                object = property.getValue(object);
             return object;
         }
 
         @Override
         public void setValue(Object object, Object value) {
-            for (int i = 0; i < fields.length - 1; i++)
-                object = BugReflectionUtils.getOrNull(object, fields[i]);
-            BugReflectionUtils.set(object, fields[fields.length - 1], value);
+            for (int i = 0; i < properties.length - 1; i++)
+                object = properties[i].getValue(object);
+            properties[properties.length - 1].setValue(object, value);
         }
     }
 

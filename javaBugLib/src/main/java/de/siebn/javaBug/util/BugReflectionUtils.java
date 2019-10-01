@@ -1,7 +1,6 @@
 package de.siebn.javaBug.util;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 
 public class BugReflectionUtils {
     public static Object invokeOrNull(Object object, Method method, Object... args) {

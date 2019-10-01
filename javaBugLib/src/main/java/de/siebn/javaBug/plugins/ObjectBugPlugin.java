@@ -157,53 +157,6 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
         return "/objects/" + type + "/details/" + BugObjectCache.getReference(o);
     }
 
-    public String getObjectGetLink(Object o, Field f) {
-        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        return "/objectGet?object=" + BugObjectCache.getReference(o) + "&field=" + allMembers.getFieldIdentifier(f);
-    }
-
-    public String getObjectEditLink(Object o, Field f) {
-        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        return "/objectEdit?object=" + BugObjectCache.getReference(o) + "&field=" + allMembers.getFieldIdentifier(f);
-    }
-
-    @JavaBugCore.Serve("^/objectGet")
-    public String serveObjectGet(NanoHTTPD.IHTTPSession session) throws Exception {
-        Map<String, String> parms = session.getParms();
-        Object o = BugObjectCache.get(parms.get("object"));
-        String fieldName = parms.get("field");
-        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        Field f = allMembers.getField(fieldName);
-        if (f != null) {
-            return TypeAdapters.toString(f.get(o));
-        }
-        throw new IllegalArgumentException();
-    }
-
-    @JavaBugCore.Serve("^/objectEdit")
-    public String serveObjectEdit(NanoHTTPD.IHTTPSession session) throws Exception {
-        Map<String, String> parms = session.getParms();
-        Object o = BugObjectCache.get(parms.get("object"));
-        String fieldName = parms.get("field");
-        AllClassMembers allMembers = AllClassMembers.getForClass(o.getClass());
-        Field f = allMembers.getField(fieldName);
-        if (f != null) {
-            TypeAdapters.TypeAdapter<?> adapter = TypeAdapters.getTypeAdapter(f.getType());
-            if (adapter == null)
-                throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "No TypeAdapter found!");
-            Object val;
-            String v = session.getParms().get("value");
-            try {
-                val = adapter.parse((Class) f.getType(), v == null ? null : v);
-            } catch (Exception e) {
-                throw new JavaBugCore.ExceptionResult(NanoHTTPD.Response.Status.BAD_REQUEST, "Could not parse \"" + session.getParms().get("value") + "\"");
-            }
-            f.set(o, val);
-            return TypeAdapters.toString(f.get(o));
-        }
-        return "ERROR";
-    }
-
     public static String RETURN_TYPE_STRING = "string";
     public static String RETURN_TYPE_JSON = "json";
 

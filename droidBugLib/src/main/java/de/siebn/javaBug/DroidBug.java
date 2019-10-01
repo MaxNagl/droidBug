@@ -44,6 +44,7 @@ public class DroidBug extends JavaBug {
             core.addPlugin(new ViewShotOutput(core, true));
             core.addPlugin(new ViewProfilingOutput(core));
             core.addPlugin(new LayoutParameterOutput(core));
+            core.addPlugin(new ExportedPropertyParameterOutput(core));
 
 
             addFileRoot("filesDir", app.getFilesDir());
