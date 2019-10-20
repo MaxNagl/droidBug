@@ -2,7 +2,6 @@ package de.siebn.javaBug;
 
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.Map.Entry;
 
 import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.StringPair;
@@ -20,6 +19,7 @@ public abstract class BugElement {
     public String hoverGroup;
     public String reference;
     public Map<String, String> styles;
+    public String stream;
 
     public BugElement() {
         this.type = getClass().getSimpleName();
@@ -46,6 +46,11 @@ public abstract class BugElement {
 
     public BugElement setReference(String reference) {
         this.reference = reference;
+        return this;
+    }
+
+    public BugElement setStream(String stream) {
+        this.stream = stream;
         return this;
     }
 
@@ -80,6 +85,7 @@ public abstract class BugElement {
         writer.wrtieField("hoverGroup", hoverGroup);
         writer.wrtieField("reference", reference);
         writer.wrtieField("styles", styles);
+        writer.wrtieField("stream", stream);
     }
 
     public static class BugInclude extends BugElement {
@@ -258,16 +264,8 @@ public abstract class BugElement {
     }
 
     public static class BugPre extends BugText {
-        public String stream;
-
         public BugPre(String text) {
             super(text);
-        }
-
-        @Override
-        public void writeJsonFields(BugJsonWriter writer) {
-            super.writeJsonFields(writer);
-            writer.wrtieField("stream", stream);
         }
     }
 

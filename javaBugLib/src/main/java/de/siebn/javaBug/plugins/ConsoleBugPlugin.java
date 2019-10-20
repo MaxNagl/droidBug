@@ -27,7 +27,7 @@ public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin, BugReferen
 
         BugPre stream = new BugElement.BugPre("Welcome");
         stream.setStyle("height", "100%").addClazz("console");
-        stream.stream = "/stream/";
+        stream.stream = "/stream/console";
         split.add(new BugSplitElement(stream));
 
         BugInputText script = new BugInputText("script", "");

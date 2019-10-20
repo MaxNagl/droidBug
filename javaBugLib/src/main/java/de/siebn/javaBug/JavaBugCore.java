@@ -204,20 +204,7 @@ public class JavaBugCore extends NanoHTTPD {
                             }
 
                             Object r = (method.getAnnotation(ServeAsync.class) != null) ? method.invoke(object, param) : invokeSync(object, method, param);
-                            if (r instanceof Response) return (Response) r;
-                            if (r instanceof String) return new Response(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, (String) r);
-                            if (r instanceof HTML) return new Response(Response.Status.OK, NanoHTTPD.MIME_HTML, ((HTML) r).getHtml());
-                            if (r instanceof XML) return new Response(Response.Status.OK, "application/xml", ((XML) r).getXml());
-                            if (r instanceof BugElement) {
-                                Response response = new Response(Status.OK, "application/json", new ByteArrayInputStream(((BugElement) r).toGzipJson()));
-                                response.addHeader("Content-Encoding", "gzip");
-                                response.setChunkedTransfer(true);
-                                return response;
-                            }
-                            if (r instanceof byte[]) return new Response(Response.Status.OK, "application/octet-stream", new ByteArrayInputStream((byte[]) r));
-                            if (r instanceof InputStream) return new Response(Response.Status.OK, "application/octet-stream", (InputStream) r);
-                            if (r == null) return new Response(Status.NO_CONTENT, "application/octet-stream", "");
-                            return new Response(r.toString());
+                            return createResponse(r);
                         } catch (RuntimeException e) {
                             throw e;
                         } catch (IllegalAccessException e) {
@@ -238,6 +225,23 @@ public class JavaBugCore extends NanoHTTPD {
                 });
             }
         }
+    }
+
+    public Response createResponse(Object r) {
+        if (r instanceof Response) return (Response) r;
+        if (r instanceof String) return new Response(Status.OK, NanoHTTPD.MIME_PLAINTEXT, (String) r);
+        if (r instanceof HTML) return new Response(Status.OK, NanoHTTPD.MIME_HTML, ((HTML) r).getHtml());
+        if (r instanceof XML) return new Response(Status.OK, "application/xml", ((XML) r).getXml());
+        if (r instanceof BugElement) {
+            Response response = new Response(Status.OK, "application/json", new ByteArrayInputStream(((BugElement) r).toGzipJson()));
+            response.addHeader("Content-Encoding", "gzip");
+            response.setChunkedTransfer(true);
+            return response;
+        }
+        if (r instanceof byte[]) return new Response(Status.OK, "application/octet-stream", new ByteArrayInputStream((byte[]) r));
+        if (r instanceof InputStream) return new Response(Status.OK, "application/octet-stream", (InputStream) r);
+        if (r == null) return new Response(Status.NO_CONTENT, "application/octet-stream", "");
+        return new Response(r.toString());
     }
 
     private Object invokeSync(final Object object, final java.lang.reflect.Method method, final Object[] param) throws Throwable {

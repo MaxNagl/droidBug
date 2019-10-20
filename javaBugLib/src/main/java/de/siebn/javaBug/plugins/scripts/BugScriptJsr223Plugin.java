@@ -73,8 +73,8 @@ public class BugScriptJsr223Plugin implements BugScriptEnginePlugin {
             }, ScriptContext.GLOBAL_SCOPE);
             ScriptContext context = engine.getContext();
             BugStream consoleStream = javaBug.getStreamBugPlugin().getConsoleStream();
-            context.setWriter(new OutputStreamWriter(consoleStream.createOutputStream()));
-            context.setErrorWriter(new OutputStreamWriter(consoleStream.createOutputStreamWithClazz(BugFormat.colorError.clazzes)));
+            context.setWriter(new OutputStreamWriter(consoleStream.createOutputStream(null)));
+            context.setErrorWriter(new OutputStreamWriter(consoleStream.createOutputStream(BugFormat.colorError.clazzes)));
             isJs = factory.getExtensions().contains("js");
         }
 

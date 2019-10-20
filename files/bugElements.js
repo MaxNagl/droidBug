@@ -100,6 +100,9 @@ class BugElement {
                     }
                 }.bind(this));
             }
+            if (data.stream != null) {
+                this.appendStream();
+            }
         }
     }
 
@@ -121,6 +124,23 @@ class BugElement {
                 }.bind(this),
             });
         }
+    }
+
+    appendStream(param) {
+        $.ajax({
+            type: "GET",
+            url: this.data.stream + (param == null ? "" : param),
+            success: function (result, status, xhr) {
+                var scrolledDown = this.view.scrollTop() + this.view.innerHeight() >= this.view[0].scrollHeight;
+                this.view.loadContent(result, xhr.getResponseHeader("Content-Type"), true);
+                this.appendStream("?index=" + xhr.getResponseHeader("next") + "&uid=" + xhr.getResponseHeader("uid"));
+                if (scrolledDown) this.view.scrollTop(this.view[0].scrollHeight);
+            }.bind(this),
+            timeout: 60000,
+            error: function (result) {
+                if (result.status != 404) this.appendStream(param);
+            }.bind(this)
+        });
     }
 }
 
@@ -200,26 +220,6 @@ class BugText extends BugElement {
 class BugPre extends BugText {
     constructor(parent, data) {
         super(parent, data, $('<pre>'))
-        if (data.stream != null) {
-            this.appendStream();
-        }
-    }
-
-    appendStream() {
-        $.ajax({
-            type: "GET",
-            url: this.data.stream,
-            success: function (result, status, xhr) {
-                var scrolledDown = this.view.scrollTop() + this.view.innerHeight() >= this.view[0].scrollHeight;
-                this.view.loadContent(result, xhr.getResponseHeader("Content-Type"), true);
-                this.appendStream();
-                if (scrolledDown) this.view.scrollTop(this.view[0].scrollHeight);
-            }.bind(this),
-            timeout: 60000,
-            error: function (result) {
-                this.appendStream();
-            }.bind(this)
-        });
     }
 }
 

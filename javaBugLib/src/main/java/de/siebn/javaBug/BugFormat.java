@@ -30,6 +30,8 @@ public enum BugFormat {
     nul(colorTernaryLight),
 
     button,
+    inlineStream,
+    preWrap,
 
     autoScale,
     autoScaleCenter,

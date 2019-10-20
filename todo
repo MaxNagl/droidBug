@@ -13,7 +13,6 @@ URLEncoder.encode(pValue, "UTF-8")
 * ConsoleBugPlugin: Stash
 * ConsoleBugPlugin: History
 
-* StreamBugPlugin: multiple streams
-* StreamBugPlugin: from position
+* StreamBugPlugin: pause on invisibility
 
 * ViewBugPlugin: Hide/Show layer background
