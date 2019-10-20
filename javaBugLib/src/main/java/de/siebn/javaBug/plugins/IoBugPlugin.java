@@ -1,9 +1,7 @@
 package de.siebn.javaBug.plugins;
 
-import com.sun.corba.se.impl.orbutil.ObjectUtility;
-
-import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.Callable;
 
 import de.siebn.javaBug.*;
@@ -57,7 +55,7 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         return 2000;
     }
 
-    private synchronized MonitoredIo getMonitoredIo(Object id) {
+    public synchronized MonitoredIo getMonitoredIo(Object id) {
         MonitoredIo mio = monitoredIosMap.get(id);
         if (mio == null) {
             mio = new MonitoredIo("io-" + BugObjectCache.getReference(id));
@@ -67,22 +65,11 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         return mio;
     }
 
-    public InputStream wrapInputStream(Object id, InputStream in) {
-        return new MonitoredInputStream(in, getMonitoredIo(id));
-    }
-
-    public OutputStream wrapOutputStream(Object id, OutputStream out) {
-        return new MonitoredOutputStream(out, getMonitoredIo(id));
-    }
-
-    public void setTitle(Object id, String title) {
-        getMonitoredIo(id).title = title;
-    }
-
-    private class MonitoredIo {
+    public class MonitoredIo {
         private final String id;
         private BugStream stream;
         private String title;
+        private int opened = 0;
 
         public MonitoredIo(String id) {
             this.id = id;
@@ -112,39 +99,54 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
             return new BugList().setStream("stream/" + id).format(BugFormat.inlineStream);
         }
 
-        @SuppressWarnings("unchecked")
-        private List<IoEntry> getEntries() {
-            return (List<IoEntry>) ((List) stream.entries);
-        }
-
         private long getInSize() {
             long size = 0;
-            for (IoEntry entry : getEntries()) if (!entry.out) size += entry.data.length;
+            for (Object entry : stream.entries) if (entry instanceof IoEntry && !((IoEntry) entry).out) size += ((IoEntry) entry).data.length;
             return size;
         }
 
         private long getOutSize() {
             long size = 0;
-            for (IoEntry entry : getEntries()) if (entry.out) size += entry.data.length;
+            for (Object entry : stream.entries) if (entry instanceof IoEntry && ((IoEntry) entry).out) size += ((IoEntry) entry).data.length;
             return size;
         }
 
         private BugElement getFormatted(Boolean outFilter) {
             BugList list = new BugList();
-            for (IoEntry entry : getEntries()) {
-                if (outFilter != null && entry.out != outFilter) continue;
-                list.add(entry.toBugElement());
+            for (Object entry : stream.entries) {
+                if (entry instanceof IoEntry) {
+                    if (outFilter != null && ((IoEntry) entry).out != outFilter) continue;
+                    list.add(((IoEntry) entry).toBugElement());
+                }
             }
             return list.format(BugFormat.preWrap);
         }
+
+        public void opened(Object object) {
+            opened++;
+        }
+
+        public void closed(Object object) {
+            if (--opened == 0) {
+                stream.close();
+            }
+        }
+
+        public BugStream getStream() {
+            return stream;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
     }
 
-    private class IoEntry implements Callable<BugElement> {
+    public static class IoEntry implements Callable<BugElement> {
         final byte[] data;
         final boolean out;
         final long time;
 
-        private IoEntry(byte[] data, boolean out, long time) {
+        public IoEntry(byte[] data, boolean out, long time) {
             this.data = data;
             this.out = out;
             this.time = time;
@@ -157,60 +159,6 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
         @Override
         public BugElement call() {
             return toBugElement();
-        }
-    }
-
-    private class MonitoredInputStream extends FilterInputStream {
-        private final MonitoredIo mio;
-
-        MonitoredInputStream(InputStream in, MonitoredIo mio) {
-            super(in);
-            this.mio = mio;
-        }
-
-        @Override
-        public int read() throws IOException {
-            int read = super.read();
-            mio.stream.send(new IoEntry(new byte[]{(byte) read}, false, System.nanoTime()));
-            return read;
-        }
-
-        public int read(byte[] data, int offset, int length) throws IOException {
-            int read = super.read(data, offset, length);
-            mio.stream.send(new IoEntry(data, false, System.nanoTime()));
-            return read;
-        }
-    }
-
-    private class MonitoredOutputStream extends OutputStream {
-        private final OutputStream out;
-        private final MonitoredIo mio;
-
-        MonitoredOutputStream(OutputStream out, MonitoredIo mio) {
-            this.out = out;
-            this.mio = mio;
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            mio.stream.send(new IoEntry(new byte[]{(byte) b}, true, System.nanoTime()));
-            out.write(b);
-        }
-
-        @Override
-        public void write(byte[] b, int off, int len) throws IOException {
-            if (off == 0 && len == b.length) {
-                mio.stream.send(new IoEntry(b, true, System.nanoTime()));
-            } else {
-                mio.stream.send(new IoEntry(Arrays.copyOfRange(b, off, off + len), true, System.nanoTime()));
-            }
-            out.write(b, off, len);
-        }
-
-        @Override
-        public void write(byte[] b) throws IOException {
-            mio.stream.send(new IoEntry(b, true, System.nanoTime()));
-            out.write(b);
         }
     }
 }

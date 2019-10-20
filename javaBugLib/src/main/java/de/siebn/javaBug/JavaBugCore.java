@@ -15,6 +15,8 @@ import java.util.regex.Pattern;
 import de.siebn.javaBug.NanoHTTPD.Response.Status;
 import de.siebn.javaBug.objectOut.*;
 import de.siebn.javaBug.plugins.*;
+import de.siebn.javaBug.plugins.buggables.BuggablePlugin;
+import de.siebn.javaBug.plugins.buggables.BuggableStreamsPlugin;
 import de.siebn.javaBug.plugins.scripts.*;
 import de.siebn.javaBug.typeAdapter.TypeAdapters.TypeAdapter;
 import de.siebn.javaBug.util.BugObjectCache;
@@ -29,6 +31,7 @@ public class JavaBugCore extends NanoHTTPD {
     private final ObjectBugPlugin objectBugPlugin = new ObjectBugPlugin(this);
     private final ScriptBugPlugin scriptBugPlugin = new ScriptBugPlugin(this);
     private final FileBugPlugin fileBugPlugin = new FileBugPlugin();
+    private final IoBugPlugin ioBugPlugin = new IoBugPlugin(this);
 
     private final ArrayList<Server> servers = new ArrayList<>();
     private final ArrayList<BugPlugin> plugins = new ArrayList<>();
@@ -130,6 +133,15 @@ public class JavaBugCore extends NanoHTTPD {
         return evaluator.eval(type, text, clazz, adapter);
     }
 
+    public<T> T bug(Object id, String title, T object) {
+        for (BuggablePlugin plugin : getPlugins(BuggablePlugin.class)) {
+            if (plugin.canBug(object)) {
+                object = plugin.bug(id, title, object);
+            }
+        }
+        return object;
+    }
+
     public void addDefaultPlugins() {
         fileBugPlugin.addRoot("/", new File(".").getAbsoluteFile());
 
@@ -141,9 +153,9 @@ public class JavaBugCore extends NanoHTTPD {
         addPlugin(getObjectBug());
         addPlugin(getStreamBugPlugin());
         addPlugin(getScriptBugPlugin());
+        addPlugin(getIoBugPlugin());
         addPlugin(new RootBugPlugin(this));
         addPlugin(new ThreadsBugPlugin(this));
-        addPlugin(new IoBugPlugin(this));
         addPlugin(new ConsoleBugPlugin(this));
 
         addPlugin(new BugCollectionsOutputCategory(this));
@@ -151,6 +163,8 @@ public class JavaBugCore extends NanoHTTPD {
         addPlugin(new BugMethodsOutputCategory(this));
         addPlugin(new BugPojoOutputCategory(this));
         addPlugin(new BugStackTraceOutputCategory(this));
+
+        addPlugin(new BuggableStreamsPlugin(this));
     }
 
     public <T> List<T> getPlugins(Class<T> pluginClass) {
@@ -325,9 +339,8 @@ public class JavaBugCore extends NanoHTTPD {
     protected HTTPSession createHttpSession(OutputStream outputStream, TempFileManager tempFileManager, InputStream inputStream, Socket finalAccept) {
         IoBugPlugin ioBug = getPlugin(IoBugPlugin.class);
         if (ioBug != null) {
-            outputStream = ioBug.wrapOutputStream(finalAccept, outputStream);
-            inputStream = ioBug.wrapInputStream(finalAccept, inputStream);
-            ioBug.setTitle(finalAccept, Thread.currentThread().getName());
+            outputStream = bug(finalAccept, Thread.currentThread().getName(), outputStream);
+            inputStream = bug(finalAccept, Thread.currentThread().getName(), inputStream);
         }
         return super.createHttpSession(outputStream, tempFileManager, inputStream, finalAccept);
     }
@@ -346,5 +359,9 @@ public class JavaBugCore extends NanoHTTPD {
 
     public ScriptBugPlugin getScriptBugPlugin() {
         return scriptBugPlugin;
+    }
+
+    public IoBugPlugin getIoBugPlugin() {
+        return ioBugPlugin;
     }
 }

@@ -1,29 +1,11 @@
 package de.siebn.javaBug;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.URLDecoder;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
-import java.util.zip.GZIPOutputStream;
+import java.util.*;
 
 import de.siebn.javaBug.util.StringifierUtil;
 
@@ -69,19 +51,18 @@ import de.siebn.javaBug.util.StringifierUtil;
  * <p/>
  * </ul>
  * <p/>
- *
+ * <p>
  * Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
- *
+ * <p>
  * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
- *
+ * <p>
  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
- *
+ * <p>
  * Neither the name of the NanoHttpd organization nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
- *
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
 public abstract class NanoHTTPD {
     /**
@@ -189,7 +170,7 @@ public abstract class NanoHTTPD {
                                     TempFileManager tempFileManager = tempFileManagerFactory.create();
                                     HTTPSession session = createHttpSession(outputStream, tempFileManager, inputStream, finalAccept);
                                     while (!finalAccept.isClosed()) {
-                                         session.execute();
+                                        session.execute();
                                     }
                                 } catch (Exception e) {
                                     // When the socket is closed by the client, we throw our own SocketException
@@ -247,8 +228,7 @@ public abstract class NanoHTTPD {
     /**
      * Registers that a connection has been closed
      *
-     * @param socket
-     *            the {@link java.net.Socket} for the connection.
+     * @param socket the {@link java.net.Socket} for the connection.
      */
     public synchronized void unRegisterConnection(Socket socket) {
         openConnections.remove(socket);
@@ -289,7 +269,7 @@ public abstract class NanoHTTPD {
      */
     @Deprecated
     public Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms,
-                                   Map<String, String> files) {
+                          Map<String, String> files) {
         return new Response(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "Not Found");
     }
 
@@ -671,7 +651,7 @@ public abstract class NanoHTTPD {
 
         protected void sendContentLengthHeaderIfNotAlreadyPresent(PrintWriter pw, Map<String, String> header, int size) {
             if (!headerAlreadySent(header, "content-length")) {
-                pw.print("Content-Length: "+ size +"\r\n");
+                pw.print("Content-Length: " + size + "\r\n");
             }
         }
 
@@ -758,6 +738,7 @@ public abstract class NanoHTTPD {
 
         public interface IStatus {
             int getRequestStatus();
+
             String getDescription();
         }
 
@@ -765,10 +746,22 @@ public abstract class NanoHTTPD {
          * Some HTTP response status codes
          */
         public enum Status implements IStatus {
-            SWITCH_PROTOCOL(101, "Switching Protocols"), OK(200, "OK"), CREATED(201, "Created"), ACCEPTED(202, "Accepted"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
-                "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
-                "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), METHOD_NOT_ALLOWED(405, "Method Not Allowed"), RANGE_NOT_SATISFIABLE(416,
-                "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
+            SWITCH_PROTOCOL(101, "Switching Protocols"),
+            OK(200, "OK"),
+            CREATED(201, "Created"),
+            ACCEPTED(202, "Accepted"),
+            NO_CONTENT(204, "No Content"),
+            PARTIAL_CONTENT(206, "Partial Content"),
+            REDIRECT(301, "Moved Permanently"),
+            NOT_MODIFIED(304, "Not Modified"),
+            BAD_REQUEST(400, "Bad Request"),
+            UNAUTHORIZED(401, "Unauthorized"),
+            FORBIDDEN(403, "Forbidden"),
+            NOT_FOUND(404, "Not Found"),
+            METHOD_NOT_ALLOWED(405, "Method Not Allowed"),
+            GONE(410, "Gone"),
+            RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"),
+            INTERNAL_ERROR(500, "Internal Server Error");
             private final int requestStatus;
             private final String description;
 
@@ -843,9 +836,11 @@ public abstract class NanoHTTPD {
 
         /**
          * Adds the files in the request body to the files map.
+         *
          * @arg files - map to modify
          */
         void parseBody(Map<String, String> files) throws IOException, ResponseException;
+
         byte[] getBody() throws IOException, ResponseException;
     }
 
@@ -921,7 +916,7 @@ public abstract class NanoHTTPD {
                 }
 
                 parms = new HashMap<String, String>();
-                if(null == headers) {
+                if (null == headers) {
                     headers = new HashMap<String, String>();
                 }
 
@@ -956,7 +951,7 @@ public abstract class NanoHTTPD {
                 // throw it out to close socket object (finalAccept)
                 throw e;
             } catch (SocketTimeoutException ste) {
-            	throw ste;
+                throw ste;
             } catch (IOException ioe) {
                 Response r = new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
                 r.send(outputStream);
@@ -998,7 +993,7 @@ public abstract class NanoHTTPD {
                 // Now read all the body and write it to f
                 byte[] buf = new byte[512];
                 while (rlen >= 0 && size > 0) {
-                    rlen = inputStream.read(buf, 0, (int)Math.min(size, 512));
+                    rlen = inputStream.read(buf, 0, (int) Math.min(size, 512));
                     size -= rlen;
                     if (rlen > 0) {
                         randomAccessFile.write(buf, 0, rlen);
@@ -1073,7 +1068,7 @@ public abstract class NanoHTTPD {
          * Decodes the sent headers and loads the data into Key/value pairs
          */
         private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, String> parms, Map<String, String> headers)
-            throws ResponseException {
+                throws ResponseException {
             try {
                 // Read the request line
                 String inLine = in.readLine();
@@ -1270,7 +1265,7 @@ public abstract class NanoHTTPD {
                 TempFile tempFile = tempFileManager.createTempFile();
                 return new RandomAccessFile(tempFile.getName(), "rw");
             } catch (Exception e) {
-            	throw new Error(e); // we won't recover, so throw an error
+                throw new Error(e); // we won't recover, so throw an error
             }
         }
 
@@ -1304,7 +1299,7 @@ public abstract class NanoHTTPD {
                 int sep = e.indexOf('=');
                 if (sep >= 0) {
                     p.put(decodePercent(e.substring(0, sep)).trim(),
-                        decodePercent(e.substring(sep + 1)));
+                            decodePercent(e.substring(sep + 1)));
                 } else {
                     p.put(decodePercent(e).trim(), "");
                 }
@@ -1316,7 +1311,7 @@ public abstract class NanoHTTPD {
             return parms;
         }
 
-		public String getQueryParameterString() {
+        public String getQueryParameterString() {
             return queryParameterString;
         }
 
@@ -1403,7 +1398,8 @@ public abstract class NanoHTTPD {
             }
         }
 
-        @Override public Iterator<String> iterator() {
+        @Override
+        public Iterator<String> iterator() {
             return cookies.keySet().iterator();
         }
 

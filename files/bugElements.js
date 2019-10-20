@@ -2,9 +2,17 @@ $.fn.loadContent = function (content, mimeType, append) {
     if (append != true) this.empty();
     if (mimeType == 'application/json') {
         if ((typeof content) == 'string') content = JSON.parse(content);
-        loadModel(this.data('model'), content, function (model) {
-            this.append(model.view);
-        }.bind(this));
+        if (Array.isArray(content)) {
+            content.forEach(function(entry) {
+                loadModel(this.data('model'), entry, function (model) {
+                    this.append(model.view);
+                }.bind(this));
+            }.bind(this));
+        } else {
+            loadModel(this.data('model'), content, function (model) {
+                this.append(model.view);
+            }.bind(this));
+        }
     } else if (mimeType == 'text/plain') {
         this.append(content);
     }
@@ -127,18 +135,18 @@ class BugElement {
     }
 
     appendStream(param) {
-        $.ajax({
+            $.ajax({
             type: "GET",
             url: this.data.stream + (param == null ? "" : param),
             success: function (result, status, xhr) {
                 var scrolledDown = this.view.scrollTop() + this.view.innerHeight() >= this.view[0].scrollHeight;
                 this.view.loadContent(result, xhr.getResponseHeader("Content-Type"), true);
-                this.appendStream("?index=" + xhr.getResponseHeader("next") + "&uid=" + xhr.getResponseHeader("uid"));
+                if (document.contains(this.view[0])) this.appendStream("?index=" + xhr.getResponseHeader("next") + "&uid=" + xhr.getResponseHeader("uid"));
                 if (scrolledDown) this.view.scrollTop(this.view[0].scrollHeight);
             }.bind(this),
             timeout: 60000,
             error: function (result) {
-                if (result.status != 404) this.appendStream(param);
+                if ((result.status < 400 || result.status > 499) && document.contains(this.view[0])) this.appendStream(param);
             }.bind(this)
         });
     }

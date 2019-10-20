@@ -1,22 +1,22 @@
 package de.siebn.javaBug.plugins;
 
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 
+import de.siebn.javaBug.*;
 import de.siebn.javaBug.BugElement.BugText;
-import de.siebn.javaBug.JavaBugCore;
 import de.siebn.javaBug.JavaBugCore.BugPlugin;
-import de.siebn.javaBug.NanoHTTPD;
 import de.siebn.javaBug.NanoHTTPD.Response;
 import de.siebn.javaBug.NanoHTTPD.Response.Status;
+import de.siebn.javaBug.util.BugJsonWriter;
 
 /**
  * Created by Sieben on 05.03.2015.
  */
 public class StreamBugPlugin implements BugPlugin {
+    private final static Object CLOSED = new Object();
     private final JavaBugCore javaBug;
 
     private HashMap<String, BugStream> streams = new HashMap<>();
@@ -39,11 +39,34 @@ public class StreamBugPlugin implements BugPlugin {
 
         try {
             Object o = stream.get(index, 30000);
-            long next = o == null ? index : index + 1;
-            if (o instanceof Callable) o = ((Callable) o).call();
-            Response response = javaBug.createResponse(o);
-            response.addHeader("index", String.valueOf(index));
-            response.addHeader("next", String.valueOf(next));
+            ArrayList<BugElement> values = new ArrayList<>();
+            while (o != null) {
+                o = stream.get(index, 0);
+                Object v = (o instanceof Callable) ? ((Callable) o).call() : o;
+                if (v instanceof BugElement) {
+                    values.add((BugElement) v);
+                    index++;
+                } else if (values.isEmpty()) {
+                    if (o == CLOSED) return new Response(Status.GONE, NanoHTTPD.MIME_PLAINTEXT, "");
+                    Response response = javaBug.createResponse(o);
+                    response.addHeader("next", String.valueOf(index + 1));
+                    response.addHeader("uid", stream.uid);
+                    return response;
+                } else {
+                    break;
+                }
+            }
+            Response response;
+            if (values.size() == 0) {
+                response = javaBug.createResponse(null);
+            } else if (values.size() == 1) {
+                response = javaBug.createResponse(values.get(0));
+            } else {
+                response = new Response(Status.OK, "application/json", new ByteArrayInputStream(new BugJsonWriter(true).writeObject(values).getBytes()));
+                response.addHeader("Content-Encoding", "gzip");
+                response.setChunkedTransfer(true);
+            }
+            response.addHeader("next", String.valueOf(index));
             response.addHeader("uid", stream.uid);
             return response;
         } catch (Exception e) {
@@ -84,7 +107,7 @@ public class StreamBugPlugin implements BugPlugin {
 
         public synchronized Object get(long index, long timeout) {
             Object token = this.token = new Object();
-            if (entries.size() <= index - removed) {
+            if (timeout > 0 && entries.size() <= index - removed) {
                 try {
                     wait(timeout);
                 } catch (InterruptedException ignored) {
@@ -126,6 +149,10 @@ public class StreamBugPlugin implements BugPlugin {
                 entries.remove(0);
                 removed++;
             }
+        }
+
+        public void close() {
+            send(CLOSED);
         }
     }
 
