@@ -46,4 +46,12 @@ public class JavaBug {
     public static void addFileRoot(String name, File root) {
         getCore().getFileBug().addRoot(name, root);
     }
+
+    public <T> T bug(T object) {
+        return getCore().bug(object);
+    }
+
+    public <T> T bug(T object, String title, Object key) {
+        return getCore().bug(object, title, key);
+    }
 }

@@ -16,11 +16,7 @@ import de.siebn.javaBug.typeAdapter.TypeAdapters;
 import de.siebn.javaBug.util.*;
 
 public class DroidBug extends JavaBug {
-    private static boolean inited = false;
     private static boolean isAppSet = false;
-
-    public static void addAndroidPlugins() {
-    }
 
     public static void setApplication(final Application app) {
         if (!isAppSet) {

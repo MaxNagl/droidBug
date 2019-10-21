@@ -33,4 +33,12 @@ public class JavaBug {
     public static void addFileRoot(String name, File root) {
 
     }
+
+    public <T> T bug(T object) {
+        return object;
+    }
+
+    public <T> T bug(T object, String title, Object key) {
+        return object;
+    }
 }

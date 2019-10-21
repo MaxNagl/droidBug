@@ -7,7 +7,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -133,10 +132,14 @@ public class JavaBugCore extends NanoHTTPD {
         return evaluator.eval(type, text, clazz, adapter);
     }
 
-    public<T> T bug(Object id, String title, T object) {
+    public<T> T bug(T object) {
+        return bug(object, null, null);
+    }
+
+    public<T> T bug(T object, String title, Object key) {
         for (BuggablePlugin plugin : getPlugins(BuggablePlugin.class)) {
             if (plugin.canBug(object)) {
-                object = plugin.bug(id, title, object);
+                object = plugin.bug(object, title, key);
             }
         }
         return object;
@@ -339,8 +342,8 @@ public class JavaBugCore extends NanoHTTPD {
     protected HTTPSession createHttpSession(OutputStream outputStream, TempFileManager tempFileManager, InputStream inputStream, Socket finalAccept) {
         IoBugPlugin ioBug = getPlugin(IoBugPlugin.class);
         if (ioBug != null) {
-            outputStream = bug(finalAccept, Thread.currentThread().getName(), outputStream);
-            inputStream = bug(finalAccept, Thread.currentThread().getName(), inputStream);
+            outputStream = bug(outputStream, Thread.currentThread().getName(), finalAccept);
+            inputStream = bug(inputStream, Thread.currentThread().getName(), finalAccept);
         }
         return super.createHttpSession(outputStream, tempFileManager, inputStream, finalAccept);
     }

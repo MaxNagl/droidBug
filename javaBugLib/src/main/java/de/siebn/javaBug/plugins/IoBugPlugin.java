@@ -61,6 +61,7 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
             mio = new MonitoredIo("io-" + BugObjectCache.getReference(id));
             monitoredIos.add(mio);
             monitoredIosMap.put(id, mio);
+            mio.setTitle(id.toString());
         }
         return mio;
     }

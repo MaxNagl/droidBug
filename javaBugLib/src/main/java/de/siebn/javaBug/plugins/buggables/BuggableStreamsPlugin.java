@@ -21,8 +21,9 @@ public class BuggableStreamsPlugin implements BuggablePlugin {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T bug(Object id, String title, T object) {
-        MonitoredIo mio = javaBug.getIoBugPlugin().getMonitoredIo(id);
+    public <T> T bug(T object, String title, Object key) {
+        if (key == null) key = object;
+        MonitoredIo mio = javaBug.getIoBugPlugin().getMonitoredIo(key);
         if (object instanceof OutputStream) {
             object = (T) new MonitoredOutputStream((OutputStream) object, mio);
         } else if (object instanceof InputStream) {
