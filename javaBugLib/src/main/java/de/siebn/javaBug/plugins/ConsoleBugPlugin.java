@@ -97,6 +97,11 @@ public class ConsoleBugPlugin implements RootBugPlugin.MainBugPlugin, BugReferen
     }
 
     @Override
+    public String getTabId() {
+        return "console";
+    }
+
+    @Override
     public BugElement getContent() {
         return new BugInclude("/console/");
     }

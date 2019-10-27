@@ -34,6 +34,11 @@ public class ThreadsBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
+    public String getTabId() {
+        return "threads";
+    }
+
+    @Override
     public BugElement getContent() {
         return new BugDiv().add(new BugInclude("/threads/")).format(BugFormat.tabContent);
     }

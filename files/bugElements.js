@@ -535,6 +535,7 @@ class BugTabs extends BugElement {
         this.view.append(this.contentsView);
 
         var select = null;
+        var hashSelect = null;
         this.tabs = [];
         data.tabs.forEach(function (tab) {
             tab.tabView = $('<span class="tab">' + tab.title + '</span>');
@@ -542,14 +543,21 @@ class BugTabs extends BugElement {
             var t = tab;
             tab.tabView.click(function () {
                 this.showTab(t)
+                updateHash();
             }.bind(this));
+            if (tab.id != null) {
+                tab.tabView.attr('id', tab.id);
+                if (hashSelect == null && hashs.includes(tab.id)) hashSelect = tab;
+            }
+            if (tab.default) tab.tabView.attr('default', true);
             this.tabsView.append(tab.tabView);
             this.contentsView.append(tab.contentView);
             this.tabs.push(tab);
             if (select == null || tab.default == true) select = tab;
         }, this);
 
-        if (select != null) this.showTab(select);
+        if (hashSelect != null) this.showTab(hashSelect);
+        else if (select != null) this.showTab(select);
     }
 
     showTab(tab) {
@@ -766,4 +774,20 @@ function setCaretToCoordinated(x, y) {
     return range;
 }
 
+function updateHash() {
+    var url = "";
+    $('.tab.active[id]').each(function() {
+        if($(this).attr('default') == null) {
+            if (url.length != 0) url += "/"
+            url += $(this).attr('id');
+        }
+    });
+    history.replaceState(url, "", "#" + url);
+}
+
 $(window).resize(autoScale);
+
+hashs = $(location).attr('hash').substr(1).split("/")
+$(window).bind( 'hashchange', function(e) {
+    hashs = $(location).attr('hash').substr(1).split("/")
+});

@@ -46,6 +46,11 @@ public class IoBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
+    public String getTabId() {
+        return "io";
+    }
+
+    @Override
     public BugElement getContent() {
         return new BugDiv().add(new BugInclude("/io/")).format(BugFormat.tabContent);
     }

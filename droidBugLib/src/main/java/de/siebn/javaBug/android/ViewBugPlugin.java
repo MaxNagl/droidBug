@@ -243,6 +243,11 @@ public class ViewBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
+    public String getTabId() {
+        return "views";
+    }
+
+    @Override
     public BugElement getContent() {
         return new BugInclude("/views");
     }

@@ -64,6 +64,11 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
     }
 
     @Override
+    public String getTabId() {
+        return "objects";
+    }
+
+    @Override
     public BugElement getContent() {
         return new BugInclude("/objects/");
     }

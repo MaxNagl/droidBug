@@ -25,7 +25,7 @@ public class RootBugPlugin implements BugPlugin {
 
     public interface MainBugPlugin extends BugPlugin {
         String getTabName();
-
+        String getTabId();
         BugElement getContent();
     }
 
@@ -59,8 +59,9 @@ public class RootBugPlugin implements BugPlugin {
                 split.add(new BugSplitElement(plugin.getContent()));
             } else {
                 BugTab tab = new BugTab();
-                tab.title = plugin.getTabName();
-                tab.content = plugin.getContent();
+                tab.setTitle(plugin.getTabName());
+                tab.setContent(plugin.getContent());
+                tab.setId(plugin.getTabId());
                 tabs.tabs.add(tab);
             }
         }

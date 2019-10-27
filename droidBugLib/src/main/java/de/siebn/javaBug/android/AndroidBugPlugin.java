@@ -70,6 +70,11 @@ public class AndroidBugPlugin implements RootBugPlugin.MainBugPlugin, BugReferen
     }
 
     @Override
+    public String getTabId() {
+        return "android";
+    }
+
+    @Override
     public BugElement getContent() {
         return new BugInclude("/application");
     }

@@ -442,12 +442,29 @@ public abstract class BugElement {
 
         public static class BugTab implements BugJsonElement {
             public String title;
+            public String id;
             public BugElement content;
 
             @Override
             public void writeJsonFields(BugJsonWriter writer) {
+                writer.wrtieField("id", id);
                 writer.wrtieField("title", title);
                 writer.wrtieField("content", content);
+            }
+
+            public BugTab setTitle(String title) {
+                this.title = title;
+                return this;
+            }
+
+            public BugTab setId(String id) {
+                this.id = id;
+                return this;
+            }
+
+            public BugTab setContent(BugElement content) {
+                this.content = content;
+                return this;
             }
         }
 

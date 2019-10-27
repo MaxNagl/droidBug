@@ -23,6 +23,11 @@ public class FileBugPlugin implements RootBugPlugin.MainBugPlugin {
     }
 
     @Override
+    public String getTabId() {
+        return "files";
+    }
+
+    @Override
     public BugElement getContent() {
         return new BugDiv().add(new BugInclude("/files/")).format(BugFormat.tabContent);
     }
