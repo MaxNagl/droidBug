@@ -17,6 +17,7 @@ public class BugInputElementBuilder {
         } else {
             BugInputText bugInput = new BugInputText("p" + paramIndex, null);
             bugInput.text = text;
+            bugInput.postfix = typeAdapter.getUnit();
             if (value == null) bugInput.mode = "null";
             input = bugInput;
         }

@@ -129,24 +129,34 @@ a {
 }
 
 .BugInputText {
+  background-color: #111;
   border: 1px solid #444;
-  padding: 0px 5px;
   display: inline-block;
   cursor: default;
   position: relative;
   white-space: pre-wrap;
-  &[contenteditable=true] {
+  span[contenteditable=true] {
+    padding: 0px 5px;
+    display: inline-block;
+    min-width: 5px;
+    outline: none;
     cursor: text;
-    background-color: #111;
-    &:empty:before {
-      content: "\00a0";
+  }
+  &:focus-within {
+    border: 1px solid #444;
+  }
+  .prefix {
+    .colorSecondary;
+    padding-left: 5px;
+    &:empty {
+      padding-left: 0px;
     }
-    &:after {
-      .colorSecondary;
-      position: absolute;
-      left: 8px;
-      top: 0px;
-      content: attr(prefix);
+  }
+  .postfix {
+    .colorSecondaryLight;
+    padding-right: 5px;
+    &:empty {
+      padding-right: 0px;
     }
   }
 }

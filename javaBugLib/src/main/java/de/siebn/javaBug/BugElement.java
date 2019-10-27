@@ -293,12 +293,18 @@ public abstract class BugElement {
         public boolean scriptable = true;
         public boolean referenceable = true;
         public boolean textable = true;
+        public String postfix;
         public String mode;
 
         public BugInputText(String callId, String text) {
             super(text);
             this.callId = callId;
             enabled = true;
+        }
+
+        public BugInputText setPostfix(String postfix) {
+            this.postfix = postfix;
+            return this;
         }
 
         @Override
@@ -309,6 +315,7 @@ public abstract class BugElement {
             writer.wrtieField("referenceable", referenceable);
             writer.wrtieField("textable", textable);
             writer.wrtieField("mode", mode);
+            writer.wrtieField("postfix", postfix);
         }
     }
 

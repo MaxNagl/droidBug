@@ -242,12 +242,22 @@ class BugLink extends BugText {
 class BugInputText extends BugText {
     constructor(parent, data) {
         super(parent, data, $('<span>'));
+        this.prefixView = $('<span class="prefix">');
+        this.view.append(this.prefixView);
+        this.textView = $('<span>');
+        this.view.append(this.textView);
+        this.setValue(data.text);
+        if (data.postfix != null) {
+            this.postfix = $('<span class="postfix">');
+            this.view.append(this.postfix);
+            this.postfix.text(data.postfix);
+        }
         if (data.mode == null) this.toggleMode(); else this.setMode(data.mode);
         if (data.enabled == false) {
-            this.view.prop('disabled', true);
+            this.textView.prop('disabled', true);
         } else {
-            this.view.attr('contenteditable', true);
-            this.view.on('keydown', function (e) {
+            this.textView.attr('contenteditable', true);
+            this.textView.on('keydown', function (e) {
                 if (e.keyCode == 13) { // enter
                     if (!e.shiftKey && (data.multiline != true || e.ctrlKey)) {
                         e.preventDefault();
@@ -259,29 +269,29 @@ class BugInputText extends BugText {
                     this.onEsc();
                 }
                 if (e.keyCode == 8 || e.keyCode == 46) { // backspace or delete
-                    if (this.data.nullable == true && this.view.text() == "") {
+                    if (this.data.nullable == true && this.textView.text() == "") {
                         if (this.mode == 'null') this.unsetNull(); else this.setMode('null');
                     }
                 }
             }.bind(this));
-            this.view.on('keypress', function (e) {
+            this.textView.on('keypress', function (e) {
                 if (e.keyCode == 32 && (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey)) { // ctrl
                     e.preventDefault();
                     this.toggleMode();
                 }
             }.bind(this));
-            this.view.on('paste', function (e) {
+            this.textView.on('paste', function (e) {
                 e.preventDefault();
                 document.execCommand("insertText", false, e.originalEvent.clipboardData.getData("text/plain"));
             }.bind(this));
-            this.view.on('keyup keypress focus blur change', function (e) {
-                if (this.mode == 'null' && this.view.text() != '') this.unsetNull()
+            this.textView.on('keyup keypress focus blur change', function (e) {
+                if (this.mode == 'null' && this.textView.text() != '') this.unsetNull()
             }.bind(this));
-            this.view.on('dragover', function (e) {
+            this.textView.on('dragover', function (e) {
                 setCaretToCoordinated(e.clientX, e.clientY);
                 e.preventDefault();
             }.bind(this));
-            this.view.on('drop', function (e) {
+            this.textView.on('drop', function (e) {
                 var ref = e.originalEvent.dataTransfer.getData("ref");
                 if (ref != null && ref.length > 0 && this.data.referenceable) {
                     if (this.mode.startsWith('script-')) {
@@ -289,7 +299,7 @@ class BugInputText extends BugText {
                         if (range != null) {
                             range.insertNode(document.createTextNode(ref));
                         } else {
-                            this.view.append(ref);
+                            this.textView.append(ref);
                         }
                     } else {
                         this.setMode("ref");
@@ -305,24 +315,27 @@ class BugInputText extends BugText {
         if (mode == 'script') mode = availableScripts.empty ? "" : availableScripts[0];
         if (mode == "null" && this.mode != "null") this.lastMode = this.mode;
         this.mode = mode;
-        this.view.attr('mode', mode);
+        this.textView.attr('mode', mode);
         var prefix = null;
         if (mode.startsWith('script-')) {
-            this.view.attr('mode', 'script');
+            this.textView.attr('mode', 'script');
             prefix = mode.substring(7);
         }
         if (mode == 'null') prefix = 'null';
         if (mode == 'ref') prefix = '@';
-        this.view.attr('prefix', prefix);
-        if (prefix != null) {
-            this.view.css('padding-left', getTextWidth(prefix) + 12);
-        } else {
-            this.view.css('padding-left', '');
-        }
+        this.prefixView.text(prefix);
+    }
+
+    getValue() {
+        if (this.textView.hasClass("null")) return null;
+        return this.textView.text()
     }
 
     setValue(value) {
-        super.setValue(value)
+        if (this.textView == null) return
+        if (this.textView.text() != value) {
+            this.textView.text(value)
+        }
         if (value == null) {
             this.setMode("null");
         } else if (this.mode == "null") {

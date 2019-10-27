@@ -98,7 +98,6 @@ public class BugPropertyEntryBuilder {
                 if (!defaultTypeAdapter) getter.setReturnTypeAdapter(typeAdapter);
                 input.setRefreshUrl(getter.build());
             }
-            invokable.add(new BugText(typeAdapter.getUnit()));
             entry.add(BugText.NBSP);
             entry.add(invokable);
             entry.setExpandInclude(ObjectBugPlugin.getObjectDetailsLink(value));
