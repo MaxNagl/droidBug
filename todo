@@ -2,14 +2,10 @@ URLEncoder.encode(pValue, "UTF-8")
 
 * HTML: widthGroups
 * HTML: Overview mode with collapsed single categories
-* HTML: Slider for BugSplit
-* BugInputText: units
-
-* Tabs: Save Opened
 
 * References: Resolve . seperated chain
+* Replace POJO with BugProperty
 
-* ConsoleBugPlugin: Show always on bottom
 * ConsoleBugPlugin: Stash
 * ConsoleBugPlugin: History
 
