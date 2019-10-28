@@ -49,13 +49,7 @@ public abstract class BugAbstractOutputCategory implements BugOutputCategory {
     public BugElement getMethodInformation(Object o, Method m, Object[] predefined, Object[] preset) {
         if (predefined == null) predefined = empty;
         if (preset == null) preset = empty;
-        boolean canInvoke = true;
         Class<?>[] parameterTypes = m.getParameterTypes();
-        for (int i = 0; i < parameterTypes.length; i++) {
-            Class c = parameterTypes[i];
-            if (!TypeAdapters.getTypeAdapter(c).canParse(c) && (predefined.length <= i || predefined[i] == null))
-                canInvoke = false;
-        }
         BugEntry json = new BugEntry();
         json.addClazz(StringifierUtil.modifiersToString(m.getModifiers(), "mod", true));
         json.add(BugText.getForModifier(m.getModifiers())).addSpace();
@@ -71,7 +65,7 @@ public abstract class BugAbstractOutputCategory implements BugOutputCategory {
             invokable.add(BugInputElementBuilder.build(preset.length > i ? preset[i] : null, parameterTypes[i], i, TypeAdapters.getTypeAdapter(parameterTypes[i])));
             firstParameter = false;
         }
-        if (canInvoke) invokable.url = new InvocationLinkBuilder(m, o).setReturnType(ObjectBugPlugin.RETURN_TYPE_JSON).setPredefined(predefined).build();
+        invokable.url = new InvocationLinkBuilder(m, o).setReturnType(ObjectBugPlugin.RETURN_TYPE_JSON).setPredefined(predefined).build();
         invokable.addBraces();
         invokable.add(BugText.INVOKER);
         json.add(invokable);

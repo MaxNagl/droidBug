@@ -141,6 +141,9 @@ a {
     min-width: 5px;
     outline: none;
     cursor: text;
+    &:empty:before {
+      content: "\2009";
+    }
   }
   &:focus-within {
     border: 1px solid #444;

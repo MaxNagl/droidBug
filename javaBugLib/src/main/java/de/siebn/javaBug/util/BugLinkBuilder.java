@@ -1,5 +1,7 @@
 package de.siebn.javaBug.util;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,10 +24,18 @@ public class BugLinkBuilder {
     public String build() {
         StringBuilder sb = new StringBuilder();
         for (Entry<String, String> e : parameters.entrySet()) {
-            sb.append(sb.length() == 0 ? '?' : "&").append(e.getKey());
-            if (e.getValue() != null) sb.append("=").append(e.getValue());
+            sb.append(sb.length() == 0 ? '?' : "&").append(encode(e.getKey()));
+            if (e.getValue() != null) sb.append("=").append(encode(e.getValue()));
         }
         sb.insert(0, path);
         return sb.toString();
+    }
+
+    private String encode(String text) {
+        try {
+            return URLEncoder.encode(text, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

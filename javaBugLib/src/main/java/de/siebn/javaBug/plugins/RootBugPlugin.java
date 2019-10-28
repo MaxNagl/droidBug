@@ -37,7 +37,7 @@ public class RootBugPlugin implements BugPlugin {
         head.add("link").setAttr("rel", "stylesheet/less").setAttr("href", "/file/bugStyle.less");
         head.add("script").setAttr("src", "/file/jquery.js");
         head.add("script").setAttr("src", "/file/less.js");
-        head.add("script").setAttr("src", "http://10.7.1.23:7777/file/bugElements.js");
+        head.add("script").setAttr("src", "/file/bugElements.js");
         head.add("script").appendText("$(function () { availableScripts = " + jb.getScriptBugPlugin().getEnginesJSArray() + "; $('body').loadContent('" + new BugInclude("/start/").toJson() + "', 'application/json'); });");
 
         XML body = xhtml.add("body");
