@@ -150,6 +150,11 @@ class BugElement {
             }.bind(this)
         });
     }
+
+    remove() {
+        this.view.remove();
+        for(var i = 0; i < this.parent.elements.length; i++) if (this.parent.elements[i] === this) this.parent.elements.splice(i, 1); 
+    }
 }
 
 class BugGroup extends BugElement {

@@ -108,7 +108,7 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
     public BugElement serveObjectsDetails(String[] params) {
         Object o = BugObjectCache.get(params[1]);
         BugList list = new BugList();
-        boolean alreadyOpened = false;
+        int alreadyOpened = 0;
         List<BugOutputCategory> outputCategories = getOutputCategories(o.getClass());
         for (BugOutputCategory cat : outputCategories) {
             String name = cat.getName(o);
@@ -119,13 +119,15 @@ public class ObjectBugPlugin implements RootBugPlugin.MainBugPlugin, BugEvaluato
                 c.setExpandInclude(expandUrl);
                 c.elements.add(BugText.NBSP);
                 c.elements.add(BugInvokable.getExpandRefresh(expandUrl));
-                if (cat.opened(outputCategories, alreadyOpened)) {
+                if (cat.opened(outputCategories, alreadyOpened > 0)) {
                     c.autoExpand = true;
-                    alreadyOpened = true;
+                    alreadyOpened++;
                 }
-                list.elements.add(c);
+                list.add(c.format(BugFormat.hideable));
             }
         }
+        list.add(new BugText(UnicodeCharacters.HYPHENATION_POINT_3).format(BugFormat.category).setOnClick("$(this.parent.view).removeClass('hide'); this.remove();"));
+        if (alreadyOpened == 1) list.addClazz("hide");
         return list;
     }
 

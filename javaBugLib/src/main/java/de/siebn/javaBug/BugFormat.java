@@ -32,6 +32,7 @@ public enum BugFormat {
     button,
     inlineStream,
     preWrap,
+    hideable,
 
     autoScale,
     autoScaleCenter,

@@ -283,6 +283,12 @@ pre.console {
     border: none;
   }
 }
+.hide > .BugEntry.hideable > :not(.entryContent) {
+  display: none;
+}
+.hide > .BugEntry.hideable > .entryContent {
+  padding-left: 0px;
+}
 
 // @formatter:off
 .modFilter:not(.showpublic) .modpublic{display:none}
