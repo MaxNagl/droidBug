@@ -261,6 +261,9 @@ class BugInputText extends BugText {
         if (data.enabled == false) {
             this.textView.prop('disabled', true);
         } else {
+            this.view.click(function (e) {
+                this.textView.focus();
+            }.bind(this));
             this.textView.attr('contenteditable', true);
             this.textView.on('keydown', function (e) {
                 if (e.keyCode == 13) { // enter

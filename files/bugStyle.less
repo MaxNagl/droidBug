@@ -132,7 +132,7 @@ a {
   background-color: #111;
   border: 1px solid #444;
   display: inline-block;
-  cursor: default;
+  cursor: text;
   position: relative;
   white-space: pre-wrap;
   span[contenteditable=true] {
@@ -140,7 +140,6 @@ a {
     display: inline-block;
     min-width: 5px;
     outline: none;
-    cursor: text;
     &:empty:before {
       content: "\2009";
     }
@@ -268,17 +267,14 @@ pre.console {
   border-bottom: 1px solid #777;
   background-color: #222;
 }
-.BugInvokable.console {
-  padding: 8px 0px;
-  background-color: #111;
-}
 .BugInputText.console {
+  padding: 8px 0px;
   display:block;
   position: relative;
   font-family: monospace;
   border: none;
   outline: none;
-  background-color: transparent;
+  background-color: #111;
   &.active {
     border: none;
   }
